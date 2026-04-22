@@ -1,0 +1,36 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Login";
+}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card-glass animate-slide-up" style="width: 100%; max-width: 400px;">
+        <h2 class="text-center mb-4 fw-bold">Welcome Back</h2>
+        <p class="text-center text-muted mb-4">Please enter your details</p>
+        
+        <form id="loginForm">
+            <div class="mb-3">
+                <label class="form-label text-muted small">Username</label>
+                <input type="text" id="username" class="form-control form-control-custom" placeholder="Enter username" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label text-muted small">Password</label>
+                <input type="password" id="password" class="form-control form-control-custom" placeholder="••••••••" required>
+            </div>
+            
+            <div id="loginError" class="text-danger small mb-3 text-center" style="display: none;">
+                Invalid username or password.
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom">Sign In</button>
+        </form>
+
+        <div class="mt-4 text-center">
+            <p class="text-muted small">Don't have an account? <a href="/Account/Register" class="text-primary text-decoration-none">Sign Up</a></p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/auth.js"></script>
+}

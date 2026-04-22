@@ -1,0 +1,75 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Register";
+}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 85vh;">
+    <div class="card-glass animate-slide-up" style="width: 100%; max-width: 500px;">
+        <h2 class="text-center mb-2 fw-bold">Create Account</h2>
+        <p class="text-center text-muted mb-4 small">Fill in the information below to get started</p>
+        
+        <form id="registerForm">
+            <!-- Full Name -->
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-medium">Full Name</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                    <input type="text" id="regName" class="form-control form-control-custom border-start-0" placeholder="Nguyễn Văn A" required>
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-medium">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-at"></i></span>
+                    <input type="text" id="regUsername" class="form-control form-control-custom border-start-0" placeholder="username123" required>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-medium">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                    <input type="email" id="regEmail" class="form-control form-control-custom border-start-0" placeholder="email@example.com" required>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted small fw-medium">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                        <input type="password" id="regPassword" class="form-control form-control-custom border-start-0" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <label class="form-label text-muted small fw-medium">Confirm</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-check-circle"></i></span>
+                        <input type="password" id="regConfirmPassword" class="form-control form-control-custom border-start-0" placeholder="••••••••" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="regError" class="text-danger small mb-3 text-center" style="display: none;"></div>
+            <div id="regSuccess" class="text-success fw-bold small mb-3 text-center" style="display: none;">
+                <i class="bi bi-check-circle-fill me-1"></i> Đăng ký thành công! Đang chuyển hướng...
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom py-2 shadow-sm">
+                Create My Account
+            </button>
+        </form>
+
+        <div class="mt-4 text-center">
+            <p class="text-muted small">Already have an account? <a href="/Account/Login" class="text-primary fw-bold text-decoration-none">Sign In</a></p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/auth.js"></script>
+}
