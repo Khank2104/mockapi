@@ -2,8 +2,13 @@ const API_PROXY_URL = "/api/UserProxy";
 let currentUser = null;
 let currentEditingUser = null;
 let allUsers = [];
+let filteredUsers = [];
 let currentSortField = '';
 let currentSortOrder = 'asc';
+
+// Pagination variables
+let currentPage = 1;
+const pageSize = 10;
 
 document.addEventListener('DOMContentLoaded', () => {
     currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -16,8 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function getAuthHeaders() {
     return {
-        'Content-Type': 'application/json',
-        'X-Requester-Id': currentUser.id
+        'Content-Type': 'application/json'
     };
 }
 
@@ -33,10 +37,16 @@ async function loadUsers() {
         });
         if (response.ok) {
             allUsers = await response.json();
-            renderUserTable(allUsers);
+            filteredUsers = [...allUsers];
+            renderUserTable(filteredUsers);
+        } else if (response.status === 401 || response.status === 403) {
+            // Cookie/LocalStorage cũ không còn hợp lệ -> Bắt buộc đăng nhập lại
+            logout();
+        } else {
+            console.error("Lỗi khi tải dữ liệu.");
         }
     } catch (error) {
-        console.error("Lỗi khi tải dữ liệu.");
+        console.error("Lỗi khi tải dữ liệu.", error);
     }
 }
 
@@ -48,7 +58,20 @@ function renderUserTable(users) {
     const template = document.getElementById('userRowTemplate');
     tbody.innerHTML = '';
 
-    users.forEach(user => {
+    // Pagination logic
+    const totalPages = Math.ceil(users.length / pageSize);
+    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, users.length);
+    const paginatedUsers = users.slice(startIndex, endIndex);
+
+    if (paginatedUsers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-5 text-muted">Không tìm thấy người dùng nào.</td></tr>`;
+    }
+
+    paginatedUsers.forEach(user => {
         const clone = template.content.cloneNode(true);
         const tr = clone.querySelector('tr');
 
@@ -69,6 +92,36 @@ function renderUserTable(users) {
 
         tbody.appendChild(clone);
     });
+
+    // Update pagination controls
+    const paginationControls = document.getElementById('paginationControls');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+
+    if (users.length > pageSize) {
+        paginationControls.style.setProperty('display', 'flex', 'important');
+        pageInfo.innerText = `Showing ${startIndex + 1} to ${endIndex} of ${users.length} users`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+    } else {
+        paginationControls.style.setProperty('display', 'none', 'important');
+    }
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        renderUserTable(filteredUsers);
+    }
+}
+
+function nextPage() {
+    const totalPages = Math.ceil(filteredUsers.length / pageSize);
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderUserTable(filteredUsers);
+    }
 }
 
 async function deleteUser(id) {
@@ -98,24 +151,26 @@ function sortUsers(field) {
         currentSortField = field;
         currentSortOrder = 'asc';
     }
-    allUsers.sort((a, b) => {
+    filteredUsers.sort((a, b) => {
         let valA = (a[field] || "").toString().toLowerCase();
         let valB = (b[field] || "").toString().toLowerCase();
         if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
         if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
         return 0;
     });
-    renderUserTable(allUsers);
+    currentPage = 1; // Quay về trang 1 khi sort
+    renderUserTable(filteredUsers);
 }
 
 document.getElementById('searchInput')?.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
-    const filtered = allUsers.filter(u =>
+    filteredUsers = allUsers.filter(u =>
         u.name.toLowerCase().includes(term) ||
         u.username.toLowerCase().includes(term) ||
         u.email.toLowerCase().includes(term)
     );
-    renderUserTable(filtered);
+    currentPage = 1; // Quay về trang 1 khi search
+    renderUserTable(filteredUsers);
 });
 
 async function editUser(id) {
