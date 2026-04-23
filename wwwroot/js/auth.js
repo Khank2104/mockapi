@@ -21,7 +21,12 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
 
         if (result.success) {
             localStorage.setItem('currentUser', JSON.stringify(result.data));
-            window.location.href = '/';
+            const user = result.data;
+            if (user.role === 'admin' || user.role === 'superuser') {
+                window.location.href = '/Admin';
+            } else {
+                window.location.href = '/';
+            }
         } else {
             errorDiv.innerText = result.message || "Sai tên đăng nhập hoặc mật khẩu!";
             errorDiv.style.display = 'block';
@@ -73,14 +78,30 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
 });
 
 function checkAuth() {
-    const user = localStorage.getItem('currentUser');
-    const path = window.location.pathname;
+    const userJson = localStorage.getItem('currentUser');
+    const path = window.location.pathname.toLowerCase();
 
-    if (!user && path !== '/Account/Login' && path !== '/Account/Register') {
-        window.location.href = '/Account/Login';
+    if (!userJson) {
+        if (path !== '/account/login' && path !== '/account/register') {
+            window.location.href = '/Account/Login';
+        }
+        return;
     }
 
-    if (user && (path === '/Account/Login' || path === '/Account/Register')) {
+    const user = JSON.parse(userJson);
+    
+    // Nếu đã đăng nhập mà cố vào trang login/register
+    if (path === '/account/login' || path === '/account/register') {
+        if (user.role === 'admin' || user.role === 'superuser') {
+            window.location.href = '/Admin';
+        } else {
+            window.location.href = '/';
+        }
+        return;
+    }
+
+    // Kiểm tra quyền truy cập trang Admin
+    if (path.startsWith('/admin') && user.role !== 'admin' && user.role !== 'superuser') {
         window.location.href = '/';
     }
 }
