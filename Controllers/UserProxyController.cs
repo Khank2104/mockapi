@@ -82,6 +82,7 @@ namespace UserManagementSystem.Controllers
             return Ok(response);
         }
 
+
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
