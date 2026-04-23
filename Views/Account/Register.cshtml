@@ -6,63 +6,91 @@
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 85vh;">
     <div class="card-glass animate-slide-up" style="width: 100%; max-width: 500px;">
         <h2 class="text-center mb-2 fw-bold">Create Account</h2>
-        <p class="text-center text-muted mb-4 small">Fill in the information below to get started</p>
-        
-        <form id="registerForm">
-            <!-- Full Name -->
-            <div class="mb-3">
-                <label class="form-label text-muted small fw-medium">Full Name</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-person"></i></span>
-                    <input type="text" id="regName" class="form-control form-control-custom border-start-0" placeholder="Nguyễn Văn A" required>
-                </div>
-            </div>
+        <p class="text-center text-muted mb-4 small" id="registerSubtitle">Fill in the information below to get started</p>
 
-            <!-- Username -->
-            <div class="mb-3">
-                <label class="form-label text-muted small fw-medium">Username</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-at"></i></span>
-                    <input type="text" id="regUsername" class="form-control form-control-custom border-start-0" placeholder="username123" required>
-                </div>
-            </div>
-
-            <!-- Email -->
-            <div class="mb-3">
-                <label class="form-label text-muted small fw-medium">Email Address</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
-                    <input type="email" id="regEmail" class="form-control form-control-custom border-start-0" placeholder="email@example.com" required>
-                </div>
-            </div>
-
-            <!-- Password -->
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label text-muted small fw-medium">Password</label>
+        <!-- BƯỚC 1: Nhập thông tin đăng ký -->
+        <div id="registerSection">
+            <form id="registerForm">
+                <!-- Full Name -->
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-medium">Full Name</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-lock"></i></span>
-                        <input type="password" id="regPassword" class="form-control form-control-custom border-start-0" placeholder="••••••••" required>
+                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                        <input type="text" id="regName" class="form-control form-control-custom border-start-0" placeholder="Nguyễn Văn A" required>
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
-                    <label class="form-label text-muted small fw-medium">Confirm</label>
+
+                <!-- Username -->
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-medium">Username</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-check-circle"></i></span>
-                        <input type="password" id="regConfirmPassword" class="form-control form-control-custom border-start-0" placeholder="••••••••" required>
+                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-at"></i></span>
+                        <input type="text" id="regUsername" class="form-control form-control-custom border-start-0" placeholder="username123" required>
                     </div>
                 </div>
-            </div>
-            
-            <div id="regError" class="text-danger small mb-3 text-center" style="display: none;"></div>
-            <div id="regSuccess" class="text-success fw-bold small mb-3 text-center" style="display: none;">
-                <i class="bi bi-check-circle-fill me-1"></i> Đăng ký thành công! Đang chuyển hướng...
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-medium">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                        <input type="email" id="regEmail" class="form-control form-control-custom border-start-0" placeholder="email@example.com" required>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted small fw-medium">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                            <input type="password" id="regPassword" class="form-control form-control-custom border-start-0" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label text-muted small fw-medium">Confirm</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-check-circle"></i></span>
+                            <input type="password" id="regConfirmPassword" class="form-control form-control-custom border-start-0" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="regError" class="text-danger small mb-3 text-center" style="display: none;"></div>
+
+                <button type="submit" id="registerSubmitBtn" class="btn btn-primary-custom py-2 shadow-sm">
+                    <i class="bi bi-send me-2"></i>Gửi mã xác thực OTP
+                </button>
+            </form>
+        </div>
+
+        <!-- BƯỚC 2: Nhập OTP xác thực -->
+        <div id="otpRegisterSection" style="display: none;">
+            <div class="text-center mb-4">
+                <div class="mb-3">
+                    <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <p class="text-muted small">Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư và nhập mã bên dưới.</p>
             </div>
 
-            <button type="submit" class="btn btn-primary-custom py-2 shadow-sm">
-                Create My Account
+            <div class="mb-4">
+                <label class="form-label text-muted small fw-medium text-center w-100">Mã xác thực (OTP)</label>
+                <input type="text" id="regOtp" class="form-control form-control-custom text-center fw-bold"
+                    maxlength="6" placeholder="000000" style="font-size: 2rem; letter-spacing: 0.5rem;">
+            </div>
+
+            <div id="regOtpError" class="text-danger small mb-3 text-center" style="display: none;"></div>
+            <div id="regOtpSuccess" class="text-success small mb-3 text-center" style="display: none;">
+                <i class="bi bi-check-circle-fill me-1"></i>Đăng ký thành công! Đang chuyển hướng...
+            </div>
+
+            <button type="button" id="verifyRegisterOtpBtn" class="btn btn-primary-custom py-2 shadow-sm">
+                <i class="bi bi-check2-circle me-2"></i>Xác nhận & Tạo tài khoản
             </button>
-        </form>
+            <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 mt-2 text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </button>
+        </div>
 
         <div class="mt-4 text-center">
             <p class="text-muted small">Already have an account? <a href="/Account/Login" class="text-primary fw-bold text-decoration-none">Sign In</a></p>

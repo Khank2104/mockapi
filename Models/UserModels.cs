@@ -1,15 +1,16 @@
 namespace UserManagementSystem.Models
 {
-    // Model đại diện cho dữ liệu lưu trong MockAPI
+    // Model đại diện cho dữ liệu lưu trong SQL Server
     public class User
     {
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty; // Chứa hash
+        public string Password { get; set; } = string.Empty; // Chứa hash SHA256
         public string Role { get; set; } = "user";
         public string? Avatar { get; set; }
+        public bool OtpEnabled { get; set; } = false; // Mặc định TẮT OTP, user tự bật trong Settings
     }
 
     // Model trả về Frontend (An toàn, không lộ mật khẩu)

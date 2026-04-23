@@ -21,6 +21,17 @@
                 <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-shield-lock-fill me-2 text-primary"></i>AuthSystem
                 </a>
+                <div class="navbar-nav ms-auto" id="navbarMenu">
+                    <a class="nav-link text-primary fw-bold" href="/Admin" id="navAdmin" style="display:none;">
+                        <i class="bi bi-speedometer2 me-1"></i>Quản lý User
+                    </a>
+                    <a class="nav-link" href="/Settings" id="navSettings" style="display:none;">
+                        <i class="bi bi-gear me-1"></i>Settings
+                    </a>
+                    <a class="nav-link text-danger" href="#" id="navLogout" style="display:none;" onclick="logout()">
+                        <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+                    </a>
+                </div>
             </div>
         </nav>
     </header>
@@ -35,8 +46,95 @@
         </div>
     </footer>
 
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast card-glass" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header border-0 bg-transparent">
+                <i class="bi bi-bell-fill me-2 text-primary"></i>
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <small class="text-muted">Just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Hello, world! This is a toast message.
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        connection.on("ReceiveNotification", (title, message, type) => {
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+            
+            // Đổi màu dựa trên type
+            const icon = toastEl.querySelector('i');
+            icon.className = `bi bi-bell-fill me-2 text-${type || 'primary'}`;
+            
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        });
+
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
+    <script>
+        // Hiển thị/ẩn menu dựa trên trạng thái đăng nhập và phân quyền
+        (function () {
+            const userJson = localStorage.getItem('currentUser');
+            if (userJson) {
+                const user = JSON.parse(userJson);
+                document.getElementById('navSettings').style.display = 'block';
+                document.getElementById('navLogout').style.display = 'block';
+                
+                if (user.role === 'admin' || user.role === 'superuser') {
+                    document.getElementById('navAdmin').style.display = 'block';
+                }
+            }
+        })();
+
+        async function logout() {
+            try {
+                await fetch('/api/UserProxy/Logout', { method: 'POST' });
+            } catch (e) {}
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('tokenExpiry');
+            window.location.href = '/Account/Login';
+        }
+
+        // Kiểm tra Token Expiration liên tục (mỗi 1 phút)
+        setInterval(() => {
+            const expiry = localStorage.getItem('tokenExpiry');
+            if (expiry && window.location.pathname !== '/Account/Login') {
+                const timeLeft = parseInt(expiry) - Date.now();
+                if (timeLeft <= 0) {
+                    alert("Phiên đăng nhập của bạn đã hết hạn (6 tiếng). Vui lòng đăng nhập lại.");
+                    logout();
+                } else if (timeLeft <= 5 * 60 * 1000 && !window.hasShownExpiryWarning) {
+                    // Nếu còn dưới 5 phút, hiển thị thông báo
+                    window.hasShownExpiryWarning = true;
+                    if (typeof connection !== 'undefined' && connection.state === 'Connected') {
+                        // Tận dụng Toast của SignalR để hiển thị cảnh báo
+                        const toastEl = document.getElementById('liveToast');
+                        document.getElementById('toastTitle').innerText = "Cảnh báo bảo mật";
+                        document.getElementById('toastMessage').innerText = "Phiên đăng nhập của bạn sẽ tự động kết thúc sau chưa đầy 5 phút nữa!";
+                        toastEl.querySelector('i').className = `bi bi-shield-exclamation me-2 text-warning`;
+                        new bootstrap.Toast(toastEl).show();
+                    } else {
+                        alert("Phiên đăng nhập của bạn sẽ tự động kết thúc sau 5 phút nữa!");
+                    }
+                }
+            }
+        }, 60000);
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
