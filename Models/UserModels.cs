@@ -10,7 +10,10 @@ namespace UserManagementSystem.Models
         public string Password { get; set; } = string.Empty; // Chứa hash SHA256
         public string Role { get; set; } = "user";
         public string? Avatar { get; set; }
-        public bool OtpEnabled { get; set; } = false; // Mặc định TẮT OTP, user tự bật trong Settings
+        public bool OtpEnabled { get; set; } = false;
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
+        public string? Bio { get; set; }
     }
 
     // Model trả về Frontend (An toàn, không lộ mật khẩu)
@@ -22,6 +25,9 @@ namespace UserManagementSystem.Models
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = "user";
         public string? Avatar { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
+        public string? Bio { get; set; }
     }
 
     public class LoginRequest
@@ -48,6 +54,9 @@ namespace UserManagementSystem.Models
         public string Password { get; set; } = string.Empty;
         public string Role { get; set; } = "user";
         public string? Avatar { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
+        public string? Bio { get; set; }
     }
 
     public class UpdateUserRequest
@@ -58,6 +67,27 @@ namespace UserManagementSystem.Models
         public string Role { get; set; } = "user";
         public string? Avatar { get; set; }
         public string? Password { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
+        public string? Bio { get; set; }
+    }
+
+    public class ForgotPasswordRequest
+    {
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class ResetPasswordRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Otp { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+    }
+
+    public class ChangePasswordRequest
+    {
+        public string CurrentPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
     }
 
     public class ApiResponse

@@ -15,22 +15,67 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm mb-3">
+    <header class="sticky-top">
+        <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-shield-lock-fill me-2 text-primary"></i>AuthSystem
+                <a class="navbar-brand fw-bold d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <div class="bg-primary bg-gradient p-2 rounded-3 me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-shield-lock-fill text-white fs-5"></i>
+                    </div>
+                    <span class="bg-clip-text">AuthSystem</span>
                 </a>
-                <div class="navbar-nav ms-auto" id="navbarMenu">
-                    <a class="nav-link text-primary fw-bold" href="/Admin" id="navAdmin" style="display:none;">
-                        <i class="bi bi-speedometer2 me-1"></i>Quản lý User
-                    </a>
-                    <a class="nav-link" href="/Settings" id="navSettings" style="display:none;">
-                        <i class="bi bi-gear me-1"></i>Settings
-                    </a>
-                    <a class="nav-link text-danger" href="#" id="navLogout" style="display:none;" onclick="logout()">
-                        <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
-                    </a>
+                
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav ms-auto align-items-center gap-2">
+                        <li class="nav-item" id="navAdmin" style="display:none;">
+                            <a class="nav-link px-3 fw-semibold text-primary" href="/Admin">
+                                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        
+                        <!-- Notification Bell -->
+                        <li class="nav-item dropdown" id="navNotification" style="display:none;">
+                            <a class="nav-link p-2 position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="loadNotifications()">
+                                <i class="bi bi-bell fs-5"></i>
+                                <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style="display:none; font-size: 0.6rem; padding: 0.35em 0.65em;">
+                                    0
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-xl border-0 mt-3 animate-fade-in" style="width: 380px; max-height: 500px; overflow-y: auto; border-radius: 1rem;" id="notificationList">
+                                <li><h6 class="dropdown-header py-3">Thông báo của bạn</h6></li>
+                                <li><hr class="dropdown-divider m-0"></li>
+                                <li><div class="dropdown-item text-center text-muted small py-4">Đang tải...</div></li>
+                            </ul>
+                        </li>
+
+                        <!-- User Profile Dropdown -->
+                        <li class="nav-item dropdown" id="navUserDropdown" style="display:none;">
+                            <a class="nav-link d-flex align-items-center gap-2 ps-3" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img id="navAvatar" src="" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">
+                                <span id="navUserName" class="fw-semibold small d-none d-sm-inline">User</span>
+                                <i class="bi bi-chevron-down x-small"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-xl border-0 mt-3 animate-fade-in" style="border-radius: 1rem; min-width: 220px;">
+                                <li class="px-3 py-2 border-bottom mb-2">
+                                    <div class="fw-bold small" id="dropdownUserName">User Name</div>
+                                    <div class="text-muted x-small" id="dropdownUserRole">Role</div>
+                                </li>
+                                <li><a class="dropdown-item py-2" href="/Home/Profile"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a></li>
+                                <li><a class="dropdown-item py-2" href="/Settings"><i class="bi bi-gear me-2"></i>Cài đặt hệ thống</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2 text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Guest Buttons -->
+                        <li class="nav-item" id="navGuest" style="display:block;">
+                            <a class="btn btn-primary-custom px-4 rounded-pill shadow-sm" href="/Account/Login">Đăng nhập</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>
@@ -71,16 +116,35 @@
             .build();
 
         connection.on("ReceiveNotification", (title, message, type) => {
+            // Chúng ta không dùng hàm này nữa vì đã chuyển sang hệ thống Persistent Notification
+            // Nhưng có thể giữ lại để bắn Toast nhanh báo hiệu có tin mới
             const toastEl = document.getElementById('liveToast');
-            document.getElementById('toastTitle').innerText = title;
-            document.getElementById('toastMessage').innerText = message;
-            
-            // Đổi màu dựa trên type
-            const icon = toastEl.querySelector('i');
-            icon.className = `bi bi-bell-fill me-2 text-${type || 'primary'}`;
+            document.getElementById('toastTitle').innerText = "Thông báo mới";
+            document.getElementById('toastMessage').innerText = "Bạn vừa nhận được một thông báo mới. Hãy kiểm tra hộp thư!";
             
             const toast = new bootstrap.Toast(toastEl);
             toast.show();
+            fetchUnreadCount();
+        });
+
+        connection.on("NewNotification", (targetUserId) => {
+            // Server đã gửi vào Group riêng, nên client nhận được là chắc chắn của mình
+            fetchUnreadCount();
+            
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toastTitle').innerText = "Thông báo";
+            document.getElementById('toastMessage').innerText = "Bạn có thông báo mới trong hộp thư.";
+            new bootstrap.Toast(toastEl).show();
+        });
+
+        connection.on("NewRoleNotification", (roles) => {
+            // Server đã gửi vào Group Role, nhận được là chắc chắn dành cho Role mình
+            fetchUnreadCount();
+
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toastTitle').innerText = "Thông báo hệ thống";
+            document.getElementById('toastMessage').innerText = "Có cập nhật mới dành cho vai trò của bạn.";
+            new bootstrap.Toast(toastEl).show();
         });
 
         connection.start().catch(err => console.error(err.toString()));
@@ -91,12 +155,21 @@
             const userJson = localStorage.getItem('currentUser');
             if (userJson) {
                 const user = JSON.parse(userJson);
-                document.getElementById('navSettings').style.display = 'block';
-                document.getElementById('navLogout').style.display = 'block';
+                document.getElementById('navGuest').style.display = 'none';
+                document.getElementById('navUserDropdown').style.display = 'block';
+                document.getElementById('navNotification').style.display = 'block';
                 
+                // Cập nhật thông tin dropdown
+                document.getElementById('navUserName').innerText = user.name;
+                document.getElementById('navAvatar').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+                document.getElementById('dropdownUserName').innerText = user.name;
+                document.getElementById('dropdownUserRole').innerText = user.role.toUpperCase();
+
                 if (user.role === 'admin' || user.role === 'superuser') {
                     document.getElementById('navAdmin').style.display = 'block';
                 }
+                
+                fetchUnreadCount();
             }
         })();
 
@@ -133,6 +206,114 @@
                 }
             }
         }, 60000);
+
+        // -- LOGIC THÔNG BÁO (NOTIFICATION) --
+        let unreadCount = 0;
+
+        async function fetchUnreadCount() {
+            try {
+                const response = await fetch('/api/NotificationProxy/GetMyNotifications');
+                const result = await response.json();
+                if (result.success) {
+                    unreadCount = result.unreadCount;
+                    updateBadge();
+                }
+            } catch (e) {}
+        }
+
+        function updateBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (unreadCount > 0) {
+                badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        async function loadNotifications() {
+            const listEl = document.getElementById('notificationList');
+            listEl.innerHTML = `<li><h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                <span>Thông báo</span>
+                <a href="#" class="text-decoration-none small text-primary" onclick="markAllAsRead(event)">Đánh dấu tất cả đã đọc</a>
+            </h6></li><li><hr class="dropdown-divider"></li><li><div class="dropdown-item text-center text-muted small">Đang tải...</div></li>`;
+            
+            try {
+                const response = await fetch('/api/NotificationProxy/GetMyNotifications');
+                const result = await response.json();
+                
+                if (result.success) {
+                    unreadCount = result.unreadCount;
+                    updateBadge();
+
+                    if (result.data.length === 0) {
+                        listEl.innerHTML = `<li><h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span>Thông báo</span>
+                        </h6></li><li><hr class="dropdown-divider"></li><li><div class="dropdown-item text-center text-muted small py-3">Bạn không có thông báo nào.</div></li>`;
+                        return;
+                    }
+
+                    let html = `<li><h6 class="dropdown-header d-flex justify-content-between align-items-center">
+                        <span>Thông báo</span>
+                        <a href="#" class="text-decoration-none small text-primary" onclick="markAllAsRead(event)">Đánh dấu tất cả đã đọc</a>
+                    </h6></li><li><hr class="dropdown-divider"></li>`;
+
+                    result.data.forEach(n => {
+                        const date = new Date(n.createdAt).toLocaleString('vi-VN');
+                        const bg = n.isRead ? '' : 'bg-light';
+                        const dot = n.isRead ? '' : '<span class="p-1 bg-primary border border-light rounded-circle ms-2 d-inline-block"></span>';
+                        const opacity = n.isRead ? 'opacity-75' : '';
+                        
+                        html += `
+                        <li style="cursor:pointer;" onclick="markAsRead(${n.id}, event)">
+                            <div class="dropdown-item py-2 border-bottom ${bg} ${opacity}" style="white-space: normal;">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <strong class="mb-1 text-${n.type === 'success' ? 'success' : (n.type === 'error' ? 'danger' : 'primary')}">${n.title} ${dot}</strong>
+                                    <small class="text-muted" style="font-size: 0.7rem;">${date}</small>
+                                </div>
+                                <p class="mb-0 small">${n.message}</p>
+                            </div>
+                        </li>`;
+                    });
+
+                    listEl.innerHTML = html;
+                }
+            } catch (e) {
+                listEl.innerHTML = `<li><h6 class="dropdown-header">Thông báo</h6></li><li><hr class="dropdown-divider"></li><li><div class="dropdown-item text-center text-danger small">Lỗi khi tải thông báo.</div></li>`;
+            }
+        }
+
+        async function markAsRead(id, event) {
+            if (event) {
+                event.stopPropagation(); // Giữ menu mở
+                const li = event.currentTarget;
+                const item = li.querySelector('.dropdown-item');
+                if (item.classList.contains('bg-light')) {
+                    item.classList.remove('bg-light');
+                    item.classList.add('opacity-75');
+                    const dot = li.querySelector('.rounded-circle');
+                    if (dot) dot.remove();
+                    
+                    if (unreadCount > 0) {
+                        unreadCount--;
+                        updateBadge();
+                    }
+                    try {
+                        await fetch(`/api/NotificationProxy/MarkAsRead/${id}`, { method: 'POST' });
+                    } catch (e) {}
+                }
+            }
+        }
+
+        async function markAllAsRead(event) {
+            if (event) event.stopPropagation(); // Giữ menu mở
+            try {
+                await fetch(`/api/NotificationProxy/MarkAllAsRead`, { method: 'POST' });
+                unreadCount = 0;
+                updateBadge();
+                loadNotifications(); // Reload list
+            } catch (e) {}
+        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

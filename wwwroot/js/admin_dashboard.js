@@ -26,7 +26,7 @@ function getAuthHeaders() {
 }
 
 function setupDashboard() {
-    document.getElementById('welcomeText').innerText = `Welcome back, ${currentUser.name}!`;
+    document.getElementById('welcomeText').innerText = `Chào mừng quay trở lại, ${currentUser.name}!`;
     loadUsers();
 }
 
@@ -38,6 +38,7 @@ async function loadUsers() {
         if (response.ok) {
             allUsers = await response.json();
             filteredUsers = [...allUsers];
+            updateStats(allUsers);
             renderUserTable(filteredUsers);
         } else if (response.status === 401 || response.status === 403) {
             // Cookie/LocalStorage cũ không còn hợp lệ -> Bắt buộc đăng nhập lại
@@ -50,10 +51,17 @@ async function loadUsers() {
     }
 }
 
-function renderUserTable(users) {
-    const userCountElements = document.querySelectorAll('#userCount, #userCountBadge');
-    userCountElements.forEach(el => el.innerText = `${users.length} users`);
+function updateStats(users) {
+    const total = users.length;
+    const admins = users.filter(u => u.role === 'admin').length;
+    const superusers = users.filter(u => u.role === 'superuser').length;
 
+    document.getElementById('totalUsersCount').innerText = total;
+    document.getElementById('adminCount').innerText = admins;
+    document.getElementById('superuserCount').innerText = superusers;
+}
+
+function renderUserTable(users) {
     const tbody = document.getElementById('userTableBody');
     const template = document.getElementById('userRowTemplate');
     tbody.innerHTML = '';
@@ -101,7 +109,7 @@ function renderUserTable(users) {
 
     if (users.length > pageSize) {
         paginationControls.style.setProperty('display', 'flex', 'important');
-        pageInfo.innerText = `Showing ${startIndex + 1} to ${endIndex} of ${users.length} users`;
+        pageInfo.innerText = `Hiển thị ${startIndex + 1} đến ${endIndex} trên tổng số ${users.length}`;
         prevBtn.disabled = currentPage === 1;
         nextBtn.disabled = currentPage === totalPages;
     } else {

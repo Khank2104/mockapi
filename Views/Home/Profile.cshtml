@@ -1,0 +1,260 @@
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="card card-glass shadow-lg border-0 animate-slide-up" style="border-radius: 24px; overflow: hidden;">
+                <div class="card-header bg-primary py-5 text-center position-relative" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;">
+                    <div class="position-absolute top-0 end-0 p-3">
+                        <span id="profileRoleBadge" class="badge rounded-pill bg-white text-primary px-3 py-2 fw-bold shadow-sm">Role</span>
+                    </div>
+                    
+                    <div class="avatar-wrapper position-relative d-inline-block mt-3">
+                        <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=random&size=150" 
+                             class="rounded-circle border border-4 border-white shadow-lg" 
+                             style="width: 150px; height: 150px; object-fit: cover;" alt="Avatar">
+                        <label for="avatarUpload" class="avatar-edit-btn position-absolute bottom-0 end-0 bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
+                               style="width: 40px; height: 40px; cursor: pointer; border: 2px solid #eee;">
+                            <i class="bi bi-camera-fill text-primary"></i>
+                        </label>
+                        <input type="file" id="avatarUpload" hidden accept="image/*">
+                    </div>
+                    
+                    <h3 id="profileNameDisplay" class="text-white fw-bold mt-3 mb-0">Đang tải...</h3>
+                    <p id="profileEmailDisplay" class="text-white-50 small mb-0">Email</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form id="profileForm">
+                        <input type="hidden" id="profileId">
+                        
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <h5 class="fw-bold mb-3 text-dark border-start border-4 border-primary ps-3">Thông tin cơ bản</h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Họ và tên</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="bi bi-person text-muted"></i></span>
+                                    <input type="text" class="form-control bg-light border-0" id="profileName" required placeholder="Nhập họ tên">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Số điện thoại</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="bi bi-telephone text-muted"></i></span>
+                                    <input type="text" class="form-control bg-light border-0" id="profilePhone" placeholder="Chưa cập nhật">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Tên đăng nhập</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="bi bi-at text-muted"></i></span>
+                                    <input type="text" class="form-control bg-light border-0" id="profileUsername" readonly>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="bi bi-envelope text-muted"></i></span>
+                                    <input type="email" class="form-control bg-light border-0" id="profileEmail" readonly>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 mt-5">
+                                <h5 class="fw-bold mb-3 text-dark border-start border-4 border-primary ps-3">Thông tin chi tiết</h5>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label text-muted small fw-bold">Địa chỉ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="bi bi-geo-alt text-muted"></i></span>
+                                    <input type="text" class="form-control bg-light border-0" id="profileAddress" placeholder="Thành phố, Quốc gia...">
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label text-muted small fw-bold">Giới thiệu bản thân</label>
+                                <textarea class="form-control bg-light border-0" id="profileBio" rows="3" placeholder="Chia sẻ đôi chút về bạn..."></textarea>
+                            </div>
+                        </div>
+
+                        <div id="profileAlert" class="alert mt-4" style="display:none; border-radius: 12px;"></div>
+
+                        <div class="d-flex justify-content-end mt-5">
+                            <button type="submit" class="btn btn-primary px-5 py-3 fw-bold shadow-sm" id="btnUpdateProfile" style="border-radius: 12px;">
+                                <i class="bi bi-check-lg me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-edit-btn:hover {
+        transform: scale(1.1);
+        background-color: #f8f9fa !important;
+    }
+    .transition-all { transition: all 0.3s ease; }
+    .card-glass {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+    }
+    .input-group-text { border-radius: 12px 0 0 12px !important; }
+    .form-control { border-radius: 0 12px 12px 0 !important; }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userStr = localStorage.getItem('currentUser');
+            if (!userStr) {
+                window.location.href = '/Account/Login';
+                return;
+            }
+            
+            // Luôn fetch data mới nhất từ server thay vì dùng localStorage cũ
+            const userBasic = JSON.parse(userStr);
+            try {
+                const response = await fetch(`/api/UserProxy/GetMyProfile`);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        renderProfile(result.data);
+                    }
+                } else {
+                    renderProfile(userBasic);
+                }
+            } catch (e) {
+                renderProfile(userBasic);
+            }
+        });
+
+        function renderProfile(user) {
+            document.getElementById('profileId').value = user.id;
+            document.getElementById('profileName').value = user.name || '';
+            document.getElementById('profileUsername').value = user.username || '';
+            document.getElementById('profileEmail').value = user.email || '';
+            document.getElementById('profilePhone').value = user.phoneNumber || '';
+            document.getElementById('profileAddress').value = user.address || '';
+            document.getElementById('profileBio').value = user.bio || '';
+            
+            document.getElementById('profileNameDisplay').innerText = user.name;
+            document.getElementById('profileEmailDisplay').innerText = user.email;
+            document.getElementById('profileRoleBadge').innerText = user.role.toUpperCase();
+            
+            if (user.avatar) {
+                document.getElementById('profileAvatar').src = user.avatar;
+            } else {
+                document.getElementById('profileAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=150`;
+            }
+
+            const badge = document.getElementById('profileRoleBadge');
+            badge.className = (user.role === 'admin' || user.role === 'superuser') 
+                ? 'badge rounded-pill bg-white text-danger px-3 py-2 fw-bold shadow-sm'
+                : 'badge rounded-pill bg-white text-primary px-3 py-2 fw-bold shadow-sm';
+        }
+
+        // Xử lý Upload Avatar
+        document.getElementById('avatarUpload').addEventListener('change', async function(e) {
+            if (!e.target.files.length) return;
+            
+            const file = e.target.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const avatarImg = document.getElementById('profileAvatar');
+            const originalSrc = avatarImg.src;
+            avatarImg.style.opacity = '0.5';
+
+            try {
+                const response = await fetch('/api/UserProxy/UploadAvatar', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    avatarImg.src = result.avatarUrl;
+                    // Cập nhật lại localStorage
+                    const user = JSON.parse(localStorage.getItem('currentUser'));
+                    user.avatar = result.avatarUrl;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                } else {
+                    alert(result.message);
+                    avatarImg.src = originalSrc;
+                }
+            } catch (err) {
+                alert('Lỗi khi tải ảnh lên');
+                avatarImg.src = originalSrc;
+            } finally {
+                avatarImg.style.opacity = '1';
+            }
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnUpdateProfile');
+            const alertBox = document.getElementById('profileAlert');
+            const currentData = JSON.parse(localStorage.getItem('currentUser'));
+            
+            const payload = {
+                name: document.getElementById('profileName').value,
+                username: document.getElementById('profileUsername').value,
+                email: document.getElementById('profileEmail').value,
+                phoneNumber: document.getElementById('profilePhone').value,
+                address: document.getElementById('profileAddress').value,
+                bio: document.getElementById('profileBio').value,
+                role: currentData.role,
+                avatar: currentData.avatar,
+                password: null
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...';
+
+            try {
+                const response = await fetch(`/api/UserProxy/Update/${currentData.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alertBox.className = 'alert alert-success mt-4 d-flex align-items-center';
+                    alertBox.innerHTML = '<i class="bi bi-check-circle-fill me-3 fs-4"></i><div>Cập nhật hồ sơ thành công!</div>';
+                    alertBox.style.display = 'flex';
+                    
+                    // Cập nhật localStorage
+                    currentData.name = payload.name;
+                    localStorage.setItem('currentUser', JSON.stringify(currentData));
+                    
+                    document.getElementById('profileNameDisplay').innerText = payload.name;
+                } else {
+                    alertBox.className = 'alert alert-danger mt-4 d-flex align-items-center';
+                    alertBox.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i><div>${result.message}</div>`;
+                    alertBox.style.display = 'flex';
+                }
+            } catch (error) {
+                alertBox.className = 'alert alert-danger mt-4 d-flex align-items-center';
+                alertBox.innerHTML = '<i class="bi bi-wifi-off me-3 fs-4"></i><div>Lỗi kết nối máy chủ</div>';
+                alertBox.style.display = 'flex';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Lưu thay đổi';
+                setTimeout(() => { alertBox.style.display = 'none'; }, 3000);
+            }
+        });
+    </script>
+}

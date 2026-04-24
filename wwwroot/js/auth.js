@@ -204,3 +204,101 @@ function checkAuth() {
     }
 }
 
+// ── QUÊN MẬT KHẨU ──
+document.getElementById('forgotPasswordLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('credentialsSection').style.display = 'none';
+    document.getElementById('forgotPasswordSection').style.display = 'block';
+    document.getElementById('loginError').style.display = 'none';
+    
+    // Ẩn các link bên dưới form
+    const links = document.querySelectorAll('.card-glass > .text-center');
+    links.forEach(l => l.style.display = 'none');
+});
+
+document.getElementById('sendForgotOtpBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('forgotEmail').value;
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('sendForgotOtpBtn');
+
+    if (!email) {
+        errorDiv.innerText = "Vui lòng nhập Email.";
+        errorDiv.className = "text-danger small mt-3 text-center";
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi...';
+
+    try {
+        const response = await fetch(`${API_PROXY_URL}/ForgotPassword`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            document.getElementById('forgotPasswordSection').style.display = 'none';
+            document.getElementById('resetPasswordSection').style.display = 'block';
+            errorDiv.style.display = 'none';
+        } else {
+            errorDiv.innerText = result.message;
+            errorDiv.className = "text-danger small mt-3 text-center";
+            errorDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = 'Gửi OTP Khôi phục';
+        }
+    } catch (error) {
+        errorDiv.innerText = "Lỗi kết nối máy chủ.";
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = 'Gửi OTP Khôi phục';
+    }
+});
+
+document.getElementById('resetPasswordBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('forgotEmail').value;
+    const otp = document.getElementById('resetOtp').value;
+    const newPassword = document.getElementById('resetNewPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('resetPasswordBtn');
+
+    if (!otp || !newPassword) {
+        errorDiv.innerText = "Vui lòng nhập đầy đủ OTP và Mật khẩu mới.";
+        errorDiv.className = "text-danger small mt-3 text-center";
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...';
+
+    try {
+        const response = await fetch(`${API_PROXY_URL}/ResetPassword`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp, newPassword })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            errorDiv.innerText = "Đổi mật khẩu thành công! Chuyển hướng...";
+            errorDiv.className = "text-success small mt-3 text-center";
+            errorDiv.style.display = 'block';
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            errorDiv.innerText = result.message;
+            errorDiv.className = "text-danger small mt-3 text-center";
+            errorDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = 'Xác nhận Đổi mật khẩu';
+        }
+    } catch (error) {
+        errorDiv.innerText = "Lỗi kết nối máy chủ.";
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = 'Xác nhận Đổi mật khẩu';
+    }
+});

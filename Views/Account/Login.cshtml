@@ -1,46 +1,100 @@
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Đăng nhập";
 }
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card-glass animate-slide-up" style="width: 100%; max-width: 400px;">
-        <h2 class="text-center mb-4 fw-bold">Welcome Back</h2>
-        <p class="text-center text-muted mb-4">Please enter your details</p>
-        
-        <form id="loginForm">
-            <div id="credentialsSection">
-                <div class="mb-3">
-                    <label class="form-label text-muted small">Username</label>
-                    <input type="text" id="username" class="form-control form-control-custom" placeholder="Enter username" required>
+<div class="container py-5">
+    <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="col-md-5">
+            <div class="card-glass p-5 animate-fade-in">
+                <div class="text-center mb-5">
+                    <div class="d-inline-flex p-3 bg-primary bg-opacity-10 rounded-circle mb-4">
+                        <i class="bi bi-shield-lock-fill text-primary fs-1"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">Chào mừng trở lại</h2>
+                    <p class="text-muted small">Đăng nhập để quản lý tài khoản của bạn</p>
                 </div>
-                <div class="mb-4">
-                    <label class="form-label text-muted small">Password</label>
-                    <input type="password" id="password" class="form-control form-control-custom" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="btn btn-primary-custom">Next Step</button>
-            </div>
+                
+                <form id="loginForm">
+                    <div id="credentialsSection">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Tên đăng nhập</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-person"></i></span>
+                                <input type="text" id="username" class="form-control form-control-custom bg-light border-0" placeholder="Username" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between">
+                                <label class="form-label text-muted small fw-bold">Mật khẩu</label>
+                                <a href="#" id="forgotPasswordLink" class="text-decoration-none small text-primary">Quên mật khẩu?</a>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-key"></i></span>
+                                <input type="password" id="password" class="form-control form-control-custom bg-light border-0" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary-custom w-100 py-3 shadow-sm">Tiếp tục <i class="bi bi-arrow-right ms-2"></i></button>
+                    </div>
 
-            <div id="otpSection" style="display: none;">
-                <p class="text-info small mb-3">Một mã OTP đã được gửi đến email của bạn.</p>
-                <div class="mb-4">
-                    <label class="form-label text-muted small">Verification Code (OTP)</label>
-                    <input type="text" id="otp" class="form-control form-control-custom text-center fs-4 ls-widest" maxlength="6" placeholder="000000">
-                </div>
-                <button type="button" id="verifyOtpBtn" class="btn btn-primary-custom">Verify & Login</button>
-                <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 mt-2 text-decoration-none">Back to Login</button>
-            </div>
-            
-            <div id="loginError" class="text-danger small mt-3 text-center" style="display: none;">
-                Invalid username or password.
-            </div>
-        </form>
+                    <div id="otpSection" style="display: none;">
+                        <div class="alert alert-info border-0 rounded-4 p-3 small mb-4">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Một mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">Mã xác thực (OTP)</label>
+                            <input type="text" id="otp" class="form-control form-control-custom text-center fs-3 fw-bold tracking-widest bg-light border-0" maxlength="6" placeholder="000000">
+                        </div>
+                        <button type="button" id="verifyOtpBtn" class="btn btn-primary-custom w-100 py-3 mb-3">Xác thực & Đăng nhập</button>
+                        <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Quay lại đăng nhập</button>
+                    </div>
+                    
+                    <div id="forgotPasswordSection" style="display: none;">
+                        <p class="text-muted small mb-4 text-center">Nhập email của bạn để nhận mã OTP khôi phục mật khẩu.</p>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">Email đăng ký</label>
+                            <input type="email" id="forgotEmail" class="form-control form-control-custom bg-light border-0" placeholder="name@example.com">
+                        </div>
+                        <button type="button" id="sendForgotOtpBtn" class="btn btn-primary-custom w-100 py-3 mb-3">Gửi mã OTP khôi phục</button>
+                        <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Quay lại đăng nhập</button>
+                    </div>
 
-        <div class="mt-4 text-center">
-            <p class="text-muted small">Don't have an account? <a href="/Account/Register" class="text-primary text-decoration-none">Sign Up</a></p>
+                    <div id="resetPasswordSection" style="display: none;">
+                        <div class="alert alert-success border-0 rounded-4 p-3 small mb-4 text-center">
+                            Mã OTP đã được gửi. Hãy nhập mã và đặt mật khẩu mới.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Mã OTP</label>
+                            <input type="text" id="resetOtp" class="form-control form-control-custom text-center fs-3 fw-bold tracking-widest bg-light border-0" maxlength="6" placeholder="000000">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">Mật khẩu mới</label>
+                            <input type="password" id="resetNewPassword" class="form-control form-control-custom bg-light border-0" placeholder="Nhập mật khẩu mới">
+                        </div>
+                        <button type="button" id="resetPasswordBtn" class="btn btn-primary-custom w-100 py-3 mb-3">Đổi mật khẩu</button>
+                        <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Hủy</button>
+                    </div>
+                    
+                    <div id="loginError" class="alert alert-danger border-0 rounded-3 small mt-3 text-center py-2" style="display: none;">
+                        Sai tài khoản hoặc mật khẩu.
+                    </div>
+                </form>
+
+                <div class="mt-5 text-center">
+                    <p class="text-muted small mb-0">Chưa có tài khoản? <a href="/Account/Register" class="text-primary fw-bold text-decoration-none">Đăng ký ngay</a></p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .tracking-widest { letter-spacing: 0.5rem; }
+    .input-group-text { border-radius: 0.875rem 0 0 0.875rem !important; }
+    .form-control-custom { border-radius: 0 0.875rem 0.875rem 0 !important; }
+    #otp, #resetOtp { border-radius: 0.875rem !important; }
+</style>
 
 @section Scripts {
     <script src="~/js/auth.js"></script>
