@@ -17,6 +17,10 @@ builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

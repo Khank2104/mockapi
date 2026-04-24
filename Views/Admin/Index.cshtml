@@ -2,66 +2,89 @@
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="container py-5">
+<div class="container-fluid py-5 px-lg-5">
     <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-5 animate-slide-up">
+    <div class="d-flex justify-content-between align-items-end mb-4 animate-fade-in">
         <div>
-            <h1 class="fw-bold mb-1">Admin Dashboard</h1>
-            <p class="text-muted" id="welcomeText">Welcome back, loading...</p>
+            <h2 class="fw-bold mb-1">Quản lý hệ thống</h2>
+            <p class="text-muted small mb-0" id="welcomeText">Chào mừng quay trở lại, đang tải...</p>
         </div>
-        <div class="d-flex gap-3">
-            <button id="addUserBtn" class="btn btn-primary-custom" onclick="editUser()">
-                <i class="bi bi-plus-lg"></i> Add New User
-            </button>
-            <button onclick="logout()" class="btn btn-outline-danger border-0 rounded-3">
-                Sign Out
+        <div class="d-flex gap-2">
+            <button id="addUserBtn" class="btn btn-primary-custom px-4" onclick="editUser()">
+                <i class="bi bi-person-plus-fill me-2"></i>Thêm người dùng
             </button>
         </div>
     </div>
 
-    <!-- Admin Section: User List -->
-    <div id="adminSection" class="animate-slide-up" style="animation-delay: 0.1s;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="input-group" style="max-width: 300px;">
-                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Search users...">
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5 animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary-light text-primary">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase">Tổng người dùng</h6>
+                <h3 class="fw-bold mb-0" id="totalUsersCount">0</h3>
             </div>
-            <h5 class="mb-0 fw-bold"><i class="bi bi-people-fill me-2 text-primary"></i><span id="userCount">0 users</span></h5>
         </div>
-        <div class="card-glass p-0 overflow-hidden">
-            <div class="p-4 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">System Users</h5>
-                <span class="badge bg-primary rounded-pill" id="userCountBadge">0 users</span>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase">Quản trị viên</h6>
+                <h3 class="fw-bold mb-0" id="adminCount">0</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fffbeb; color: #f59e0b;">
+                    <i class="bi bi-patch-check-fill"></i>
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase">Superusers</h6>
+                <h3 class="fw-bold mb-0" id="superuserCount">0</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fef2f2; color: #ef4444;">
+                    <i class="bi bi-activity"></i>
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase">Trạng thái</h6>
+                <h3 class="fw-bold mb-0 text-success">Online</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Section: User List -->
+    <div id="adminSection" class="animate-fade-in" style="animation-delay: 0.2s;">
+        <div class="card-glass border-0 shadow-sm overflow-hidden p-0">
+            <div class="p-4 bg-white border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Danh sách người dùng</h5>
+                <div class="input-group" style="max-width: 300px;">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control bg-light border-0 small" placeholder="Tìm kiếm tên, email...">
+                </div>
             </div>
             <div class="table-responsive">
-                <table class="user-table mb-0">
+                <table class="user-table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th style="cursor: pointer" onclick="sortUsers('name')">Name <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                            <th style="cursor: pointer" onclick="sortUsers('role')">Role <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                            <th style="cursor: pointer" onclick="sortUsers('email')">Email <i class="bi bi-arrow-down-up small ms-1"></i></th>
-                            <th>Actions</th>
+                            <th class="ps-4" style="cursor: pointer" onclick="sortUsers('name')">Thành viên <i class="bi bi-arrow-down-up x-small ms-1"></i></th>
+                            <th style="cursor: pointer" onclick="sortUsers('role')">Vai trò <i class="bi bi-arrow-down-up x-small ms-1"></i></th>
+                            <th style="cursor: pointer" onclick="sortUsers('email')">Liên hệ <i class="bi bi-arrow-down-up x-small ms-1"></i></th>
+                            <th class="text-end pe-4">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="userTableBody">
-                        <!-- Data will be loaded here -->
                         <tr>
-                            <td colspan="4" class="text-center py-5" id="loadingRow">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <div class="mt-2 text-muted small">Đang tải dữ liệu...</div>
+                            <td colspan="4" class="text-center py-5">
+                                <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                                <div class="mt-2 text-muted small">Đang tải dữ liệu hệ thống...</div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
-            <div class="p-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center" id="paginationControls" style="display: none !important;">
-                <span class="small text-muted" id="pageInfo">Showing 1 to 10 of 50 users</span>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary" id="prevPageBtn" onclick="prevPage()">Previous</button>
-                    <button class="btn btn-sm btn-outline-secondary" id="nextPageBtn" onclick="nextPage()">Next</button>
-                </div>
             </div>
         </div>
     </div>
@@ -70,7 +93,7 @@
 <!-- Template cho dòng người dùng (Dùng để tách giao diện khỏi JS) -->
 <template id="userRowTemplate">
     <tr>
-        <td>
+        <td class="ps-4">
             <div class="d-flex align-items-center gap-3">
                 <img src="" class="avatar-img user-avatar">
                 <div>
