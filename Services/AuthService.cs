@@ -40,23 +40,23 @@ namespace UserManagementSystem.Services
 
         public bool VerifyPassword(string inputPassword, User userToVerify)
         {
-            if (string.IsNullOrEmpty(inputPassword) || userToVerify == null || string.IsNullOrEmpty(userToVerify.Password)) return false;
+            if (string.IsNullOrEmpty(inputPassword) || userToVerify == null || string.IsNullOrEmpty(userToVerify.PasswordHash)) return false;
 
-            if (userToVerify.Password == inputPassword)
+            if (userToVerify.PasswordHash == inputPassword)
             {
-                userToVerify.Password = HashPassword(inputPassword);
+                userToVerify.PasswordHash = HashPassword(inputPassword);
                 _db.SaveChanges();
                 return true;
             }
 
-            if (userToVerify.Password.StartsWith("$2"))
+            if (userToVerify.PasswordHash.StartsWith("$2"))
             {
-                return BCrypt.Net.BCrypt.Verify(inputPassword, userToVerify.Password);
+                return BCrypt.Net.BCrypt.Verify(inputPassword, userToVerify.PasswordHash);
             }
 
-            if (userToVerify.Password == HashPasswordSha256(inputPassword))
+            if (userToVerify.PasswordHash == HashPasswordSha256(inputPassword))
             {
-                userToVerify.Password = HashPassword(inputPassword);
+                userToVerify.PasswordHash = HashPassword(inputPassword);
                 _db.SaveChanges();
                 return true;
             }
@@ -67,15 +67,16 @@ namespace UserManagementSystem.Services
         public string GenerateJwtToken(User user)
         {
             var jwtSettings = _config.GetSection("JwtSettings");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]));
+            var secret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret is not configured.");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("role", user.Role),
-                new Claim("id", user.Id.ToString())
+                new Claim("role", user.Role?.RoleName ?? "tenant"),
+                new Claim("id", user.UserId.ToString())
             };
 
             var token = new JwtSecurityToken(

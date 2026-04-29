@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
-using Microsoft.AspNetCore.SignalR;
 using UserManagementSystem.Models;
 using UserManagementSystem.Services;
-using UserManagementSystem.Hubs;
 
 namespace UserManagementSystem.Controllers
 {
@@ -42,50 +40,35 @@ namespace UserManagementSystem.Controllers
 
         private UserResponse ToResponse(User u) => new UserResponse
         {
-            Id = u.Id.ToString(),
+            Id = u.UserId.ToString(),
             Name = u.Name,
             Username = u.Username,
             Email = u.Email,
-            Role = u.Role,
+            Role = u.Role?.RoleName ?? "tenant",
             Avatar = u.Avatar,
-            PhoneNumber = u.PhoneNumber,
-            Address = u.Address,
-            Bio = u.Bio
+            Phone = u.Phone,
+            Status = u.Status
         };
 
-        private int? GetRequesterId()
+        private int GetRequesterId()
         {
             var idClaim = User.FindFirst("id")?.Value;
-            if (int.TryParse(idClaim, out int reqId)) return reqId;
-            return null;
+            return int.TryParse(idClaim, out int reqId) ? reqId : 0;
         }
 
-        // ────────────────── GET ALL ──────────────────
         [Authorize]
         [HttpGet("GetMyProfile")]
         public async Task<IActionResult> GetMyProfile()
         {
             var reqId = GetRequesterId();
-            if (reqId == null) return Unauthorized();
+            if (reqId == 0) return Unauthorized();
 
-            var user = await _userService.GetByIdAsync(reqId.Value);
+            var user = await _userService.GetByIdAsync(reqId);
             if (user == null) return NotFound();
 
             return Ok(new { success = true, data = ToResponse(user) });
         }
 
-        [Authorize]
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
-        {
-            int? reqId = GetRequesterId();
-            if (reqId == null) return Unauthorized(new ApiResponse { Success = false, Message = "Bạn cần đăng nhập." });
-
-            var result = await _userService.GetAllAsync(reqId.Value);
-            return result.Success ? Ok(result.Data) : StatusCode(403, result);
-        }
-
-        // ────────────────── LOGIN ──────────────────
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -94,47 +77,19 @@ namespace UserManagementSystem.Controllers
 
             var user = await _userService.GetByUsernameAsync(request.Username);
 
+            if (user != null && user.Status != "Active")
+                return BadRequest(new ApiResponse { Success = false, Message = "Tài khoản của bạn đã bị khóa." });
+
             if (user != null && _authService.VerifyPassword(request.Password, user))
             {
-                if (!user.OtpEnabled)
-                {
-                    string token = _authService.GenerateJwtToken(user);
-                    SetTokenCookie(token);
-                    return Ok(new ApiResponse { Success = true, Data = new { User = ToResponse(user) } });
-                }
-
-                string otp = _otpService.GenerateAndSaveOtp($"OTP_{user.Username}", TimeSpan.FromMinutes(5));
-                await _emailService.SendEmailAsync(user.Email, "Mã xác thực OTP Đăng nhập",
-                    $"<h3>Chào {user.Name},</h3><p>Mã OTP của bạn là: <b style='font-size:24px'>{otp}</b></p><p>Mã có hiệu lực trong 5 phút.</p>");
-
-                return Ok(new ApiResponse { Success = true, Message = "OTP_REQUIRED", Data = user.Username });
+                string token = _authService.GenerateJwtToken(user);
+                SetTokenCookie(token);
+                return Ok(new ApiResponse { Success = true, Data = new { User = ToResponse(user) } });
             }
 
             return Unauthorized(new ApiResponse { Success = false, Message = "Tài khoản hoặc mật khẩu không chính xác." });
         }
 
-        // ────────────────── VERIFY OTP ──────────────────
-        [HttpPost("VerifyOTP")]
-        public async Task<IActionResult> VerifyOTP([FromBody] JsonElement body)
-        {
-            string username = body.GetProperty("username").GetString() ?? "";
-            string otp = body.GetProperty("otp").GetString() ?? "";
-
-            if (_otpService.VerifyAndRemoveOtp($"OTP_{username}", otp))
-            {
-                var user = await _userService.GetByUsernameAsync(username);
-                if (user != null)
-                {
-                    string token = _authService.GenerateJwtToken(user);
-                    SetTokenCookie(token);
-                    return Ok(new ApiResponse { Success = true, Data = new { User = ToResponse(user) } });
-                }
-            }
-
-            return BadRequest(new ApiResponse { Success = false, Message = "Mã OTP không chính xác hoặc đã hết hạn." });
-        }
-
-        // ────────────────── LOGOUT ──────────────────
         [HttpPost("Logout")]
         public IActionResult Logout()
         {
@@ -142,143 +97,13 @@ namespace UserManagementSystem.Controllers
             return Ok(new ApiResponse { Success = true, Message = "Đã đăng xuất." });
         }
 
-        // ────────────────── REGISTER ──────────────────
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
-        {
-            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password)
-                || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Name))
-                return BadRequest(new ApiResponse { Success = false, Message = "Vui lòng nhập đầy đủ thông tin." });
-
-            if (await _userService.UsernameExistsAsync(request.Username))
-                return BadRequest(new ApiResponse { Success = false, Message = "Tên đăng nhập đã tồn tại." });
-
-            if (await _userService.EmailExistsAsync(request.Email))
-                return BadRequest(new ApiResponse { Success = false, Message = "Email này đã được sử dụng." });
-
-            string otp = _otpService.GenerateAndSaveOtp($"REGISTER_OTP_{request.Email}", TimeSpan.FromMinutes(10));
-            _otpService.SaveDataToCache($"REGISTER_DATA_{request.Email}", request, TimeSpan.FromMinutes(10));
-
-            await _emailService.SendEmailAsync(request.Email, "Xác thực đăng ký tài khoản",
-                $"<h3>Chào {request.Name},</h3><p>Cảm ơn bạn đã đăng ký tài khoản!</p><p>Mã OTP xác thực của bạn là: <b style='font-size:28px;color:#4f46e5'>{otp}</b></p><p>Mã có hiệu lực trong <b>10 phút</b>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>");
-
-            return Ok(new ApiResponse { Success = true, Message = "OTP_REQUIRED", Data = request.Email });
-        }
-
-        // ────────────────── VERIFY REGISTER OTP ──────────────────
-        [HttpPost("VerifyRegisterOTP")]
-        public async Task<IActionResult> VerifyRegisterOTP([FromBody] JsonElement body)
-        {
-            string email = body.GetProperty("email").GetString() ?? "";
-            string otp = body.GetProperty("otp").GetString() ?? "";
-
-            var registerData = _otpService.GetDataFromCache<RegisterRequest>($"REGISTER_DATA_{email}");
-            if (registerData == null) return BadRequest(new ApiResponse { Success = false, Message = "Phiên đăng ký đã hết hạn. Vui lòng thử lại." });
-
-            if (!_otpService.VerifyAndRemoveOtp($"REGISTER_OTP_{email}", otp))
-                return BadRequest(new ApiResponse { Success = false, Message = "Mã OTP không chính xác hoặc đã hết hạn." });
-
-            if (await _userService.UsernameExistsAsync(registerData.Username))
-                return BadRequest(new ApiResponse { Success = false, Message = "Tên đăng nhập đã tồn tại." });
-
-            var newUser = new User
-            {
-                Name = registerData.Name,
-                Username = registerData.Username,
-                Email = registerData.Email,
-                Password = _authService.HashPassword(registerData.Password),
-                Role = "user",
-                Avatar = ""
-            };
-
-            await _userService.CreateUserAsync(newUser);
-            _otpService.RemoveCache($"REGISTER_DATA_{email}");
-
-            // Thông báo cho Admin
-            await _notificationService.CreateNotificationForRolesAsync(
-                new[] { "admin", "superuser" }, 
-                "Thành viên mới", 
-                $"Người dùng {registerData.Name} vừa đăng ký tài khoản thành công.", 
-                "success"
-            );
-
-            // Thông báo chào mừng cho chính User mới
-            var createdUser = await _userService.GetByUsernameAsync(newUser.Username);
-            if (createdUser != null)
-            {
-                await _notificationService.CreateNotificationAsync(
-                    createdUser.Id,
-                    "Chào mừng bạn!",
-                    "Chúc mừng bạn đã gia nhập hệ thống. Hãy hoàn thiện hồ sơ của mình nhé!",
-                    "success"
-                );
-            }
-            
-            return Ok(new ApiResponse { Success = true, Message = "Đăng ký tài khoản thành công! Vui lòng đăng nhập." });
-        }
-
-        // ────────────────── CREATE BY ADMIN ──────────────────
         [Authorize]
-        [HttpPost("CreateByAdmin")]
-        public async Task<IActionResult> CreateByAdmin([FromBody] CreateUserRequest request)
+        [HttpPut("UpdateProfile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest request)
         {
-            int? reqId = GetRequesterId();
-            if (reqId == null) return Unauthorized(new ApiResponse { Success = false, Message = "Bạn cần đăng nhập." });
-
-            var result = await _userService.CreateByAdminAsync(request, reqId.Value);
+            var reqId = GetRequesterId();
+            var result = await _userService.UpdateAsync(reqId, request, reqId);
             return result.Success ? Ok(result) : BadRequest(result);
-        }
-
-        // ────────────────── UPDATE ──────────────────
-        [Authorize]
-        [HttpPut("Update/{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateUserRequest request)
-        {
-            int? reqId = GetRequesterId();
-            if (reqId == null) return StatusCode(401, new ApiResponse { Success = false, Message = "Bạn cần đăng nhập." });
-
-            var result = await _userService.UpdateAsync(id, request, reqId.Value);
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-
-        // ────────────────── DELETE ──────────────────
-        [Authorize]
-        [HttpDelete("Delete/{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            int? reqId = GetRequesterId();
-            if (reqId == null) return StatusCode(401, new ApiResponse { Success = false, Message = "Bạn cần đăng nhập." });
-
-            var result = await _userService.DeleteAsync(id, reqId.Value);
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-
-        // ────────────────── GET SETTINGS ──────────────────
-        [Authorize]
-        [HttpGet("GetSettings")]
-        public async Task<IActionResult> GetSettings()
-        {
-            int? reqId = GetRequesterId();
-            if (reqId == null) return Unauthorized(new ApiResponse { Success = false, Message = "Bạn cần đăng nhập." });
-
-            var user = await _userService.GetByIdAsync(reqId.Value);
-            if (user == null) return NotFound(new ApiResponse { Success = false, Message = "Không tìm thấy tài khoản." });
-
-            return Ok(new ApiResponse { Success = true, Data = new { otpEnabled = user.OtpEnabled } });
-        }
-
-        // ────────────────── TOGGLE OTP ──────────────────
-        [Authorize]
-        [HttpPost("ToggleOTP")]
-        public async Task<IActionResult> ToggleOTP([FromBody] JsonElement body)
-        {
-            int? reqId = GetRequesterId();
-            if (reqId == null) return Unauthorized(new ApiResponse { Success = false, Message = "Bạn cần đăng nhập." });
-
-            bool otpEnabled = body.GetProperty("otpEnabled").GetBoolean();
-            var result = await _userService.ToggleOtpAsync(reqId.Value, otpEnabled);
-            
-            return result.Success ? Ok(result) : NotFound(result);
         }
 
         [Authorize]
@@ -289,7 +114,7 @@ namespace UserManagementSystem.Controllers
                 return BadRequest(new { success = false, message = "Không có file nào được tải lên." });
 
             var reqId = GetRequesterId();
-            if (reqId == null) return Unauthorized();
+            if (reqId == 0) return Unauthorized();
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
             var extension = Path.GetExtension(file.FileName).ToLower();
@@ -299,6 +124,9 @@ namespace UserManagementSystem.Controllers
             var fileName = $"avatar_{reqId}_{DateTime.Now.Ticks}{extension}";
             var path = Path.Combine(_env.WebRootPath, "uploads", "avatars", fileName);
 
+            if (!Directory.Exists(Path.GetDirectoryName(path)))
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
             using (var stream = new FileStream(path, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
@@ -306,35 +134,21 @@ namespace UserManagementSystem.Controllers
 
             var avatarUrl = $"/uploads/avatars/{fileName}";
             
-            var user = await _userService.GetByIdAsync(reqId.Value);
+            var user = await _userService.GetByIdAsync(reqId);
             if (user != null)
             {
-                // Xóa file cũ nếu không phải là avatar mặc định
-                if (!string.IsNullOrEmpty(user.Avatar) && !user.Avatar.StartsWith("http"))
-                {
-                    var oldPath = Path.Combine(_env.WebRootPath, user.Avatar.TrimStart('/'));
-                    if (System.IO.File.Exists(oldPath))
-                    {
-                        try { System.IO.File.Delete(oldPath); } catch {}
-                    }
-                }
-
-                await _userService.UpdateAsync(user.Id, new UpdateUserRequest { 
+                await _userService.UpdateAsync(user.UserId, new UpdateUserRequest { 
                     Name = user.Name, 
-                    Role = user.Role, 
-                    Avatar = avatarUrl,
                     Email = user.Email,
                     Username = user.Username,
-                    PhoneNumber = user.PhoneNumber,
-                    Address = user.Address,
-                    Bio = user.Bio
-                }, reqId.Value);
+                    Phone = user.Phone,
+                    Avatar = avatarUrl
+                }, reqId);
             }
 
             return Ok(new { success = true, avatarUrl });
         }
 
-        // ────────────────── FORGOT PASSWORD ──────────────────
         [HttpPost("ForgotPassword")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
@@ -344,12 +158,11 @@ namespace UserManagementSystem.Controllers
 
             string otp = _otpService.GenerateAndSaveOtp($"FORGOT_PW_{request.Email}", TimeSpan.FromMinutes(10));
             await _emailService.SendEmailAsync(request.Email, "Yêu cầu khôi phục mật khẩu",
-                $"<h3>Chào {user.Name},</h3><p>Mã OTP để khôi phục mật khẩu của bạn là: <b style='font-size:28px;color:#dc3545'>{otp}</b></p><p>Mã có hiệu lực trong <b>10 phút</b>. Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>");
+                $"<h3>Chào {user.Name},</h3><p>Mã OTP để khôi phục mật khẩu của bạn là: <b style='font-size:28px;color:#dc3545'>{otp}</b></p>");
 
             return Ok(new ApiResponse { Success = true, Message = "Mã OTP đã được gửi đến email." });
         }
 
-        // ────────────────── RESET PASSWORD ──────────────────
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
@@ -357,38 +170,24 @@ namespace UserManagementSystem.Controllers
                 return BadRequest(new ApiResponse { Success = false, Message = "Mã OTP không chính xác hoặc đã hết hạn." });
 
             var user = await _userService.GetByEmailAsync(request.Email);
-            if (user == null) 
-                return BadRequest(new ApiResponse { Success = false, Message = "Tài khoản không tồn tại." });
+            if (user == null) return BadRequest(new ApiResponse { Success = false, Message = "Tài khoản không tồn tại." });
 
             await _userService.UpdatePasswordOnlyAsync(user, _authService.HashPassword(request.NewPassword));
-            
-            return Ok(new ApiResponse { Success = true, Message = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại." });
+            return Ok(new ApiResponse { Success = true, Message = "Đổi mật khẩu thành công!" });
         }
-        // ────────────────── CHANGE PASSWORD ──────────────────
+
         [Authorize]
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            int? reqId = GetRequesterId();
-            if (reqId == null) return Unauthorized(new ApiResponse { Success = false, Message = "Bạn cần đăng nhập." });
-
-            var user = await _userService.GetByIdAsync(reqId.Value);
-            if (user == null) return NotFound(new ApiResponse { Success = false, Message = "Không tìm thấy tài khoản." });
+            var reqId = GetRequesterId();
+            var user = await _userService.GetByIdAsync(reqId);
+            if (user == null) return NotFound();
 
             if (!_authService.VerifyPassword(request.CurrentPassword, user))
                 return BadRequest(new ApiResponse { Success = false, Message = "Mật khẩu hiện tại không chính xác." });
 
-            // Cập nhật Database
             await _userService.UpdatePasswordOnlyAsync(user, _authService.HashPassword(request.NewPassword));
-
-            // Thông báo bảo mật cho User
-            await _notificationService.CreateNotificationAsync(
-                reqId.Value,
-                "Bảo mật tài khoản",
-                "Mật khẩu của bạn đã được thay đổi thành công.",
-                "success"
-            );
-
             return Ok(new { success = true, message = "Đổi mật khẩu thành công!" });
         }
     }
