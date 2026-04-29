@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "superuser")]
     public class AdminManagementController : ControllerBase
     {
         private readonly IAdminService _adminService;
@@ -30,8 +30,8 @@ namespace UserManagementSystem.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [HttpGet("GetAllAdmins")]
-        public async Task<IActionResult> GetAllAdmins()
+        [HttpGet("ListAdmins")]
+        public async Task<IActionResult> ListAdmins()
         {
             var result = await _adminService.GetAllAdminsAsync(GetRequesterId());
             return result.Success ? Ok(result) : Forbid();

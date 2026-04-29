@@ -15,6 +15,7 @@ namespace UserManagementSystem.Models
         [MaxLength(200)]
         public string? Description { get; set; }
 
+        
         public ICollection<User> Users { get; set; } = new List<User>();
     }
 
@@ -37,6 +38,7 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("OwnerUserId")]
+        
         public User Owner { get; set; } = null!;
         public ICollection<Floor> Floors { get; set; } = new List<Floor>();
         public ICollection<Room> Rooms { get; set; } = new List<Room>();
@@ -58,6 +60,7 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("MotelId")]
+        
         public Motel Motel { get; set; } = null!;
         public ICollection<Room> Rooms { get; set; } = new List<Room>();
     }
@@ -80,8 +83,10 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("MotelId")]
+        
         public Motel Motel { get; set; } = null!;
         [ForeignKey("FloorId")]
+        
         public Floor? Floor { get; set; }
         public RoomSetting? Setting { get; set; }
         public ICollection<RoomServiceSetting> ServiceSettings { get; set; } = new List<RoomServiceSetting>();
@@ -112,8 +117,10 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("RoomId")]
+        
         public Room Room { get; set; } = null!;
         [ForeignKey("CreatedBy")]
+        
         public User? Creator { get; set; }
     }
 
@@ -164,10 +171,13 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("RoomId")]
+        
         public Room Room { get; set; } = null!;
         [ForeignKey("ServiceId")]
+        
         public Service Service { get; set; } = null!;
         [ForeignKey("CreatedBy")]
+        
         public User? Creator { get; set; }
     }
 
@@ -200,6 +210,7 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("UserId")]
+        
         public User? User { get; set; }
         public ICollection<RoomOccupant> RoomOccupancies { get; set; } = new List<RoomOccupant>();
     }
@@ -248,10 +259,13 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("RoomId")]
+        
         public Room Room { get; set; } = null!;
         [ForeignKey("PrimaryTenantId")]
+        
         public Tenant PrimaryTenant { get; set; } = null!;
         [ForeignKey("CreatedBy")]
+        
         public User? Creator { get; set; }
     }
 
@@ -271,10 +285,13 @@ namespace UserManagementSystem.Models
         public string? Note { get; set; }
 
         [ForeignKey("RoomId")]
+        
         public Room Room { get; set; } = null!;
         [ForeignKey("ServiceId")]
+        
         public Service Service { get; set; } = null!;
         [ForeignKey("RecordedBy")]
+        
         public User? Recorder { get; set; }
     }
 
@@ -310,12 +327,16 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("RoomId")]
+        
         public Room Room { get; set; } = null!;
         [ForeignKey("PrimaryTenantId")]
+        
         public Tenant PrimaryTenant { get; set; } = null!;
         [ForeignKey("ContractId")]
+        
         public Contract? Contract { get; set; }
         [ForeignKey("CreatedBy")]
+        
         public User? Creator { get; set; }
         public ICollection<InvoiceDetail> Details { get; set; } = new List<InvoiceDetail>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
@@ -338,8 +359,10 @@ namespace UserManagementSystem.Models
         public string? Note { get; set; }
 
         [ForeignKey("InvoiceId")]
+        
         public Invoice Invoice { get; set; } = null!;
         [ForeignKey("ServiceId")]
+        
         public Service? Service { get; set; }
     }
 
@@ -359,8 +382,10 @@ namespace UserManagementSystem.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("InvoiceId")]
+        
         public Invoice Invoice { get; set; } = null!;
         [ForeignKey("ReceivedBy")]
+        
         public User? Receiver { get; set; }
     }
 
@@ -386,10 +411,13 @@ namespace UserManagementSystem.Models
         public string? ResolutionNote { get; set; }
 
         [ForeignKey("RoomId")]
+        
         public Room Room { get; set; } = null!;
         [ForeignKey("TenantId")]
+        
         public Tenant Tenant { get; set; } = null!;
         [ForeignKey("HandledBy")]
+        
         public User? Handler { get; set; }
     }
 }

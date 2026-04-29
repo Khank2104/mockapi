@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "admin,superuser")]
     public class OccupancyManagementController : ControllerBase
     {
         private readonly IOccupancyService _occupancyService;

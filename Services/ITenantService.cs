@@ -12,5 +12,8 @@ namespace UserManagementSystem.Services
         
         // Tenant Account
         Task<ApiResponse> CreateAccountAsync(CreateTenantAccountRequest request, int adminId);
+
+        // Integrated
+        Task<ApiResponse> CreateTenantFullAsync(CreateTenantRequest request, int adminId);
     }
 }

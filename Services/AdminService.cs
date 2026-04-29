@@ -41,6 +41,8 @@ namespace UserManagementSystem.Services
                 Phone = request.Phone,
                 RoleId = adminRole.RoleId,
                 Status = "Active",
+                MustChangePassword = true,
+                IsFirstLogin = true,
                 CreatedBy = superuserId,
                 CreatedAt = DateTime.Now
             };

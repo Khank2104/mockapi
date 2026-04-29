@@ -32,6 +32,7 @@ namespace UserManagementSystem.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("CreatedBy")]
+        
         public User? Creator { get; set; }
 
         [MaxLength(100)]
@@ -40,6 +41,7 @@ namespace UserManagementSystem.Models
         public string? Avatar { get; set; }
 
         [ForeignKey("RoleId")]
+        
         public Role Role { get; set; } = null!;
     }
 

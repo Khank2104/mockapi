@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "tenant")]
     public class TenantPortalController : ControllerBase
     {
         private readonly IInvoiceService _invoiceService;
@@ -32,6 +32,13 @@ namespace UserManagementSystem.Controllers
             return Ok(result);
         }
 
+        [HttpGet("MyRoomInfo")]
+        public async Task<IActionResult> GetMyRoomInfo()
+        {
+            var result = await _invoiceService.GetTenantRoomInfoAsync(GetRequesterId());
+            return Ok(result);
+        }
+
         [HttpGet("MyRequests")]
         public async Task<IActionResult> GetMyRequests()
         {
@@ -40,7 +47,7 @@ namespace UserManagementSystem.Controllers
         }
 
         [HttpPost("CreateRequest")]
-        public async Task<IActionResult> CreateRequest([FromBody] CreateTenantRequest request)
+        public async Task<IActionResult> CreateRequest([FromBody] CreateServiceRequest request)
         {
             var result = await _requestService.CreateRequestAsync(request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);

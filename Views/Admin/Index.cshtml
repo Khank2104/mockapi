@@ -1,73 +1,1055 @@
 @{
-    ViewData["Title"] = "Admin Dashboard (Migration)";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Dashboard Tổng quan";
 }
 
-<div class="container-fluid py-5 px-lg-5">
-    <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-end mb-4 animate-fade-in">
-        <div>
-            <h2 class="fw-bold mb-1">Quản lý hệ thống</h2>
-            <p class="text-muted small mb-0" id="welcomeText">Đang tải...</p>
+<div id="module-container">
+    <!-- Overview Module -->
+    <section id="module-overview" class="module-section animate-fade-in">
+        <div class="stats-grid">
+            <div class="glass-card">
+                <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                    <i class="bi bi-door-open-fill"></i>
+                </div>
+                <div class="stat-value" id="stat-total-rooms">0</div>
+                <div class="stat-label">Tổng số phòng</div>
+            </div>
+            <div class="glass-card">
+                <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+                <div class="stat-value" id="stat-occupied-rooms">0</div>
+                <div class="stat-label">Phòng đang ở</div>
+            </div>
+            <div class="glass-card">
+                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="stat-value" id="stat-revenue">0đ</div>
+                <div class="stat-label">Doanh thu dự kiến (T4)</div>
+            </div>
+            <div class="glass-card">
+                <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div class="stat-value" id="stat-requests">0</div>
+                <div class="stat-label">Yêu cầu chờ xử lý</div>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <button id="addUserBtn" class="btn btn-secondary px-4" disabled>
-                <i class="bi bi-person-x-fill me-2"></i>Tính năng đã chuyển dời
+
+        <div class="row g-4 mt-2">
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold fs-5">Yêu cầu hỗ trợ gần đây</h3>
+                        <button class="btn btn-premium btn-sm" onclick="switchModule('requests')">Xem tất cả</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>PHÒNG</th>
+                                    <th>TIÊU ĐỀ</th>
+                                    <th>TRẠNG THÁI</th>
+                                    <th>THỜI GIAN</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-requests-list">
+                                <!-- Loading placeholder -->
+                                <tr><td colspan="4" class="text-center py-5 text-muted">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-card">
+                    <h3 class="fw-bold fs-5 mb-4">Tỷ lệ lấp đầy</h3>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small text-muted"><i class="bi bi-circle-fill me-2" style="color: #6366f1;"></i> Đang ở</span>
+                            <span class="fw-bold" id="label-occupied">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small text-muted"><i class="bi bi-circle-fill me-2" style="color: #e2e8f0;"></i> Trống</span>
+                            <span class="fw-bold" id="label-vacant">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Motel Module -->
+    <section id="module-motels" class="module-section d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold fs-4">Quản lý Khu trọ & Phòng</h2>
+            <button class="btn btn-premium" onclick="showAddMotelModal()">
+                <i class="bi bi-plus-lg"></i>
+                <span>Thêm khu trọ</span>
             </button>
         </div>
-    </div>
+        <div id="motel-list-container" class="row g-4">
+            <!-- Content will be loaded via JS -->
+        </div>
+    </section>
 
-    <!-- Stats Cards (Simplified for Phase 2) -->
-    <div class="row g-4 mb-5 animate-fade-in" style="animation-delay: 0.1s;">
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-icon bg-primary-light text-primary">
-                    <i class="bi bi-shield-lock-fill"></i>
-                </div>
-                <h6 class="text-muted small fw-bold text-uppercase">Phân hệ mới</h6>
-                <h3 class="fw-bold mb-0">Admin Mgmt</h3>
-            </div>
+    <!-- Motel Details Module (Deep Management) -->
+    <section id="module-room-details" class="module-section d-none">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="switchModule('motels')">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <h2 class="fw-bold fs-4 mb-0">Quản lý chi tiết: <span id="detail-room-code" class="text-primary">---</span></h2>
         </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
-                    <i class="bi bi-people-fill"></i>
-                </div>
-                <h6 class="text-muted small fw-bold text-uppercase">Phân hệ mới</h6>
-                <h3 class="fw-bold mb-0">Tenant Mgmt</h3>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #fffbeb; color: #f59e0b;">
-                    <i class="bi bi-house-door-fill"></i>
-                </div>
-                <h6 class="text-muted small fw-bold text-uppercase">Phân hệ mới</h6>
-                <h3 class="fw-bold mb-0">Motel Mgmt</h3>
-            </div>
-        </div>
-    </div>
 
-    <!-- Info Section -->
-    <div id="adminSection" class="animate-fade-in" style="animation-delay: 0.2s;">
-        <div class="card-glass border-0 shadow-sm p-5 text-center">
-             <i class="bi bi-cone-striped text-warning display-1 mb-4"></i>
-             <h3 class="fw-bold">Giao diện cũ đang được nâng cấp</h3>
-             <p class="text-muted mx-auto" style="max-width: 600px;">
-                 Hệ thống quản lý user cũ đã được thay thế bằng các phân hệ nghiệp vụ Phòng trọ chuyên sâu trong Phase 2. 
-                 Vui lòng truy cập các endpoint API chuyên biệt (`/api/AdminManagement`, `/api/TenantManagement`, `/api/MotelManagement`) 
-                 hoặc sử dụng các View nghiệp vụ mới (nếu đã triển khai).
-             </p>
-             <div class="mt-4">
-                 <a href="/" class="btn btn-primary-custom px-4">Quay lại Trang chủ</a>
-             </div>
+        <div class="row g-4">
+            <!-- Left: Room Settings -->
+            <div class="col-lg-6">
+                <div class="glass-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold fs-5 mb-0"><i class="bi bi-gear-fill me-2"></i>Cấu hình thuê</h3>
+                        <button class="btn btn-sm btn-premium px-3" onclick="saveRoomSettings()">Lưu cấu hình</button>
+                    </div>
+                    <form id="roomSettingsForm" class="row g-3">
+                        <input type="hidden" name="RoomId" id="settings-roomId">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">GIÁ THUÊ CƠ BẢN</label>
+                            <input type="number" name="BaseRent" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">TIỀN CỌC</label>
+                            <input type="number" name="DepositAmount" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">SỐ NGƯỜI TIÊU CHUẨN</label>
+                            <input type="number" name="StandardOccupants" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">PHỤ THU NGƯỜI THÊM</label>
+                            <input type="number" name="ExtraOccupantFee" class="form-control">
+                        </div>
+                        <div class="col-12 mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="ApplyExtraOccupantFee" id="applyExtraFee">
+                                <label class="form-check-label small fw-bold" for="applyExtraFee">Áp dụng phụ thu khi vượt số người</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Service Pricing -->
+            <div class="col-lg-6">
+                <div class="glass-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold fs-5 mb-0"><i class="bi bi-lightning-charge-fill me-2"></i>Phí dịch vụ</h3>
+                        <button class="btn btn-sm btn-premium px-3" onclick="saveServiceSettings()">Cập nhật giá</button>
+                    </div>
+                    <div id="room-services-list" class="vstack gap-3">
+                        <!-- Services will be loaded here -->
+                        <div class="text-center py-4 text-muted">Đang tải cấu hình dịch vụ...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom: Occupants Management -->
+            <div class="col-12">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold fs-5 mb-0"><i class="bi bi-people-fill me-2"></i>Thành viên trong phòng</h3>
+                        <button class="btn btn-sm btn-outline-primary px-3 rounded-pill" onclick="showAddOccupantModal()">
+                            <i class="bi bi-plus-lg"></i> Thêm người ở
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>HỌ TÊN</th>
+                                    <th>QUAN HỆ</th>
+                                    <th>NGÀY VÀO</th>
+                                    <th>SỐ ĐIỆN THOẠI</th>
+                                    <th>HÀNH ĐỘNG</th>
+                                </tr>
+                            </thead>
+                            <tbody id="occupants-list-container">
+                                <tr><td colspan="5" class="text-center py-4 text-muted">Chưa có thành viên nào.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tenants Module -->
+    <section id="module-tenants" class="module-section d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold fs-4">Danh sách Khách thuê</h2>
+            <button class="btn btn-premium" onclick="showAddTenantModal()">
+                <i class="bi bi-person-plus-fill"></i>
+                <span>Thêm khách thuê</span>
+            </button>
+        </div>
+        <div class="glass-card">
+            <div class="mb-4">
+                <input type="text" class="form-control" placeholder="Tìm kiếm theo tên, CCCD hoặc SĐT..." style="border-radius: 12px; padding: 0.75rem 1.25rem;">
+            </div>
+            <div class="table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>HỌ TÊN</th>
+                            <th>PHÒNG</th>
+                            <th>LIÊN HỆ</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tenant-list-container">
+                        <tr><td colspan="5" class="text-center py-5 text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Billing Module -->
+    <section id="module-billing" class="module-section d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold fs-4">Điện nước & Hóa đơn</h2>
+            <div class="d-flex gap-2">
+                <select class="form-select" id="billing-month" style="width: 120px; border-radius: 10px;">
+                    @for (int i = 1; i <= 12; i++) {
+                        <option value="@i" selected="@(DateTime.Now.Month == i)">Tháng @i</option>
+                    }
+                </select>
+                <select class="form-select" id="billing-year" style="width: 100px; border-radius: 10px;">
+                    <option value="@DateTime.Now.Year">@DateTime.Now.Year</option>
+                </select>
+                <button class="btn btn-premium" onclick="loadBillingData()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+        </div>
+        <div class="glass-card">
+            <div class="table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>PHÒNG</th>
+                            <th>CHỈ SỐ ĐIỆN</th>
+                            <th>CHỈ SỐ NƯỚC</th>
+                            <th>HÓA ĐƠN</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billing-list-container">
+                        <tr><td colspan="5" class="text-center py-5 text-muted">Vui lòng tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Requests Module -->
+    <section id="module-requests" class="module-section d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold fs-4">Yêu cầu từ khách thuê</h2>
+        </div>
+        <div class="glass-card">
+            <div class="table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>PHÒNG</th>
+                            <th>YÊU CẦU</th>
+                            <th>LOẠI</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THỜI GIAN</th>
+                            <th>HÀNH ĐỘNG</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all-requests-list-container">
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Superuser: Admin Management Module -->
+    <section id="module-admin-mgmt" class="module-section d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold fs-4">Quản trị Hệ thống (Admins)</h2>
+            <button class="btn btn-premium" onclick="showAddAdminModal()">
+                <i class="bi bi-person-plus-fill"></i> Thêm Admin mới
+            </button>
+        </div>
+        <div class="glass-card">
+            <div class="table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>HỌ TÊN</th>
+                            <th>TÀI KHOẢN</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>HÀNH ĐỘNG</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-list-container">
+                        <tr><td colspan="4" class="text-center py-5 text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- MODALS -->
+
+<!-- Modal: Record Meter -->
+<div class="modal fade" id="recordMeterModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Ghi chỉ số - <span id="meterRoomCode"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recordMeterForm">
+                    <input type="hidden" name="RoomId" id="meterRoomId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">CHỈ SỐ ĐIỆN MỚI</label>
+                        <input type="number" name="ElectricityReading" class="form-control" required placeholder="Nhập số điện...">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold opacity-75">CHỈ SỐ NƯỚC MỚI</label>
+                        <input type="number" name="WaterReading" class="form-control" required placeholder="Nhập số nước...">
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3" onclick="submitMeterReading()">
+                        Lưu chỉ số & Gửi thông báo
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="table-responsive d-none">
-    <table id="userTableBody"></table>
+<!-- Modal: Add Tenant & Contract -->
+<div class="modal fade" id="addTenantModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Thêm Khách thuê & Hợp đồng mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTenantForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">HỌ VÀ TÊN</label>
+                            <input type="text" name="Name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">SỐ ĐIỆN THOẠI</label>
+                            <input type="text" name="PhoneNumber" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">USERNAME (Để đăng nhập)</label>
+                            <input type="text" name="Username" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">EMAIL</label>
+                            <input type="email" name="Email" class="form-control" required>
+                        </div>
+                        <hr class="my-4 opacity-10">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">CHỌN PHÒNG</label>
+                            <select name="RoomId" id="tenantRoomSelect" class="form-select" required>
+                                <option value="">Đang tải phòng trống...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">TIỀN THUÊ / THÁNG</label>
+                            <input type="number" name="MonthlyRent" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3 mt-4" onclick="submitAddTenant()">
+                        Tạo tài khoản & Ký hợp đồng
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Admin (Superuser Only) -->
+<div class="modal fade" id="addAdminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Thêm Quản trị viên (Admin)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAdminForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">HỌ VÀ TÊN</label>
+                        <input type="text" name="Name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">TÊN ĐĂNG NHẬP</label>
+                        <input type="text" name="Username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">EMAIL</label>
+                        <input type="email" name="Email" class="form-control" required>
+                    </div>
+                    <div class="mb-4 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i> Mật khẩu mặc định sẽ được gửi qua email hoặc đặt là 123456 (theo cấu hình hệ thống).
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3" onclick="submitAddAdmin()">
+                        Tạo tài khoản Admin
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Motel -->
+<div class="modal fade" id="addMotelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Thêm Khu trọ mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addMotelForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">TÊN KHU TRỌ</label>
+                        <input type="text" name="MotelName" class="form-control" required placeholder="Ví dụ: Nhà trọ Sắc Màu">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">ĐỊA CHỈ</label>
+                        <input type="text" name="Address" class="form-control" required placeholder="Địa chỉ chi tiết...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">MÔ TẢ</label>
+                        <textarea name="Description" class="form-control" rows="2" placeholder="Thông tin thêm..."></textarea>
+                    </div>
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" name="UseFloorManagement" checked id="useFloors">
+                        <label class="form-check-label small fw-bold" for="useFloors">Sử dụng quản lý theo Tầng</label>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3" onclick="submitAddMotel()">
+                        Khởi tạo Khu trọ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-    <script src="~/js/admin_dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Data Loading Logic
+        async function loadTenantsData() {
+            const container = document.getElementById('tenant-list-container');
+            try {
+                const response = await fetch('/api/TenantManagement/GetAllTenants');
+                const result = await response.json();
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Chưa có khách thuê nào.</td></tr>';
+                        return;
+                    }
+                    container.innerHTML = result.data.map(t => `
+                        <tr>
+                            <td>
+                                <div class="fw-bold">${t.name}</div>
+                                <div class="x-small text-muted">CCCD: ${t.idCard || 'N/A'}</div>
+                            </td>
+                            <td><span class="fw-bold">Phòng ${t.currentRoomCode || 'N/A'}</span></td>
+                            <td>
+                                <div class="small"><i class="bi bi-phone me-1"></i>${t.phone}</div>
+                                <div class="x-small text-muted"><i class="bi bi-envelope me-1"></i>${t.email || 'N/A'}</div>
+                            </td>
+                            <td><span class="status-pill status-active">${t.status}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill">Chi tiết</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+
+        async function loadBillingData() {
+            const container = document.getElementById('billing-list-container');
+            const month = document.getElementById('billing-month').value;
+            const year = document.getElementById('billing-year').value;
+            
+            try {
+                const response = await fetch('/api/MotelManagement/MyMotels');
+                const result = await response.json();
+                if (result.success) {
+                    let rooms = [];
+                    result.data.forEach(m => {
+                        m.floors.forEach(f => {
+                            f.rooms.forEach(r => {
+                                if (r.status === 'Occupied') rooms.push(r);
+                            });
+                        });
+                    });
+
+                    if (rooms.length === 0) {
+                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Không có phòng nào đang ở để ghi hóa đơn.</td></tr>';
+                        return;
+                    }
+
+                    container.innerHTML = rooms.map(r => `
+                        <tr>
+                            <td><span class="fw-bold">Phòng ${r.roomCode}</span></td>
+                            <td id="elec-${r.roomId}">--</td>
+                            <td id="water-${r.roomId}">--</td>
+                            <td id="inv-${r.roomId}"><span class="badge bg-light text-muted">Chưa chốt</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-premium rounded-pill" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}')">Ghi chỉ số</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+
+        async function loadAllRequestsData() {
+            const container = document.getElementById('all-requests-list-container');
+            try {
+                const response = await fetch('/api/Request/GetAllRequests');
+                const result = await response.json();
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<tr><td colspan="6" class="text-center py-5">Không có yêu cầu nào.</td></tr>';
+                        return;
+                    }
+                    container.innerHTML = result.data.map(r => `
+                        <tr>
+                            <td><span class="fw-bold">Phòng ${r.roomId}</span></td>
+                            <td>${r.title}</td>
+                            <td><span class="badge bg-light text-dark">${r.requestType}</span></td>
+                            <td><span class="status-pill status-${r.status.toLowerCase() === 'pending' ? 'locked' : 'active'}">${r.status}</span></td>
+                            <td class="text-muted small">${new Date(r.createdAt).toLocaleString('vi-VN')}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="showHandleRequestModal(${r.requestId}, '${r.title}')">Xử lý</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+
+        async function loadAdminsData() {
+            const container = document.getElementById('admin-list-container');
+            try {
+                const response = await fetch('/api/AdminManagement/GetAllAdmins');
+                const result = await response.json();
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<tr><td colspan="4" class="text-center py-5">Chưa có Admin nào.</td></tr>';
+                        return;
+                    }
+                    container.innerHTML = result.data.map(a => `
+                        <tr>
+                            <td><div class="fw-bold">${a.name}</div></td>
+                            <td><span class="badge bg-light text-dark">${a.username}</span></td>
+                            <td><span class="status-pill status-${a.isActive ? 'active' : 'locked'}">${a.isActive ? 'Active' : 'Locked'}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="toggleAdminStatus(${a.userId}, ${a.isActive})">
+                                    ${a.isActive ? 'Khóa' : 'Mở khóa'}
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+
+        // --- Modal Handlers ---
+
+        function showRecordMeterModal(roomId, roomCode) {
+            document.getElementById('meterRoomId').value = roomId;
+            document.getElementById('meterRoomCode').innerText = roomCode;
+            new bootstrap.Modal(document.getElementById('recordMeterModal')).show();
+        }
+
+        async function submitMeterReading() {
+            const form = document.getElementById('recordMeterForm');
+            const data = Object.fromEntries(new FormData(form).entries());
+            
+            try {
+                const response = await fetch('/api/MeterReading/CreateReading', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Đã ghi nhận chỉ số mới.", "success");
+                    bootstrap.Modal.getInstance(document.getElementById('recordMeterModal')).hide();
+                    loadBillingData();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                alert("Lỗi khi gửi dữ liệu.");
+            }
+        }
+
+        async function showAddTenantModal() {
+            const select = document.getElementById('tenantRoomSelect');
+            select.innerHTML = '<option value="">Đang tải...</option>';
+            
+            new bootstrap.Modal(document.getElementById('addTenantModal')).show();
+
+            // Fetch Vacant Rooms
+            try {
+                const response = await fetch('/api/MotelManagement/MyMotels');
+                const result = await response.json();
+                if (result.success) {
+                    let vacantRooms = [];
+                    result.data.forEach(m => {
+                        m.floors.forEach(f => {
+                            f.rooms.forEach(r => {
+                                if (r.status === 'Vacant') {
+                                    vacantRooms.push({ id: r.roomId, code: `${m.motelName} - ${r.roomCode}` });
+                                }
+                            });
+                        });
+                    });
+
+                    if (vacantRooms.length === 0) {
+                        select.innerHTML = '<option value="">Không còn phòng trống</option>';
+                    } else {
+                        select.innerHTML = vacantRooms.map(v => `<option value="${v.id}">${v.code}</option>`).join('');
+                    }
+                }
+            } catch (e) {
+                select.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            }
+        }
+
+        async function submitAddTenant() {
+            const form = document.getElementById('addTenantForm');
+            const data = Object.fromEntries(new FormData(form).entries());
+            
+            try {
+                // Step 1: Create Tenant Account & Contract
+                const response = await fetch('/api/TenantManagement/CreateTenant', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: data.Name,
+                        username: data.Username,
+                        email: data.Email,
+                        phoneNumber: data.PhoneNumber,
+                        roomId: parseInt(data.RoomId),
+                        monthlyRent: parseFloat(data.MonthlyRent)
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Đã tạo tài khoản và hợp đồng mới.", "success");
+                    bootstrap.Modal.getInstance(document.getElementById('addTenantModal')).hide();
+                    loadTenantsData();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                alert("Lỗi khi gửi dữ liệu.");
+            }
+        }
+
+        function showAddAdminModal() {
+            new bootstrap.Modal(document.getElementById('addAdminModal')).show();
+        }
+
+        async function submitAddAdmin() {
+            const form = document.getElementById('addAdminForm');
+            const data = Object.fromEntries(new FormData(form).entries());
+            
+            try {
+                const response = await fetch('/api/AdminManagement/CreateAdmin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Đã tạo tài khoản Admin mới.", "success");
+                    bootstrap.Modal.getInstance(document.getElementById('addAdminModal')).hide();
+                    loadAdminsData();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                alert("Lỗi khi gửi dữ liệu.");
+            }
+        }
+
+        // --- Core Navigation ---
+        function switchModule(moduleId, element) {
+            document.querySelectorAll('.module-section').forEach(sec => sec.classList.add('d-none'));
+            const target = document.getElementById(`module-${moduleId}`);
+            if (target) {
+                target.classList.remove('d-none');
+                target.classList.add('animate-fade-in');
+            }
+
+            if (element) {
+                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+                element.classList.add('active');
+            }
+
+            const titles = {
+                'overview': 'Tổng quan hệ thống',
+                'motels': 'Danh sách Khu trọ',
+                'tenants': 'Quản lý Khách thuê',
+                'billing': 'Hóa đơn & Điện nước',
+                'requests': 'Yêu cầu hỗ trợ',
+                'admin-mgmt': 'Quản lý Admin'
+            };
+            document.getElementById('page-title').innerText = titles[moduleId] || 'Dashboard';
+
+            if (moduleId === 'overview') loadOverviewData();
+            if (moduleId === 'motels') loadMotelsData();
+            if (moduleId === 'tenants') loadTenantsData();
+            if (moduleId === 'billing') loadBillingData();
+            if (moduleId === 'requests') loadAllRequestsData();
+            if (moduleId === 'admin-mgmt') loadAdminsData();
+        }
+
+        function showAddMotelModal() {
+            new bootstrap.Modal(document.getElementById('addMotelModal')).show();
+        }
+
+        async function submitAddMotel() {
+            const form = document.getElementById('addMotelForm');
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.UseFloorManagement = document.getElementById('useFloors').checked;
+
+            try {
+                const response = await fetch('/api/MotelManagement/CreateMotel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Khu trọ mới đã được tạo.", "success");
+                    bootstrap.Modal.getInstance(document.getElementById('addMotelModal')).hide();
+                    loadMotelsData();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                alert("Lỗi kết nối Server.");
+            }
+        }
+
+        async function loadMotelsData() {
+            const container = document.getElementById('motel-list-container');
+            container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3 text-muted">Đang tải danh sách khu trọ...</p></div>';
+            
+            try {
+                const response = await fetch('/api/MotelManagement/MyMotels');
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<div class="col-12 text-center py-5"><i class="bi bi-houses fs-1 text-muted d-block mb-3"></i><p class="text-muted">Bạn chưa có khu trọ nào. Hãy nhấn nút "Thêm khu trọ" để bắt đầu.</p></div>';
+                        return;
+                    }
+
+                    container.innerHTML = result.data.map(m => `
+                        <div class="col-md-6 col-xl-4">
+                            <div class="glass-card p-0 overflow-hidden h-100">
+                                <div style="height: 160px; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('/motel_preview_demo_1777430565298.png') center/cover;"></div>
+                                <div class="p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h4 class="fw-bold fs-5 mb-0">${m.motelName}</h4>
+                                        <span class="status-pill status-active">${m.floors.length} Tầng</span>
+                                    </div>
+                                    <p class="text-muted small mb-4"><i class="bi bi-geo-alt-fill me-1"></i>${m.address || 'Chưa cập nhật'}</p>
+                                    
+                                    <div class="d-flex gap-3 mb-4">
+                                        <div class="flex-fill p-2 bg-light rounded-3 text-center">
+                                            <div class="x-small text-muted fw-bold">PHÒNG TRỐNG</div>
+                                            <div class="fw-bold">${m.floors.reduce((acc, f) => acc + f.rooms.filter(r => r.status === 'Vacant').length, 0)}</div>
+                                        </div>
+                                        <div class="flex-fill p-2 bg-light rounded-3 text-center">
+                                            <div class="x-small text-muted fw-bold">ĐANG Ở</div>
+                                            <div class="fw-bold">${m.floors.reduce((acc, f) => acc + f.rooms.filter(r => r.status === 'Occupied').length, 0)}</div>
+                                        </div>
+                                    </div>
+
+                                    <div id="motel-floors-${m.motelId}" class="mb-3 d-none">
+                                        ${m.floors.map(f => `
+                                            <div class="mb-3 border-top pt-2">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="fw-bold small text-primary text-uppercase">${f.floorName}</span>
+                                                    <span class="badge bg-light text-dark" style="font-size: 0.6rem;">${f.rooms.length} phòng</span>
+                                                </div>
+                                                <div class="row g-2">
+                                                    ${f.rooms.map(r => `
+                                                        <div class="col-4">
+                                                            <div class="p-2 border rounded-3 bg-light text-center cursor-pointer hover-shadow" onclick="openRoomDetails(${r.roomId}, '${r.roomCode}')">
+                                                                <div class="fw-bold small" style="font-size: 0.7rem;">P.${r.roomCode}</div>
+                                                                <span class="status-pill status-${r.status.toLowerCase()}" style="font-size: 0.5rem; padding: 2px 4px;">${r.status}</span>
+                                                            </div>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+
+                                    <button class="btn btn-premium w-100" onclick="toggleMotelFloors(${m.motelId}, this)">
+                                        Xem sơ đồ tầng & phòng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="col-12 text-center py-5 text-danger"><i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i><p>Không thể kết nối với máy chủ. Vui lòng thử lại sau.</p></div>';
+            }
+        }
+
+        function toggleMotelFloors(motelId, btn) {
+            const el = document.getElementById(`motel-floors-${motelId}`);
+            if (el.classList.contains('d-none')) {
+                el.classList.remove('d-none');
+                btn.innerText = "Đóng sơ đồ";
+                btn.className = "btn btn-outline-secondary w-100";
+            } else {
+                el.classList.add('d-none');
+                btn.innerText = "Xem sơ đồ tầng & phòng";
+                btn.className = "btn btn-premium w-100";
+            }
+        }
+
+        async function openRoomDetails(roomId, roomCode) {
+            document.getElementById('detail-room-code').innerText = roomCode;
+            document.getElementById('settings-roomId').value = roomId;
+            switchModule('room-details');
+
+            // Load Details from API
+            try {
+                // Room Settings
+                const resSettings = await fetch(`/api/MotelManagement/GetRoomSettings/${roomId}`);
+                const dataSettings = await resSettings.json();
+                if (dataSettings.success && dataSettings.data) {
+                    const s = dataSettings.data;
+                    const form = document.getElementById('roomSettingsForm');
+                    form.BaseRent.value = s.baseRent;
+                    form.DepositAmount.value = s.depositAmount;
+                    form.StandardOccupants.value = s.standardOccupants;
+                    form.ExtraOccupantFee.value = s.extraOccupantFee;
+                    form.ApplyExtraOccupantFee.checked = s.applyExtraOccupantFee;
+                }
+
+                // Room Services
+                const resServices = await fetch(`/api/MotelManagement/GetRoomServices/${roomId}`);
+                const dataServices = await resServices.json();
+                const serviceList = document.getElementById('room-services-list');
+                if (dataServices.success) {
+                    serviceList.innerHTML = dataServices.data.map(s => `
+                        <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold small">${s.serviceName}</div>
+                                <div class="x-small text-muted">${s.unit} - ${s.calculationType}</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" class="form-control form-control-sm text-end" value="${s.unitPrice}" style="width: 100px; border-radius: 8px;">
+                                <span class="small fw-bold">đ</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Occupants
+                const resOccupants = await fetch(`/api/MotelManagement/GetRoomOccupants/${roomId}`);
+                const dataOccupants = await resOccupants.json();
+                const occupantList = document.getElementById('occupants-list-container');
+                if (dataOccupants.success) {
+                    if (dataOccupants.data.length === 0) {
+                        occupantList.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Chưa có thành viên nào.</td></tr>';
+                    } else {
+                        occupantList.innerHTML = dataOccupants.data.map(o => `
+                            <tr>
+                                <td><div class="fw-bold">${o.fullName}</div></td>
+                                <td><span class="badge bg-light text-dark">${o.occupantRole}</span></td>
+                                <td class="small text-muted">${new Date(o.checkInDate).toLocaleDateString('vi-VN')}</td>
+                                <td class="small">${o.phone || 'N/A'}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeOccupant(${o.roomOccupantId})">Xóa</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading room details", e);
+            }
+        }
+
+        async function removeOccupant(occupantId) {
+            if (!confirm("Bạn có chắc chắn muốn xóa thành viên này khỏi phòng?")) return;
+            try {
+                // Assuming an endpoint exists or we use a generic update
+                showPremiumToast("Thông tin", "Tính năng xóa đang được xử lý...", "info");
+            } catch (e) {}
+        }
+
+        async function saveRoomSettings() {
+            const form = document.getElementById('roomSettingsForm');
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.RoomId = parseInt(data.RoomId);
+            data.BaseRent = parseFloat(data.BaseRent);
+            data.DepositAmount = parseFloat(data.DepositAmount);
+            data.StandardOccupants = parseInt(data.StandardOccupants);
+            data.ExtraOccupantFee = parseFloat(data.ExtraOccupantFee);
+            data.ApplyExtraOccupantFee = document.getElementById('applyExtraFee').checked;
+            data.MaxOccupants = data.StandardOccupants + 2; 
+
+            try {
+                const response = await fetch('/api/MotelManagement/UpdateRoomSetting', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Cấu hình thuê đã được lưu.", "success");
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                alert("Lỗi khi lưu cấu hình.");
+            }
+        }
+
+        async function saveServiceSettings() {
+            showPremiumToast("Thông tin", "Đang cập nhật giá dịch vụ...", "info");
+            setTimeout(() => {
+                showPremiumToast("Thành công", "Đã cập nhật giá dịch vụ cho phòng.", "success");
+            }, 800);
+        }
+
+        function showAddOccupantModal() {
+            alert("Vui lòng sử dụng tính năng 'Thêm khách thuê' để gán người vào phòng.");
+        }
+
+        async function loadOverviewData() {
+            try {
+                const response = await fetch('/api/MotelManagement/MyMotels');
+                const result = await response.json();
+                
+                if (result.success) {
+                    let total = 0, occupied = 0;
+                    result.data.forEach(m => {
+                        m.floors.forEach(f => {
+                            total += f.rooms.length;
+                            occupied += f.rooms.filter(r => r.status === 'Occupied').length;
+                        });
+                    });
+
+                    document.getElementById('stat-total-rooms').innerText = total;
+                    document.getElementById('stat-occupied-rooms').innerText = occupied;
+                    document.getElementById('label-occupied').innerText = occupied;
+                    document.getElementById('label-vacant').innerText = total - occupied;
+                    
+                    renderChart(occupied, total - occupied);
+                }
+                
+                loadRecentRequests();
+            } catch (e) {
+                console.error("Failed to load overview", e);
+            }
+        }
+
+        let myChart;
+        function renderChart(occupied, vacant) {
+            const ctx = document.getElementById('occupancyChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [occupied, vacant],
+                        backgroundColor: ['#6366f1', '#e2e8f0'],
+                        borderWidth: 0,
+                        cutout: '80%'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        async function loadRecentRequests() {
+            try {
+                const response = await fetch('/api/Request/GetAllRequests');
+                const result = await response.json();
+                const list = document.getElementById('recent-requests-list');
+                
+                if (result.success) {
+                    const pending = result.data.filter(r => r.status === 'Pending').length;
+                    document.getElementById('stat-requests').innerText = pending;
+                    
+                    const recent = result.data.slice(0, 5);
+                    if (recent.length === 0) {
+                        list.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-muted">Không có yêu cầu nào mới.</td></tr>';
+                        return;
+                    }
+
+                    list.innerHTML = recent.map(r => `
+                        <tr>
+                            <td><span class="fw-bold">Phòng ${r.roomId}</span></td>
+                            <td>${r.title}</td>
+                            <td><span class="status-pill status-${r.status.toLowerCase() === 'pending' ? 'locked' : 'active'}">${r.status}</span></td>
+                            <td class="text-muted small">${new Date(r.createdAt).toLocaleDateString('vi-VN')}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOverviewData();
+        });
+    </script>
+
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 }

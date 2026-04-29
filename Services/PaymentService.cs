@@ -7,10 +7,12 @@ namespace UserManagementSystem.Services
     public class PaymentService : IPaymentService
     {
         private readonly ApplicationDbContext _db;
+        private readonly INotificationService _notificationService;
 
-        public PaymentService(ApplicationDbContext db)
+        public PaymentService(ApplicationDbContext db, INotificationService notificationService)
         {
             _db = db;
+            _notificationService = notificationService;
         }
 
         private async Task<bool> CanAccessInvoice(int invoiceId, int userId)
@@ -79,6 +81,13 @@ namespace UserManagementSystem.Services
                 invoice.InvoiceStatus = "PartiallyPaid";
 
             await _db.SaveChangesAsync();
+
+            // Notify Tenant
+            var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.TenantId == invoice.PrimaryTenantId);
+            if (tenant != null && tenant.UserId.HasValue)
+            {
+                await _notificationService.CreateNotificationAsync(tenant.UserId.Value, "Xác nhận thanh toán", $"Khoản thanh toán {request.Amount:N0}đ cho hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear} đã được ghi nhận.", "success");
+            }
 
             return new ApiResponse { Success = true, Message = "Ghi nhận thanh toán thành công.", Data = payment };
         }

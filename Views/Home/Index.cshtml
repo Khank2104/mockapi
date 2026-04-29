@@ -1,83 +1,75 @@
 @{
-    ViewData["Title"] = "Bảng điều khiển";
+    Layout = "_TenantLayout";
+    ViewData["Title"] = "Cổng thông tin khách thuê";
 }
 
-<div class="container py-5">
-    <div class="row g-4 mb-5 animate-fade-in">
-        <div class="col-lg-8">
-            <div class="card-glass p-5 h-100 border-0 overflow-hidden position-relative" style="background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);">
-                <div class="position-absolute top-0 end-0 p-4 opacity-10">
-                    <i class="bi bi-rocket-takeoff-fill" style="font-size: 10rem;"></i>
-                </div>
-                <div class="position-relative">
-                    <h4 class="text-primary fw-bold mb-2">Chào mừng trở lại!</h4>
-                    <h1 class="display-5 fw-bold mb-4" id="userNameDisplay">Đang tải...</h1>
-                    <p class="lead text-muted mb-4" style="max-width: 500px;">
-                        Chào mừng bạn đến với hệ thống quản lý tập trung. Tại đây bạn có thể quản lý hồ sơ cá nhân, nhận thông báo quan trọng và tùy chỉnh bảo mật tài khoản.
-                    </p>
-                    <div class="d-flex gap-3">
-                        <a href="/Home/Profile" class="btn btn-primary-custom px-4 py-3">
-                            <i class="bi bi-person-badge me-2"></i>Xem hồ sơ
-                        </a>
-                        <a href="/Settings" class="btn btn-outline-secondary border-2 px-4 py-3" style="border-radius: 0.875rem;">
-                            <i class="bi bi-shield-lock me-2"></i>Bảo mật
-                        </a>
-                    </div>
-                </div>
+<div class="row g-4 animate-fade-in">
+    <!-- Left Column: Room Info & Invoices -->
+    <div class="col-lg-8">
+        <div class="glass-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold fs-5">Thông tin phòng hiện tại</h3>
+                <span class="status-pill status-active" id="room-status-badge">Đang thuê</span>
+            </div>
+            <div id="room-info-display">
+                <div class="text-center py-4 text-muted small">Đang tải thông tin...</div>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="stat-card h-100 d-flex flex-column justify-content-center align-items-center text-center p-5 border-0">
-                <div class="avatar-wrapper mb-4">
-                    <img id="userAvatarLarge" src="" class="rounded-circle border border-4 border-white shadow-lg" style="width: 120px; height: 120px; object-fit: cover;">
-                </div>
-                <h4 id="userNameSmall" class="fw-bold mb-1">...</h4>
-                <p id="userRoleBadge" class="badge rounded-pill bg-primary px-3 py-2 mb-4">Member</p>
-                <div class="w-100 pt-4 border-top">
-                    <div class="row text-center">
-                        <div class="col-6 border-end">
-                            <h5 class="fw-bold mb-0">100%</h5>
-                            <small class="text-muted x-small">Hoàn thiện</small>
-                        </div>
-                        <div class="col-6">
-                            <h5 class="fw-bold mb-0 text-success">Online</h5>
-                            <small class="text-muted x-small">Trạng thái</small>
-                        </div>
-                    </div>
-                </div>
+
+        <div class="glass-card">
+            <h3 class="fw-bold fs-5 mb-4">Hóa đơn & Lịch sử thanh toán</h3>
+            <div class="table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>KỲ THANH TOÁN</th>
+                            <th>TỔNG TIỀN</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>HẠN CHỐT</th>
+                            <th>HÀNH ĐỘNG</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoice-list-display">
+                        <tr><td colspan="5" class="text-center py-5 text-muted">Đang tải hóa đơn...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="row g-4 animate-fade-in" style="animation-delay: 0.1s;">
-        <div class="col-md-4">
-            <div class="card-glass p-4 border-0 hover-effect">
-                <div class="stat-icon bg-info bg-opacity-10 text-info">
-                    <i class="bi bi-bell-fill"></i>
+    <!-- Right Column: Support & History -->
+    <div class="col-lg-4">
+        <div class="glass-card mb-4">
+            <h3 class="fw-bold fs-5 mb-3">Gửi yêu cầu hỗ trợ</h3>
+            <p class="text-muted small mb-4">Gặp vấn đề về điện, nước hay cơ sở vật chất? Hãy báo ngay cho chúng tôi.</p>
+            
+            <form id="requestForm">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold opacity-75">TIÊU ĐỀ</label>
+                    <input type="text" name="Title" class="form-control" placeholder="Ví dụ: Hỏng bóng đèn..." style="border-radius: 12px;">
                 </div>
-                <h5 class="fw-bold">Thông báo mới</h5>
-                <p class="text-muted small">Kiểm tra các cập nhật quan trọng từ hệ thống dành riêng cho bạn.</p>
-                <a href="#" class="text-decoration-none small fw-bold" onclick="document.querySelector('#navNotification a').click()">Xem ngay <i class="bi bi-arrow-right"></i></a>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold opacity-75">LOẠI YÊU CẦU</label>
+                    <select name="RequestType" class="form-select" style="border-radius: 12px;">
+                        <option value="Repair">Sửa chữa</option>
+                        <option value="Complaint">Khiếu nại</option>
+                        <option value="Other">Khác</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold opacity-75">MÔ TẢ CHI TIẾT</label>
+                    <textarea name="Description" class="form-control" rows="3" placeholder="Nhà vệ sinh bị rò nước..." style="border-radius: 12px;"></textarea>
+                </div>
+                <button type="button" class="btn btn-premium w-100 py-3" onclick="submitRequest()">
+                    Gửi yêu cầu <i class="bi bi-send-fill ms-2"></i>
+                </button>
+            </form>
         </div>
-        <div class="col-md-4">
-            <div class="card-glass p-4 border-0 hover-effect">
-                <div class="stat-icon bg-success bg-opacity-10 text-success">
-                    <i class="bi bi-safe2-fill"></i>
-                </div>
-                <h5 class="fw-bold">Bảo mật OTP</h5>
-                <p class="text-muted small">Nâng cao an toàn cho tài khoản bằng cách kích hoạt xác thực 2 lớp qua Email.</p>
-                <a href="/Settings" class="text-decoration-none small fw-bold">Thiết lập <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card-glass p-4 border-0 hover-effect">
-                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                    <i class="bi bi-person-gear"></i>
-                </div>
-                <h5 class="fw-bold">Hồ sơ cá nhân</h5>
-                <p class="text-muted small">Cập nhật ảnh đại diện, địa chỉ và thông tin liên hệ của bạn.</p>
-                <a href="/Home/Profile" class="text-decoration-none small fw-bold">Chỉnh sửa <i class="bi bi-arrow-right"></i></a>
+
+        <div class="glass-card">
+            <h3 class="fw-bold fs-6 mb-3">Yêu cầu gần đây</h3>
+            <div id="request-history-list">
+                <div class="text-center py-3 text-muted small">Đang tải...</div>
             </div>
         </div>
     </div>
@@ -86,27 +78,126 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const userStr = localStorage.getItem('currentUser');
-            if (!userStr) {
-                window.location.href = '/Account/Login';
-                return;
-            }
-            const user = JSON.parse(userStr);
-            
-            document.getElementById('userNameDisplay').innerText = user.name;
-            document.getElementById('userNameSmall').innerText = user.name;
-            document.getElementById('userAvatarLarge').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=120`;
-            
-            const badge = document.getElementById('userRoleBadge');
-            badge.innerText = user.role.toUpperCase();
-            if (user.role === 'admin' || user.role === 'superuser') {
-                badge.className = 'badge rounded-pill bg-danger px-3 py-2 mb-4';
-            }
+            loadTenantData();
         });
 
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = '/Account/Login';
+        async function loadTenantData() {
+            loadRoomInfo();
+            loadInvoices();
+            loadRequests();
+        }
+
+        async function loadRoomInfo() {
+            const container = document.getElementById('room-info-display');
+            try {
+                const response = await fetch('/api/TenantPortal/MyRoom');
+                const result = await response.json();
+                if (result.success && result.data) {
+                    const r = result.data;
+                    container.innerHTML = `
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-4">
+                                    <div class="x-small text-muted fw-bold mb-1">MÃ PHÒNG</div>
+                                    <div class="fw-bold fs-4 text-primary">${r.roomCode}</div>
+                                    <div class="small text-muted">${r.motelName}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-4">
+                                    <div class="x-small text-muted fw-bold mb-1">TIỀN THUÊ CỐ ĐỊNH</div>
+                                    <div class="fw-bold fs-4">${r.monthlyRent.toLocaleString('vi-VN')}đ</div>
+                                    <div class="small text-muted">Hợp đồng: ${new Date(r.contractStartDate).toLocaleDateString('vi-VN')}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = '<div class="alert alert-info border-0 rounded-4 py-3 small">Bạn hiện chưa có hợp đồng phòng nào đang hoạt động.</div>';
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="text-danger small">Lỗi khi tải dữ liệu phòng.</div>';
+            }
+        }
+
+        async function loadInvoices() {
+            const list = document.getElementById('invoice-list-display');
+            try {
+                const response = await fetch('/api/TenantPortal/MyInvoices');
+                const result = await response.json();
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        list.innerHTML = '<tr><td colspan="5" class="text-center py-5">Chưa có hóa đơn nào được phát hành.</td></tr>';
+                        return;
+                    }
+                    list.innerHTML = result.data.map(i => `
+                        <tr>
+                            <td><span class="fw-bold">Tháng ${i.billingMonth}/${i.billingYear}</span></td>
+                            <td class="text-primary fw-bold">${i.totalAmount.toLocaleString('vi-VN')}đ</td>
+                            <td><span class="status-pill status-${i.invoiceStatus.toLowerCase() === 'unpaid' ? 'locked' : 'active'}">${i.invoiceStatus}</span></td>
+                            <td class="text-muted small">${new Date(i.dueDate).toLocaleDateString('vi-VN')}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+
+        async function loadRequests() {
+            const container = document.getElementById('request-history-list');
+            try {
+                const response = await fetch('/api/Request/GetMyRequests');
+                const result = await response.json();
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<div class="text-center py-3 text-muted x-small">Bạn chưa có yêu cầu nào.</div>';
+                        return;
+                    }
+                    container.innerHTML = result.data.slice(0, 5).map(r => `
+                        <div class="p-3 bg-light rounded-4 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <div class="fw-bold small">${r.title}</div>
+                                <span class="status-pill status-${r.status.toLowerCase() === 'pending' ? 'locked' : 'active'}" style="font-size: 0.6rem;">${r.status}</span>
+                            </div>
+                            <div class="x-small text-muted">${new Date(r.createdAt).toLocaleString('vi-VN')}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+
+        async function submitRequest() {
+            const form = document.getElementById('requestForm');
+            const data = Object.fromEntries(new FormData(form).entries());
+            if (!data.Title || !data.Description) {
+                alert("Vui lòng nhập đầy đủ thông tin.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/Request/CreateRequest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Yêu cầu của bạn đã được gửi tới quản lý.", "success");
+                    form.reset();
+                    loadRequests();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                alert("Lỗi khi gửi yêu cầu.");
+            }
         }
     </script>
+
+    <style>
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        @@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 }

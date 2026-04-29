@@ -76,7 +76,8 @@ namespace UserManagementSystem.Services
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim("role", user.Role?.RoleName ?? "tenant"),
-                new Claim("id", user.UserId.ToString())
+                new Claim("id", user.UserId.ToString()),
+                new Claim("mustChangePassword", user.MustChangePassword.ToString().ToLower())
             };
 
             var token = new JwtSecurityToken(
