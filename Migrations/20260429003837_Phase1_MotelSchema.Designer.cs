@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UserManagementSystem.Data;
 
@@ -11,9 +12,11 @@ using UserManagementSystem.Data;
 namespace UserManagementSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429003837_Phase1_MotelSchema")]
+    partial class Phase1_MotelSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,8 +69,6 @@ namespace UserManagementSystem.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("ContractId");
-
-                    b.HasIndex("CreatedBy");
 
                     b.HasIndex("PrimaryTenantId");
 
@@ -183,8 +184,6 @@ namespace UserManagementSystem.Migrations
 
                     b.HasIndex("ContractId");
 
-                    b.HasIndex("CreatedBy");
-
                     b.HasIndex("PrimaryTenantId");
 
                     b.HasIndex("RoomId");
@@ -271,8 +270,6 @@ namespace UserManagementSystem.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("ReadingId");
-
-                    b.HasIndex("RecordedBy");
 
                     b.HasIndex("RoomId");
 
@@ -399,8 +396,6 @@ namespace UserManagementSystem.Migrations
 
                     b.HasIndex("InvoiceId");
 
-                    b.HasIndex("ReceivedBy");
-
                     b.ToTable("Payments");
                 });
 
@@ -450,8 +445,6 @@ namespace UserManagementSystem.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("RequestId");
-
-                    b.HasIndex("HandledBy");
 
                     b.HasIndex("RoomId");
 
@@ -634,8 +627,6 @@ namespace UserManagementSystem.Migrations
 
                     b.HasKey("RoomServiceSettingId");
 
-                    b.HasIndex("CreatedBy");
-
                     b.HasIndex("RoomId");
 
                     b.HasIndex("ServiceId");
@@ -691,8 +682,6 @@ namespace UserManagementSystem.Migrations
 
                     b.HasKey("RoomSettingId");
 
-                    b.HasIndex("CreatedBy");
-
                     b.HasIndex("RoomId")
                         .IsUnique();
 
@@ -746,8 +735,6 @@ namespace UserManagementSystem.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("ServiceId");
-
-                    b.HasIndex("CreatedBy");
 
                     b.ToTable("Services");
                 });
@@ -880,8 +867,6 @@ namespace UserManagementSystem.Migrations
 
                     b.HasKey("UserId");
 
-                    b.HasIndex("CreatedBy");
-
                     b.HasIndex("Email")
                         .IsUnique();
 
@@ -895,11 +880,6 @@ namespace UserManagementSystem.Migrations
 
             modelBuilder.Entity("UserManagementSystem.Models.Contract", b =>
                 {
-                    b.HasOne("UserManagementSystem.Models.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("UserManagementSystem.Models.Tenant", "PrimaryTenant")
                         .WithMany()
                         .HasForeignKey("PrimaryTenantId")
@@ -911,8 +891,6 @@ namespace UserManagementSystem.Migrations
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Creator");
 
                     b.Navigation("PrimaryTenant");
 
@@ -937,11 +915,6 @@ namespace UserManagementSystem.Migrations
                         .HasForeignKey("ContractId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("UserManagementSystem.Models.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("UserManagementSystem.Models.Tenant", "PrimaryTenant")
                         .WithMany()
                         .HasForeignKey("PrimaryTenantId")
@@ -955,8 +928,6 @@ namespace UserManagementSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("Contract");
-
-                    b.Navigation("Creator");
 
                     b.Navigation("PrimaryTenant");
 
@@ -983,11 +954,6 @@ namespace UserManagementSystem.Migrations
 
             modelBuilder.Entity("UserManagementSystem.Models.MeterReading", b =>
                 {
-                    b.HasOne("UserManagementSystem.Models.User", "Recorder")
-                        .WithMany()
-                        .HasForeignKey("RecordedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("UserManagementSystem.Models.Room", "Room")
                         .WithMany()
                         .HasForeignKey("RoomId")
@@ -999,8 +965,6 @@ namespace UserManagementSystem.Migrations
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Recorder");
 
                     b.Navigation("Room");
 
@@ -1037,23 +1001,11 @@ namespace UserManagementSystem.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("UserManagementSystem.Models.User", "Receiver")
-                        .WithMany()
-                        .HasForeignKey("ReceivedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Invoice");
-
-                    b.Navigation("Receiver");
                 });
 
             modelBuilder.Entity("UserManagementSystem.Models.Request", b =>
                 {
-                    b.HasOne("UserManagementSystem.Models.User", "Handler")
-                        .WithMany()
-                        .HasForeignKey("HandledBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("UserManagementSystem.Models.Room", "Room")
                         .WithMany()
                         .HasForeignKey("RoomId")
@@ -1065,8 +1017,6 @@ namespace UserManagementSystem.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Handler");
 
                     b.Navigation("Room");
 
@@ -1112,11 +1062,6 @@ namespace UserManagementSystem.Migrations
 
             modelBuilder.Entity("UserManagementSystem.Models.RoomServiceSetting", b =>
                 {
-                    b.HasOne("UserManagementSystem.Models.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("UserManagementSystem.Models.Room", "Room")
                         .WithMany("ServiceSettings")
                         .HasForeignKey("RoomId")
@@ -1129,8 +1074,6 @@ namespace UserManagementSystem.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Creator");
-
                     b.Navigation("Room");
 
                     b.Navigation("Service");
@@ -1138,30 +1081,13 @@ namespace UserManagementSystem.Migrations
 
             modelBuilder.Entity("UserManagementSystem.Models.RoomSetting", b =>
                 {
-                    b.HasOne("UserManagementSystem.Models.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("UserManagementSystem.Models.Room", "Room")
                         .WithOne("Setting")
                         .HasForeignKey("UserManagementSystem.Models.RoomSetting", "RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Creator");
-
                     b.Navigation("Room");
-                });
-
-            modelBuilder.Entity("UserManagementSystem.Models.Service", b =>
-                {
-                    b.HasOne("UserManagementSystem.Models.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("UserManagementSystem.Models.Tenant", b =>
@@ -1176,18 +1102,11 @@ namespace UserManagementSystem.Migrations
 
             modelBuilder.Entity("UserManagementSystem.Models.User", b =>
                 {
-                    b.HasOne("UserManagementSystem.Models.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("UserManagementSystem.Models.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Creator");
 
                     b.Navigation("Role");
                 });

@@ -38,14 +38,14 @@ namespace UserManagementSystem.Services
 
         public async Task CreateNotificationForRolesAsync(string[] roles, string title, string message, string type = "info")
         {
-            var users = await _db.Users.Where(u => roles.Contains(u.Role)).ToListAsync();
+            var users = await _db.Users.Where(u => roles.Contains(u.Role.RoleName)).ToListAsync();
             var notifications = new List<Notification>();
 
             foreach (var user in users)
             {
                 notifications.Add(new Notification
                 {
-                    UserId = user.Id,
+                    UserId = user.UserId,
                     Title = title,
                     Message = message,
                     Type = type,
