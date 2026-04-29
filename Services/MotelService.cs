@@ -54,8 +54,40 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> GetMotelsByAdminAsync(int adminId)
         {
-            var motels = await _db.Motels.Where(m => m.OwnerUserId == adminId).ToListAsync();
-            return new ApiResponse { Success = true, Data = motels };
+            var motels = await _db.Motels
+                .Include(m => m.Floors)
+                .ThenInclude(f => f.Rooms)
+                .ThenInclude(r => r.Setting)
+                .Where(m => m.OwnerUserId == adminId)
+                .ToListAsync();
+
+            var response = motels.Select(m => new MotelResponse
+            {
+                MotelId = m.MotelId,
+                MotelName = m.MotelName,
+                Address = m.Address,
+                Description = m.Description,
+                UseFloorManagement = m.UseFloorManagement,
+                Status = m.Status,
+                Floors = m.Floors.Select(f => new FloorResponse
+                {
+                    FloorId = f.FloorId,
+                    FloorNumber = f.FloorNumber,
+                    FloorName = f.FloorName,
+                    Status = f.Status,
+                    Rooms = f.Rooms.Select(r => new RoomResponse
+                    {
+                        RoomId = r.RoomId,
+                        RoomCode = r.RoomCode,
+                        Area = r.Area,
+                        Status = r.Status,
+                        Description = r.Description,
+                        CurrentRent = r.Setting?.BaseRent
+                    }).ToList()
+                }).ToList()
+            }).ToList();
+
+            return new ApiResponse { Success = true, Data = response };
         }
 
         // --- Floor ---
@@ -97,8 +129,12 @@ namespace UserManagementSystem.Services
         // --- Room ---
         public async Task<ApiResponse> CreateRoomAsync(RoomRequest request, int adminId)
         {
-            if (!await IsAdminOfMotel(adminId, request.MotelId))
-                return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+            var motel = await _db.Motels.FindAsync(request.MotelId);
+            if (motel == null || motel.OwnerUserId != adminId)
+                return new ApiResponse { Success = false, Message = "Không tìm thấy khu trọ hoặc bạn không có quyền." };
+
+            if (motel.UseFloorManagement && !request.FloorId.HasValue)
+                return new ApiResponse { Success = false, Message = "Khu trọ này có quản lý tầng, vui lòng chọn tầng cho phòng." };
 
             if (request.FloorId.HasValue)
             {
@@ -119,7 +155,24 @@ namespace UserManagementSystem.Services
             };
             _db.Rooms.Add(room);
             await _db.SaveChangesAsync();
-            return new ApiResponse { Success = true, Message = "Tạo phòng thành công.", Data = room };
+
+            // Tự động gán các dịch vụ mặc định hệ thống
+            var defaultServices = await _db.Services.Where(s => s.IsSystemDefault && s.IsActive).ToListAsync();
+            foreach (var service in defaultServices)
+            {
+                _db.RoomServiceSettings.Add(new RoomServiceSetting
+                {
+                    RoomId = room.RoomId,
+                    ServiceId = service.ServiceId,
+                    UnitPrice = service.DefaultPrice,
+                    CalculationType = service.CalculationType,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                });
+            }
+            await _db.SaveChangesAsync();
+
+            return new ApiResponse { Success = true, Message = "Tạo phòng thành công và đã gán các dịch vụ mặc định.", Data = room };
         }
 
         public async Task<ApiResponse> UpdateRoomAsync(int roomId, RoomRequest request, int adminId)
@@ -202,6 +255,60 @@ namespace UserManagementSystem.Services
 
             await _db.SaveChangesAsync();
             return new ApiResponse { Success = true, Message = "Cập nhật dịch vụ cho phòng thành công." };
+        }
+
+        public async Task<ApiResponse> GetRoomSettingsAsync(int roomId, int adminId)
+        {
+            var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == roomId);
+            if (room == null || room.Motel.OwnerUserId != adminId)
+                return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+
+            var settings = await _db.RoomSettings.FirstOrDefaultAsync(s => s.RoomId == roomId);
+            return new ApiResponse { Success = true, Data = settings };
+        }
+
+        public async Task<ApiResponse> GetRoomServicesAsync(int roomId, int adminId)
+        {
+            var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == roomId);
+            if (room == null || room.Motel.OwnerUserId != adminId)
+                return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+
+            var services = await _db.RoomServiceSettings
+                .Include(s => s.Service)
+                .Where(s => s.RoomId == roomId)
+                .Select(s => new {
+                    s.RoomServiceSettingId,
+                    s.ServiceId,
+                    s.Service.ServiceName,
+                    s.Service.Unit,
+                    s.UnitPrice,
+                    s.CalculationType,
+                    s.IsActive
+                })
+                .ToListAsync();
+
+            return new ApiResponse { Success = true, Data = services };
+        }
+
+        public async Task<ApiResponse> GetRoomOccupantsAsync(int roomId, int adminId)
+        {
+            var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == roomId);
+            if (room == null || room.Motel.OwnerUserId != adminId)
+                return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+
+            var occupants = await _db.RoomOccupants
+                .Include(o => o.Tenant)
+                .Where(o => o.RoomId == roomId && o.CheckOutDate == null)
+                .Select(o => new {
+                    o.RoomOccupantId,
+                    o.Tenant.FullName,
+                    o.OccupantRole,
+                    o.CheckInDate,
+                    o.Tenant.Phone
+                })
+                .ToListAsync();
+
+            return new ApiResponse { Success = true, Data = occupants };
         }
     }
 }

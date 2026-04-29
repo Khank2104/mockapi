@@ -20,6 +20,7 @@ namespace UserManagementSystem.Services
         Task<ApiResponse> GetInvoiceByIdAsync(int invoiceId, int requesterId);
         Task<ApiResponse> GetInvoicesByRoomAsync(int roomId, int requesterId);
         Task<ApiResponse> GetInvoicesByTenantAsync(int tenantUserId);
+        Task<ApiResponse> GetTenantRoomInfoAsync(int tenantUserId);
     }
 
     public interface IPaymentService
@@ -30,7 +31,7 @@ namespace UserManagementSystem.Services
 
     public interface IRequestService
     {
-        Task<ApiResponse> CreateRequestAsync(CreateTenantRequest request, int tenantUserId);
+        Task<ApiResponse> CreateRequestAsync(CreateServiceRequest request, int tenantUserId);
         Task<ApiResponse> GetAllRequestsAsync(int adminId);
         Task<ApiResponse> GetTenantRequestsAsync(int tenantUserId);
         Task<ApiResponse> UpdateRequestStatusAsync(int requestId, UpdateRequestStatus request, int adminId);

@@ -1,99 +1,183 @@
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Đăng nhập";
+    ViewData["Title"] = "Đăng nhập hệ thống";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
-        <div class="col-md-5">
-            <div class="card-glass p-5 animate-fade-in">
-                <div class="text-center mb-5">
-                    <div class="d-inline-flex p-3 bg-primary bg-opacity-10 rounded-circle mb-4">
-                        <i class="bi bi-shield-lock-fill text-primary fs-1"></i>
-                    </div>
-                    <h2 class="fw-bold mb-1">Chào mừng trở lại</h2>
-                    <p class="text-muted small">Đăng nhập để quản lý tài khoản của bạn</p>
-                </div>
-                
-                <form id="loginForm">
-                    <div id="credentialsSection">
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Tên đăng nhập</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-person"></i></span>
-                                <input type="text" id="username" class="form-control form-control-custom bg-light border-0" placeholder="Username" required>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between">
-                                <label class="form-label text-muted small fw-bold">Mật khẩu</label>
-                                <a href="#" id="forgotPasswordLink" class="text-decoration-none small text-primary">Quên mật khẩu?</a>
-                            </div>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-key"></i></span>
-                                <input type="password" id="password" class="form-control form-control-custom bg-light border-0" placeholder="••••••••" required>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary-custom w-100 py-3 shadow-sm">Tiếp tục <i class="bi bi-arrow-right ms-2"></i></button>
-                    </div>
-
-                    <div id="otpSection" style="display: none;">
-                        <div class="alert alert-info border-0 rounded-4 p-3 small mb-4">
-                            <i class="bi bi-info-circle-fill me-2"></i>
-                            Một mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label text-muted small fw-bold">Mã xác thực (OTP)</label>
-                            <input type="text" id="otp" class="form-control form-control-custom text-center fs-3 fw-bold tracking-widest bg-light border-0" maxlength="6" placeholder="000000">
-                        </div>
-                        <button type="button" id="verifyOtpBtn" class="btn btn-primary-custom w-100 py-3 mb-3">Xác thực & Đăng nhập</button>
-                        <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Quay lại đăng nhập</button>
-                    </div>
-                    
-                    <div id="forgotPasswordSection" style="display: none;">
-                        <p class="text-muted small mb-4 text-center">Nhập email của bạn để nhận mã OTP khôi phục mật khẩu.</p>
-                        <div class="mb-4">
-                            <label class="form-label text-muted small fw-bold">Email đăng ký</label>
-                            <input type="email" id="forgotEmail" class="form-control form-control-custom bg-light border-0" placeholder="name@example.com">
-                        </div>
-                        <button type="button" id="sendForgotOtpBtn" class="btn btn-primary-custom w-100 py-3 mb-3">Gửi mã OTP khôi phục</button>
-                        <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Quay lại đăng nhập</button>
-                    </div>
-
-                    <div id="resetPasswordSection" style="display: none;">
-                        <div class="alert alert-success border-0 rounded-4 p-3 small mb-4 text-center">
-                            Mã OTP đã được gửi. Hãy nhập mã và đặt mật khẩu mới.
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Mã OTP</label>
-                            <input type="text" id="resetOtp" class="form-control form-control-custom text-center fs-3 fw-bold tracking-widest bg-light border-0" maxlength="6" placeholder="000000">
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label text-muted small fw-bold">Mật khẩu mới</label>
-                            <input type="password" id="resetNewPassword" class="form-control form-control-custom bg-light border-0" placeholder="Nhập mật khẩu mới">
-                        </div>
-                        <button type="button" id="resetPasswordBtn" class="btn btn-primary-custom w-100 py-3 mb-3">Đổi mật khẩu</button>
-                        <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Hủy</button>
-                    </div>
-                    
-                    <div id="loginError" class="alert alert-danger border-0 rounded-3 small mt-3 text-center py-2" style="display: none;">
-                        Sai tài khoản hoặc mật khẩu.
-                    </div>
-                </form>
-
-                <div class="mt-5 text-center">
-                    <p class="text-muted small mb-0">Chưa có tài khoản? <a href="/Account/Register" class="text-primary fw-bold text-decoration-none">Đăng ký ngay</a></p>
-                </div>
+<div class="login-page-container">
+    <div class="login-card glass-card animate-fade-in">
+        <div class="text-center mb-5">
+            <div class="logo-icon mb-3">
+                <i class="bi bi-shield-lock-fill"></i>
             </div>
+            <h1 class="fw-bold fs-3 mb-1">QuanTro System</h1>
+            <p class="text-muted small">Đăng nhập để tiếp tục quản lý</p>
         </div>
+
+        <form id="loginForm">
+            <!-- Credentials Section -->
+            <div id="credentialsSection">
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-uppercase opacity-75">Tên đăng nhập</label>
+                    <div class="input-container">
+                        <i class="bi bi-person"></i>
+                        <input type="text" id="username" class="form-input" placeholder="Nhập username" required>
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <div class="d-flex justify-content-between">
+                        <label class="form-label small fw-bold text-uppercase opacity-75">Mật khẩu</label>
+                        <a href="#" id="forgotPasswordLink" class="small text-primary text-decoration-none fw-bold">Quên?</a>
+                    </div>
+                    <div class="input-container">
+                        <i class="bi bi-key"></i>
+                        <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-premium w-100 py-3">
+                    Đăng nhập <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            </div>
+
+            <!-- OTP Section -->
+            <div id="otpSection" style="display: none;">
+                <div class="text-center mb-4">
+                    <div class="badge bg-primary bg-opacity-10 text-primary p-2 px-3 rounded-pill small mb-3">
+                        <i class="bi bi-envelope-check me-2"></i>Mã OTP đã được gửi
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <input type="text" id="otp" class="form-input text-center fs-3 fw-bold tracking-widest" maxlength="6" placeholder="000000">
+                </div>
+                <button type="button" id="verifyOtpBtn" class="btn btn-premium w-100 py-3 mb-3">Xác thực</button>
+                <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Quay lại</button>
+            </div>
+
+            <!-- Forgot Password Section -->
+            <div id="forgotPasswordSection" style="display: none;">
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-uppercase opacity-75">Email đăng ký</label>
+                    <div class="input-container">
+                        <i class="bi bi-envelope"></i>
+                        <input type="email" id="forgotEmail" class="form-input" placeholder="name@example.com">
+                    </div>
+                </div>
+                <button type="button" id="sendForgotOtpBtn" class="btn btn-premium w-100 py-3 mb-3">Gửi mã OTP</button>
+                <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Quay lại</button>
+            </div>
+
+            <!-- Reset Password Section -->
+            <div id="resetPasswordSection" style="display: none;">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-uppercase opacity-75">Mã OTP</label>
+                    <input type="text" id="resetOtp" class="form-input text-center fs-3 fw-bold tracking-widest" maxlength="6" placeholder="000000">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-uppercase opacity-75">Mật khẩu mới</label>
+                    <div class="input-container">
+                        <i class="bi bi-shield-check"></i>
+                        <input type="password" id="resetNewPassword" class="form-input" placeholder="Nhập mật khẩu mới">
+                    </div>
+                </div>
+                <button type="button" id="resetPasswordBtn" class="btn btn-premium w-100 py-3 mb-3">Đặt lại mật khẩu</button>
+                <button type="button" onclick="location.reload()" class="btn btn-link text-muted small w-100 text-decoration-none">Hủy</button>
+            </div>
+
+            <div id="loginError" class="alert alert-danger border-0 rounded-4 small mt-4 text-center py-2 animate-shake" style="display: none;">
+                Sai tài khoản hoặc mật khẩu.
+            </div>
+        </form>
     </div>
 </div>
 
 <style>
+    body {
+        background: #f1f5f9;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0, transparent 50%);
+    }
+
+    .login-page-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 420px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 30px;
+        padding: 3rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        color: white;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+    }
+
+    .input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-container i {
+        position: absolute;
+        left: 1.25rem;
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.85rem 1.25rem 0.85rem 3.25rem;
+        background: rgba(241, 245, 249, 0.5);
+        border: 2px solid transparent;
+        border-radius: 16px;
+        outline: none;
+        transition: all 0.2s;
+        color: #1e293b;
+        font-weight: 500;
+    }
+
+    .form-input:focus {
+        background: white;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
     .tracking-widest { letter-spacing: 0.5rem; }
-    .input-group-text { border-radius: 0.875rem 0 0 0.875rem !important; }
-    .form-control-custom { border-radius: 0 0.875rem 0.875rem 0 !important; }
-    #otp, #resetOtp { border-radius: 0.875rem !important; }
+
+    #otp, #resetOtp {
+        padding: 1rem;
+        border-radius: 16px;
+    }
+
+    .animate-shake {
+        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @@keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); }
+        20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+        40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
 </style>
 
 @section Scripts {

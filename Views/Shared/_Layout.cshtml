@@ -33,7 +33,13 @@
                     <ul class="navbar-nav ms-auto align-items-center gap-2">
                         <li class="nav-item" id="navAdmin" style="display:none;">
                             <a class="nav-link px-3 fw-semibold text-primary" href="/Admin">
-                                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                                <i class="bi bi-speedometer2 me-1"></i>Quản trị
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item" id="navTenant" style="display:none;">
+                            <a class="nav-link px-3 fw-semibold text-success" href="/">
+                                <i class="bi bi-house-door me-1"></i>Phòng của tôi
                             </a>
                         </li>
                         
@@ -167,6 +173,8 @@
 
                 if (user.role === 'admin' || user.role === 'superuser') {
                     document.getElementById('navAdmin').style.display = 'block';
+                } else if (user.role === 'tenant') {
+                    document.getElementById('navTenant').style.display = 'block';
                 }
                 
                 fetchUnreadCount();

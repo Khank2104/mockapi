@@ -123,6 +123,23 @@ namespace UserManagementSystem.Services
             return Task.FromResult(new ApiResponse { Success = false, Message = "Tính năng OTP không khả dụng trong phiên bản này." });
         }
 
+        public async Task<ApiResponse> ChangePasswordAsync(int userId, ChangePasswordRequest request)
+        {
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null) return new ApiResponse { Success = false, Message = "Người dùng không tồn tại." };
+
+            if (!_authService.VerifyPassword(request.CurrentPassword, user))
+                return new ApiResponse { Success = false, Message = "Mật khẩu hiện tại không chính xác." };
+
+            user.PasswordHash = _authService.HashPassword(request.NewPassword);
+            user.MustChangePassword = false;
+            user.IsFirstLogin = false;
+            user.UpdatedAt = DateTime.Now;
+
+            await _db.SaveChangesAsync();
+            return new ApiResponse { Success = true, Message = "Đổi mật khẩu thành công." };
+        }
+
         public async Task UpdatePasswordOnlyAsync(User user, string hashedPassword)
         {
             user.PasswordHash = hashedPassword;

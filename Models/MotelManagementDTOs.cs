@@ -108,4 +108,56 @@ namespace UserManagementSystem.Models
         public decimal DepositAmount { get; set; }
         public string? Terms { get; set; }
     }
+
+    public class CreateTenantRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public int RoomId { get; set; }
+        public decimal MonthlyRent { get; set; }
+    }
+
+    // --- Response DTOs (The professional way to return data) ---
+    public class MotelResponse
+    {
+        public int MotelId { get; set; }
+        public string MotelName { get; set; } = string.Empty;
+        public string? Address { get; set; }
+        public string? Description { get; set; }
+        public bool UseFloorManagement { get; set; }
+        public string Status { get; set; } = "Active";
+        public List<FloorResponse> Floors { get; set; } = new();
+    }
+
+    public class FloorResponse
+    {
+        public int FloorId { get; set; }
+        public int FloorNumber { get; set; }
+        public string? FloorName { get; set; }
+        public string Status { get; set; } = "Active";
+        public List<RoomResponse> Rooms { get; set; } = new();
+    }
+
+    public class RoomResponse
+    {
+        public int RoomId { get; set; }
+        public string RoomCode { get; set; } = string.Empty;
+        public double Area { get; set; }
+        public string Status { get; set; } = "Available";
+        public string? Description { get; set; }
+        public decimal? CurrentRent { get; set; }
+    }
+
+    public class TenantResponse
+    {
+        public int TenantId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string IdCard { get; set; } = string.Empty;
+        public string? Phone { get; set; }
+        public string? Email { get; set; }
+        public string Status { get; set; } = "Active";
+        public string? CurrentRoomCode { get; set; }
+    }
 }

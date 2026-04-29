@@ -13,6 +13,7 @@ namespace UserManagementSystem.Services
         Task<ApiResponse> UpdateAsync(int id, UpdateUserRequest request, int requesterId);
         Task<ApiResponse> DeleteAsync(int id, int requesterId);
         Task<ApiResponse> ToggleOtpAsync(int userId, bool otpEnabled);
+        Task<ApiResponse> ChangePasswordAsync(int userId, ChangePasswordRequest request);
         Task UpdatePasswordOnlyAsync(User user, string hashedPassword);
     }
 }

@@ -42,7 +42,6 @@ namespace UserManagementSystem.Services
             if (!await CanAccessRoom(request.RoomId, adminId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ hoặc phòng không tồn tại." };
 
-            // Extra check: Only Admin/Superuser can CREATE readings
             var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == adminId);
             if (user == null || (user.Role.RoleName != "admin" && user.Role.RoleName != "superuser"))
                 return new ApiResponse { Success = false, Message = "Chỉ quản trị viên mới có quyền ghi chỉ số." };
@@ -81,7 +80,20 @@ namespace UserManagementSystem.Services
             _db.MeterReadings.Add(reading);
             await _db.SaveChangesAsync();
 
-            return new ApiResponse { Success = true, Message = "Ghi chỉ số thành công.", Data = reading };
+            var response = new MeterReadingResponse
+            {
+                ReadingId = reading.ReadingId,
+                RoomId = reading.RoomId,
+                ServiceName = service.ServiceName,
+                PreviousReading = reading.PreviousReading,
+                CurrentReading = reading.CurrentReading,
+                UsageAmount = reading.UsageAmount,
+                BillingMonth = reading.BillingMonth,
+                BillingYear = reading.BillingYear,
+                RecordedAt = reading.RecordedAt
+            };
+
+            return new ApiResponse { Success = true, Message = "Ghi chỉ số thành công.", Data = response };
         }
 
         public async Task<ApiResponse> GetReadingsByRoomAsync(int roomId, int month, int year, int requesterId)
@@ -92,6 +104,18 @@ namespace UserManagementSystem.Services
             var readings = await _db.MeterReadings
                 .Include(r => r.Service)
                 .Where(r => r.RoomId == roomId && r.BillingMonth == month && r.BillingYear == year)
+                .Select(r => new MeterReadingResponse
+                {
+                    ReadingId = r.ReadingId,
+                    RoomId = r.RoomId,
+                    ServiceName = r.Service.ServiceName,
+                    PreviousReading = r.PreviousReading,
+                    CurrentReading = r.CurrentReading,
+                    UsageAmount = r.UsageAmount,
+                    BillingMonth = r.BillingMonth,
+                    BillingYear = r.BillingYear,
+                    RecordedAt = r.RecordedAt
+                })
                 .ToListAsync();
             return new ApiResponse { Success = true, Data = readings };
         }

@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "admin,superuser")]
     public class TenantManagementController : ControllerBase
     {
         private readonly ITenantService _tenantService;
@@ -45,18 +45,19 @@ namespace UserManagementSystem.Controllers
             return result.Success ? Ok(result) : NotFound(result);
         }
 
-        [HttpGet("GetAllProfiles")]
-        public async Task<IActionResult> GetAllProfiles()
+        [HttpGet("GetAllTenants")]
+        public async Task<IActionResult> GetAllTenants()
         {
             var result = await _tenantService.GetAllProfilesAsync(GetRequesterId());
             return result.Success ? Ok(result) : Forbid();
         }
 
-        // --- Account Management ---
-        [HttpPost("CreateAccount")]
-        public async Task<IActionResult> CreateAccount([FromBody] CreateTenantAccountRequest request)
+        // --- Integrated Management ---
+        [HttpPost("CreateTenant")]
+        public async Task<IActionResult> CreateTenant([FromBody] CreateTenantRequest request)
         {
-            var result = await _tenantService.CreateAccountAsync(request, GetRequesterId());
+            // Logic to create both profile and account
+            var result = await _tenantService.CreateTenantFullAsync(request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
     }

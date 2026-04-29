@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -547,6 +547,9 @@ namespace UserManagementSystem.Migrations
                     { 2, "Chủ trọ / Quản lý", "admin" },
                     { 3, "Khách thuê", "tenant" }
                 });
+
+            // Gán RoleId = 2 (admin) cho tất cả user cũ để không bị lỗi ràng buộc dữ liệu
+            migrationBuilder.Sql("UPDATE Users SET RoleId = 2 WHERE RoleId = 0 OR RoleId NOT IN (1, 2, 3)");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleId",

@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "admin,superuser")]
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentService _paymentService;

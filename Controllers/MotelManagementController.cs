@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "admin,superuser")]
     public class MotelManagementController : ControllerBase
     {
         private readonly IMotelService _motelService;
@@ -67,6 +67,27 @@ namespace UserManagementSystem.Controllers
         {
             var result = await _motelService.UpdateRoomServiceSettingAsync(request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("GetRoomSettings/{roomId}")]
+        public async Task<IActionResult> GetRoomSettings(int roomId)
+        {
+            var result = await _motelService.GetRoomSettingsAsync(roomId, GetRequesterId());
+            return Ok(result);
+        }
+
+        [HttpGet("GetRoomServices/{roomId}")]
+        public async Task<IActionResult> GetRoomServices(int roomId)
+        {
+            var result = await _motelService.GetRoomServicesAsync(roomId, GetRequesterId());
+            return Ok(result);
+        }
+
+        [HttpGet("GetRoomOccupants/{roomId}")]
+        public async Task<IActionResult> GetRoomOccupants(int roomId)
+        {
+            var result = await _motelService.GetRoomOccupantsAsync(roomId, GetRequesterId());
+            return Ok(result);
         }
     }
 }

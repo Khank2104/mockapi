@@ -7,13 +7,15 @@ namespace UserManagementSystem.Services
     public class RequestService : IRequestService
     {
         private readonly ApplicationDbContext _db;
+        private readonly INotificationService _notificationService;
 
-        public RequestService(ApplicationDbContext db)
+        public RequestService(ApplicationDbContext db, INotificationService notificationService)
         {
             _db = db;
+            _notificationService = notificationService;
         }
 
-        public async Task<ApiResponse> CreateRequestAsync(CreateTenantRequest request, int tenantUserId)
+        public async Task<ApiResponse> CreateRequestAsync(CreateServiceRequest request, int tenantUserId)
         {
             var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == tenantUserId);
             if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy thông tin khách thuê." };
@@ -36,6 +38,13 @@ namespace UserManagementSystem.Services
             _db.Requests.Add(newRequest);
             await _db.SaveChangesAsync();
 
+            // Notify Admin
+            var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == occupant.RoomId);
+            if (room != null)
+            {
+                await _notificationService.CreateNotificationAsync(room.Motel.OwnerUserId, "Yêu cầu mới", $"Phòng {room.RoomCode} vừa gửi một yêu cầu: {request.Title}", "info");
+            }
+
             return new ApiResponse { Success = true, Message = "Gửi yêu cầu thành công.", Data = newRequest };
         }
 
@@ -53,11 +62,24 @@ namespace UserManagementSystem.Services
 
             if (user.Role.RoleName == "admin")
             {
-                // Filter requests by motel ownership
                 query = query.Where(r => r.Room.Motel.OwnerUserId == adminId);
             }
 
-            var requests = await query.OrderByDescending(r => r.CreatedAt).ToListAsync();
+            var requests = await query.OrderByDescending(r => r.CreatedAt)
+                .Select(r => new ServiceRequestResponse
+                {
+                    RequestId = r.RequestId,
+                    Title = r.Title,
+                    Description = r.Description,
+                    RequestType = r.RequestType,
+                    Status = r.Status,
+                    CreatedAt = r.CreatedAt,
+                    ResolutionNote = r.ResolutionNote,
+                    TenantName = r.Tenant.FullName,
+                    RoomCode = r.Room.RoomCode,
+                    MotelName = r.Room.Motel.MotelName
+                }).ToListAsync();
+
             return new ApiResponse { Success = true, Data = requests };
         }
 
@@ -67,8 +89,20 @@ namespace UserManagementSystem.Services
             if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy thông tin khách thuê." };
 
             var requests = await _db.Requests
+                .Include(r => r.Room)
                 .Where(r => r.TenantId == tenant.TenantId)
                 .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new ServiceRequestResponse
+                {
+                    RequestId = r.RequestId,
+                    Title = r.Title,
+                    Description = r.Description,
+                    RequestType = r.RequestType,
+                    Status = r.Status,
+                    CreatedAt = r.CreatedAt,
+                    ResolutionNote = r.ResolutionNote,
+                    RoomCode = r.Room.RoomCode
+                })
                 .ToListAsync();
             return new ApiResponse { Success = true, Data = requests };
         }
@@ -91,6 +125,14 @@ namespace UserManagementSystem.Services
             req.HandledAt = DateTime.Now;
 
             await _db.SaveChangesAsync();
+
+            // Notify Tenant
+            var tenantUser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == req.Tenant.UserId);
+            if (tenantUser != null)
+            {
+                await _notificationService.CreateNotificationAsync(tenantUser.UserId, "Cập nhật yêu cầu", $"Yêu cầu '{req.Title}' của bạn đã được cập nhật trạng thái: {request.Status}", "info");
+            }
+
             return new ApiResponse { Success = true, Message = "Cập nhật trạng thái yêu cầu thành công." };
         }
     }

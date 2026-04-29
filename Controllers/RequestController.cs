@@ -23,8 +23,8 @@ namespace UserManagementSystem.Controllers
             return int.TryParse(idClaim, out int id) ? id : 0;
         }
 
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("GetAllRequests")]
+        public async Task<IActionResult> GetAllRequests()
         {
             var result = await _requestService.GetAllRequestsAsync(GetRequesterId());
             return Ok(result);

@@ -8,11 +8,13 @@ namespace UserManagementSystem.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly IInvoiceCalculationService _calcService;
+        private readonly INotificationService _notificationService;
 
-        public InvoiceService(ApplicationDbContext db, IInvoiceCalculationService calcService)
+        public InvoiceService(ApplicationDbContext db, IInvoiceCalculationService calcService, INotificationService notificationService)
         {
             _db = db;
             _calcService = calcService;
+            _notificationService = notificationService;
         }
 
         private async Task<bool> CanAccessRoom(int roomId, int userId)
@@ -98,29 +100,57 @@ namespace UserManagementSystem.Services
 
             await _db.SaveChangesAsync();
 
+            // Notify Tenants in the room
+            var room = await _db.Rooms.Include(r => r.Occupants).ThenInclude(o => o.Tenant).FirstOrDefaultAsync(r => r.RoomId == invoice.RoomId);
+            if (room != null)
+            {
+                foreach (var occupant in room.Occupants.Where(o => o.Status == "Staying" && o.Tenant.UserId.HasValue))
+                {
+                    await _notificationService.CreateNotificationAsync(occupant.Tenant.UserId!.Value, "Hóa đơn mới", $"Hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear} đã được phát hành.", "info");
+                }
+            }
+
             return new ApiResponse { Success = true, Message = "Phát hành hóa đơn thành công.", Data = invoice.InvoiceId };
         }
 
         public async Task<ApiResponse> GetInvoiceByIdAsync(int invoiceId, int requesterId)
         {
-            var invoice = await _db.Invoices
+            var i = await _db.Invoices
                 .Include(i => i.Room)
                 .Include(i => i.Details)
                 .Include(i => i.Payments)
                 .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
 
-            if (invoice == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hóa đơn." };
+            if (i == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hóa đơn." };
 
-            if (!await CanAccessRoom(invoice.RoomId, requesterId))
+            if (!await CanAccessRoom(i.RoomId, requesterId))
                 return new ApiResponse { Success = false, Message = "Bạn không có quyền xem hóa đơn này." };
 
-            decimal paidAmount = invoice.Payments.Sum(p => p.PaidAmount);
-            
-            return new ApiResponse { Success = true, Data = new { 
-                Invoice = invoice, 
-                PaidAmount = paidAmount, 
-                RemainingAmount = invoice.TotalAmount - paidAmount 
-            }};
+            var response = new InvoiceResponse
+            {
+                InvoiceId = i.InvoiceId,
+                RoomId = i.RoomId,
+                RoomCode = i.Room.RoomCode,
+                BillingMonth = i.BillingMonth,
+                BillingYear = i.BillingYear,
+                RoomRent = i.RoomRent,
+                ServiceTotal = i.ServiceTotal,
+                ExtraOccupantTotal = i.ExtraOccupantTotal,
+                TotalAmount = i.TotalAmount,
+                PaidAmount = i.Payments.Sum(p => p.PaidAmount),
+                Status = i.InvoiceStatus,
+                DueDate = i.DueDate,
+                Details = i.Details.Select(d => new InvoiceDetailResponse
+                {
+                    ServiceName = d.ItemName,
+                    Description = d.Note ?? "",
+                    Quantity = d.Quantity,
+                    UnitPrice = d.UnitPrice,
+                    SubTotal = d.Amount
+                }).ToList()
+            };
+
+            return new ApiResponse { Success = true, Data = response };
         }
 
         public async Task<ApiResponse> GetInvoicesByRoomAsync(int roomId, int requesterId)
@@ -175,6 +205,31 @@ namespace UserManagementSystem.Services
             });
 
             return new ApiResponse { Success = true, Data = result };
+        }
+
+        public async Task<ApiResponse> GetTenantRoomInfoAsync(int tenantUserId)
+        {
+            var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == tenantUserId);
+            if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hồ sơ khách thuê." };
+
+            var occupant = await _db.RoomOccupants
+                .Include(o => o.Room).ThenInclude(r => r.Motel)
+                .Include(o => o.Room).ThenInclude(r => r.Setting)
+                .FirstOrDefaultAsync(o => o.TenantId == tenant.TenantId && o.Status == "Staying");
+
+            if (occupant == null) return new ApiResponse { Success = false, Message = "Bạn hiện chưa ở phòng nào." };
+
+            var room = occupant.Room;
+            return new ApiResponse { 
+                Success = true, 
+                Data = new {
+                    MotelName = room.Motel.MotelName,
+                    RoomCode = room.RoomCode,
+                    Area = room.Area,
+                    MonthlyRent = room.Setting?.BaseRent ?? 0,
+                    CheckInDate = occupant.CheckInDate
+                }
+            };
         }
     }
 }
