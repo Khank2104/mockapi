@@ -231,5 +231,38 @@ namespace UserManagementSystem.Services
                 }
             };
         }
+
+        public async Task<ApiResponse> GetBillingSummaryAsync(int month, int year, int adminId)
+        {
+            var isSuper = await _db.Users.AnyAsync(u => u.UserId == adminId && u.Role.RoleName == "superuser");
+
+            var rooms = await _db.Rooms
+                .Include(r => r.Motel)
+                .Include(r => r.Contracts)
+                .Where(r => (isSuper || r.Motel.OwnerUserId == adminId) && r.Contracts.Any(c => c.ContractStatus == "Active"))
+                .ToListAsync();
+
+            var roomIds = rooms.Select(r => r.RoomId).ToList();
+
+            var readings = await _db.MeterReadings
+                .Include(r => r.Service)
+                .Where(r => roomIds.Contains(r.RoomId) && r.BillingMonth == month && r.BillingYear == year)
+                .ToListAsync();
+
+            var invoices = await _db.Invoices
+                .Where(i => roomIds.Contains(i.RoomId) && i.BillingMonth == month && i.BillingYear == year)
+                .ToListAsync();
+
+            var summary = rooms.Select(r => new
+            {
+                r.RoomId,
+                r.RoomCode,
+                Electricity = readings.FirstOrDefault(rd => rd.RoomId == r.RoomId && rd.Service.ServiceCode.ToLower().Contains("electric")),
+                Water = readings.FirstOrDefault(rd => rd.RoomId == r.RoomId && rd.Service.ServiceCode.ToLower().Contains("water")),
+                Invoice = invoices.FirstOrDefault(i => i.RoomId == r.RoomId)
+            }).ToList();
+
+            return new ApiResponse { Success = true, Data = summary };
+        }
     }
 }

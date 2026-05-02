@@ -13,6 +13,8 @@
     
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
 </head>
 <body>
     <header class="sticky-top">
@@ -79,7 +81,7 @@
 
                         <!-- Guest Buttons -->
                         <li class="nav-item" id="navGuest" style="display:block;">
-                            <a class="btn btn-primary-custom px-4 rounded-pill shadow-sm" href="/Account/Login">Đăng nhập</a>
+                            <a class="btn btn-premium px-4 rounded-pill shadow-sm" href="/Account/Login">Đăng nhập</a>
                         </li>
                     </ul>
                 </div>
@@ -99,7 +101,7 @@
 
     <!-- Toast Container -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="liveToast" class="toast card-glass" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="liveToast" class="toast glass-card" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header border-0 bg-transparent">
                 <i class="bi bi-bell-fill me-2 text-primary"></i>
                 <strong class="me-auto" id="toastTitle">Notification</strong>

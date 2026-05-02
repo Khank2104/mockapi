@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "admin,superuser")]
+    [Authorize(Policy = "Management")]
     public class OccupancyManagementController : ControllerBase
     {
         private readonly IOccupancyService _occupancyService;
@@ -49,6 +49,13 @@ namespace UserManagementSystem.Controllers
         {
             var result = await _occupancyService.TerminateContractAsync(id, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("GetAllContracts")]
+        public async Task<IActionResult> GetAllContracts()
+        {
+            var result = await _occupancyService.GetAllContractsAsync(GetRequesterId());
+            return Ok(result);
         }
     }
 }

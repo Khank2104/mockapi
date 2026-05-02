@@ -19,9 +19,14 @@ namespace UserManagementSystem.Services
         
         // Settings
         Task<ApiResponse> UpdateRoomSettingAsync(RoomSettingRequest request, int adminId);
-        Task<ApiResponse> UpdateRoomServiceSettingAsync(RoomServiceSettingRequest request, int adminId);
         Task<ApiResponse> GetRoomSettingsAsync(int roomId, int adminId);
         Task<ApiResponse> GetRoomServicesAsync(int roomId, int adminId);
         Task<ApiResponse> GetRoomOccupantsAsync(int roomId, int adminId);
+        
+        // Global Services
+        Task<ApiResponse> GetGlobalServicesAsync();
+        Task<ApiResponse> CreateGlobalServiceAsync(ServiceRequest request, int adminId);
+        Task<ApiResponse> UpdateGlobalServiceAsync(int serviceId, decimal defaultPrice, int adminId);
+        Task<ApiResponse> SeedDefaultServicesAsync(int adminId);
     }
 }

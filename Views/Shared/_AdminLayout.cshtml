@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
 </head>
 <body>
@@ -17,8 +18,10 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-logo">
-                <i class="bi bi-shield-lock-fill"></i>
-                <span>QuanTro Admin</span>
+                <div class="stat-icon bg-white bg-opacity-20 text-white mb-0" style="width: 40px; height: 40px;">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <span>QuanTro<span class="fw-light">Admin</span></span>
             </div>
             
             <nav style="flex: 1;">
@@ -32,7 +35,7 @@
                     <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link" onclick="switchModule('motels', this)">
                             <i class="bi bi-houses-fill"></i>
-                            <span>Khu trọ & Phòng</span>
+                            <span>Sơ đồ Phòng & Tầng</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -42,9 +45,21 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link" onclick="switchModule('contracts', this)">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                            <span>Hợp đồng</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link" onclick="switchModule('billing', this)">
                             <i class="bi bi-receipt"></i>
                             <span>Hóa đơn & Điện nước</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link" onclick="switchModule('global-services', this)">
+                            <i class="bi bi-gear-fill"></i>
+                            <span>Cấu hình Điện/Nước</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -79,14 +94,30 @@
         <div class="main-content">
             <header class="top-header">
                 <div class="welcome-text">
-                    <h1 id="page-title">Chào buổi sáng!</h1>
-                    <p class="text-muted small" id="last-update">Hôm nay là ngày 29 tháng 04 năm 2026</p>
+                    <h1 id="page-title" class="mb-1">Xin chào!</h1>
+                    <p class="text-muted small" id="dynamic-greeting">Chúc bạn một ngày làm việc hiệu quả.</p>
                 </div>
 
-                <div class="header-actions d-flex align-items-center gap-3">
-                    <div class="user-profile-widget">
-                        <img id="navAvatar" src="" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
-                        <span id="navUserName" class="fw-bold small">Admin</span>
+                <div class="header-actions d-flex align-items-center gap-4">
+                    <div class="search-box d-none d-lg-flex align-items-center px-3 py-2 bg-white bg-opacity-50 rounded-pill border border-white">
+                        <i class="bi bi-search text-muted me-2"></i>
+                        <input type="text" class="border-0 bg-transparent small" placeholder="Tìm kiếm nhanh..." style="outline: none;">
+                    </div>
+                    
+                    <div class="position-relative cursor-pointer">
+                        <i class="bi bi-bell fs-5 text-muted"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-primary border border-light rounded-circle"></span>
+                    </div>
+
+                    <div class="user-profile-widget px-2 py-1 pe-3">
+                        <div class="avatar-container position-relative">
+                            <img id="navAvatar" src="" class="rounded-circle border border-2 border-white" style="width: 40px; height: 40px; object-fit: cover;">
+                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle"></span>
+                        </div>
+                        <div class="d-none d-md-block ms-1">
+                            <div id="navUserName" class="fw-bold x-small lh-1 mb-1">Admin</div>
+                            <div class="text-muted" style="font-size: 0.65rem;">Quản trị viên</div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -100,7 +131,9 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/js/dashboard-charts.js" asp-append-version="true"></script>
     
     <script>
         // SignalR Initialization
@@ -139,15 +172,27 @@
             window.location.href = '/Account/Login';
         }
 
-        // Auth Check
+        // Auth Check & Greeting Logic
         (function() {
+            const hour = new Date().getHours();
+            const greetingEl = document.getElementById('dynamic-greeting');
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString('vi-VN', options);
+            
+            let message = "Chào buổi sáng";
+            if (hour >= 12 && hour < 18) message = "Chào buổi chiều";
+            if (hour >= 18) message = "Chào buổi tối";
+            
+            greetingEl.innerText = `${message}, hôm nay là ${dateStr}`;
+
             const userJson = localStorage.getItem('currentUser');
             if (userJson) {
                 const user = JSON.parse(userJson);
                 document.getElementById('navUserName').innerText = user.name;
-                document.getElementById('navAvatar').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+                document.getElementById('navAvatar').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`;
                 
-                if (user.role === 'superuser') {
+                if (user.role && user.role.toLowerCase() === 'superuser') {
                     document.querySelectorAll('.superuser-only').forEach(el => el.classList.remove('d-none'));
                 }
             } else {

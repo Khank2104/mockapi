@@ -96,9 +96,9 @@ namespace UserManagementSystem.Services
                     IdCard = t.CitizenId,
                     Phone = t.Phone,
                     Email = t.User != null ? t.User.Email : "",
-                    Status = t.TenantStatus,
+                    Status = t.RoomOccupancies.Any(ro => ro.Status == "Staying") ? "Staying" : "Active",
                     CurrentRoomCode = t.RoomOccupancies
-                        .Where(ro => ro.CheckOutDate == null)
+                        .Where(ro => ro.Status == "Staying")
                         .Select(ro => ro.Room.RoomCode)
                         .FirstOrDefault() ?? "N/A"
                 })
@@ -164,7 +164,7 @@ namespace UserManagementSystem.Services
                 var newUser = new User
                 {
                     Username = request.Username,
-                    PasswordHash = _authService.HashPassword("123456"), // Default password
+                    PasswordHash = _authService.HashPassword(request.Password),
                     Email = request.Email,
                     Name = request.Name,
                     Phone = request.PhoneNumber,
@@ -184,46 +184,15 @@ namespace UserManagementSystem.Services
                     UserId = newUser.UserId,
                     FullName = request.Name,
                     Phone = request.PhoneNumber,
-                    TenantStatus = "Staying",
+                    TenantStatus = "Prospective", // Mới tạo chưa vào ở nên để Prospective
                     CreatedAt = DateTime.Now
                 };
                 _db.Tenants.Add(newTenant);
                 await _db.SaveChangesAsync();
 
-                // 5. Create Contract
-                var contract = new Contract
-                {
-                    RoomId = request.RoomId,
-                    PrimaryTenantId = newTenant.TenantId,
-                    MonthlyRent = request.MonthlyRent,
-                    StartDate = DateTime.Now,
-                    ContractStatus = "Active",
-                    CreatedBy = adminId,
-                    CreatedAt = DateTime.Now
-                };
-                _db.Contracts.Add(contract);
-
-                // 6. Add to Room Occupants
-                var occupant = new RoomOccupant
-                {
-                    RoomId = request.RoomId,
-                    TenantId = newTenant.TenantId,
-                    OccupantRole = "Primary",
-                    CheckInDate = DateTime.Now
-                };
-                _db.RoomOccupants.Add(occupant);
-
-                // 7. Update Room Status
-                var room = await _db.Rooms.FindAsync(request.RoomId);
-                if (room != null)
-                {
-                    room.Status = "Occupied";
-                }
-
-                await _db.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return new ApiResponse { Success = true, Message = "Đã tạo tài khoản, hồ sơ và hợp đồng thuê phòng thành công." };
+                return new ApiResponse { Success = true, Message = "Đã tạo tài khoản và hồ sơ khách thuê thành công." };
             }
             catch (Exception ex)
             {

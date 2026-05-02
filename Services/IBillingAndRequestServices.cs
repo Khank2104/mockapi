@@ -21,6 +21,7 @@ namespace UserManagementSystem.Services
         Task<ApiResponse> GetInvoicesByRoomAsync(int roomId, int requesterId);
         Task<ApiResponse> GetInvoicesByTenantAsync(int tenantUserId);
         Task<ApiResponse> GetTenantRoomInfoAsync(int tenantUserId);
+        Task<ApiResponse> GetBillingSummaryAsync(int month, int year, int adminId);
     }
 
     public interface IPaymentService

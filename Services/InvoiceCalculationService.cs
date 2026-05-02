@@ -65,53 +65,57 @@ namespace UserManagementSystem.Services
                 });
             }
 
-            // 3. Dịch vụ
-            foreach (var sSetting in room.ServiceSettings.Where(s => s.IsActive))
+            // 3. Dịch vụ (Luôn sử dụng đơn giá hệ thống)
+            var activeServices = await _db.Services.Where(s => s.IsActive).ToListAsync();
+            foreach (var service in activeServices)
             {
                 decimal currentServiceAmount = 0;
                 string description = "";
                 double quantity = 1;
+                decimal unitPrice = service.DefaultPrice;
 
-                switch (sSetting.CalculationType)
+                switch (service.CalculationType)
                 {
                     case "metered":
                         var reading = await _db.MeterReadings
-                            .FirstOrDefaultAsync(r => r.RoomId == roomId && r.ServiceId == sSetting.ServiceId && r.BillingMonth == month && r.BillingYear == year);
+                            .FirstOrDefaultAsync(r => r.RoomId == roomId && r.ServiceId == service.ServiceId && r.BillingMonth == month && r.BillingYear == year);
                         
                         if (reading != null)
                         {
                             quantity = reading.CurrentReading - reading.PreviousReading;
-                            currentServiceAmount = (decimal)quantity * sSetting.UnitPrice;
+                            currentServiceAmount = (decimal)quantity * unitPrice;
                             description = $"Chỉ số: {reading.PreviousReading} -> {reading.CurrentReading}";
                         }
                         else
                         {
-                            return new ApiResponse { Success = false, Message = $"Thiếu chỉ số dịch vụ '{sSetting.Service.ServiceName}' cho tháng {month}/{year}. Vui lòng nhập chỉ số trước khi chốt hóa đơn." };
+                            // Đối với điện nước, nếu không có số thì báo lỗi để admin ghi
+                            return new ApiResponse { Success = false, Message = $"Thiếu chỉ số dịch vụ '{service.ServiceName}' cho tháng {month}/{year}. Vui lòng nhập chỉ số trước khi chốt hóa đơn." };
                         }
                         break;
 
                     case "per_person":
                         quantity = occupantCount;
-                        currentServiceAmount = (decimal)quantity * sSetting.UnitPrice;
+                        currentServiceAmount = (decimal)quantity * unitPrice;
                         description = $"{occupantCount} người";
                         break;
 
+                    case "per_room":
                     case "fixed":
                     default:
                         quantity = 1;
-                        currentServiceAmount = sSetting.UnitPrice;
+                        currentServiceAmount = unitPrice;
                         description = "Phí cố định";
                         break;
                 }
 
-                if (currentServiceAmount > 0 || !string.IsNullOrEmpty(description))
+                if (currentServiceAmount > 0)
                 {
                     details.Add(new InvoiceDetailResponse
                     {
-                        ServiceName = sSetting.Service.ServiceName,
+                        ServiceName = service.ServiceName,
                         Description = description,
                         Quantity = quantity,
-                        UnitPrice = sSetting.UnitPrice,
+                        UnitPrice = unitPrice,
                         SubTotal = currentServiceAmount
                     });
                     serviceTotal += currentServiceAmount;
