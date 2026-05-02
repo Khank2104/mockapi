@@ -1,15 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 :root {
     --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --dark-glass-bg: rgba(15, 23, 42, 0.8);
-    --text-main: #1e293b;
-    --text-muted: #64748b;
+    --accent-gradient: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --dark-glass-bg: rgba(15, 23, 42, 0.85);
+    --text-main: #000000;  /* Pure Black */
+    --text-muted: #1e293b; /* Dark Slate Gray */
     --sidebar-width: 280px;
-    --header-height: 70px;
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --header-height: 80px;
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-premium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -19,12 +22,11 @@
 }
 
 body {
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f8fafc;
+    font-family: 'Outfit', sans-serif;
+    background: #f1f5f9;
     background-image: 
-        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0, transparent 50%), 
-        radial-gradient(at 50% 0%, rgba(168, 85, 247, 0.1) 0, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.1) 0, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0, transparent 50%), 
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0, transparent 50%);
     color: var(--text-main);
     overflow-x: hidden;
     min-height: 100vh;
@@ -58,6 +60,7 @@ body {
     font-weight: 800;
     background: var(--primary-gradient);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 3rem;
     display: flex;
@@ -75,7 +78,7 @@ body {
     align-items: center;
     gap: 1rem;
     padding: 0.85rem 1rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.85); /* Brighter for sidebar contrast */
     text-decoration: none;
     border-radius: 12px;
     transition: var(--transition-smooth);
@@ -111,8 +114,13 @@ body {
 
 .welcome-text h1 {
     font-size: 1.75rem;
-    font-weight: 700;
-    color: #0f172a;
+    font-weight: 800;
+    color: var(--text-main) !important;
+}
+
+.welcome-text p {
+    color: var(--text-muted) !important;
+    font-weight: 500;
 }
 
 .user-profile-widget {
@@ -266,8 +274,61 @@ body {
 }
 
 @keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
+    from { transform: translateX(30px); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+}
+
+/* Skeleton Loading */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--glass-bg);
+    border-radius: 24px;
+    border: 2px dashed var(--glass-border);
+}
+.empty-state i {
+    font-size: 4rem;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+/* Table Hover Row */
+.premium-table tr:hover td {
+    background: rgba(99, 102, 241, 0.03);
+    transform: scale(1.002);
 }
 
 /* Responsive */

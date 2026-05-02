@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using UserManagementSystem.Models;
 
 namespace UserManagementSystem.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
@@ -15,6 +17,11 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        var role = User.FindFirst("role")?.Value?.ToLower();
+        if (role == "superuser" || role == "admin")
+        {
+            return RedirectToAction("Index", "Admin");
+        }
         return View();
     }
 

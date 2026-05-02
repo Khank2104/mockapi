@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "admin,superuser")]
+    [Authorize(Policy = "Management")]
     public class InvoiceController : ControllerBase
     {
         private readonly IInvoiceService _invoiceService;
@@ -41,6 +41,13 @@ namespace UserManagementSystem.Controllers
         public async Task<IActionResult> GetByRoom(int roomId)
         {
             var result = await _invoiceService.GetInvoicesByRoomAsync(roomId, GetRequesterId());
+            return Ok(result);
+        }
+
+        [HttpGet("Summary")]
+        public async Task<IActionResult> GetSummary([FromQuery] int month, [FromQuery] int year)
+        {
+            var result = await _invoiceService.GetBillingSummaryAsync(month, year, GetRequesterId());
             return Ok(result);
         }
     }

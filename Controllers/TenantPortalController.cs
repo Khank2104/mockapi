@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "tenant")]
+    [Authorize(Policy = "TenantOnly")]
     public class TenantPortalController : ControllerBase
     {
         private readonly IInvoiceService _invoiceService;

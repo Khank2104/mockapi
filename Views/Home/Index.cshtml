@@ -90,7 +90,7 @@
         async function loadRoomInfo() {
             const container = document.getElementById('room-info-display');
             try {
-                const response = await fetch('/api/TenantPortal/MyRoom');
+                const response = await fetch('/api/TenantPortal/MyRoomInfo');
                 const result = await response.json();
                 if (result.success && result.data) {
                     const r = result.data;
@@ -107,7 +107,7 @@
                                 <div class="p-3 bg-light rounded-4">
                                     <div class="x-small text-muted fw-bold mb-1">TIỀN THUÊ CỐ ĐỊNH</div>
                                     <div class="fw-bold fs-4">${r.monthlyRent.toLocaleString('vi-VN')}đ</div>
-                                    <div class="small text-muted">Hợp đồng: ${new Date(r.contractStartDate).toLocaleDateString('vi-VN')}</div>
+                                    <div class="small text-muted">Hợp đồng: ${new Date(r.checkInDate).toLocaleDateString('vi-VN')}</div>
                                 </div>
                             </div>
                         </div>
@@ -134,7 +134,7 @@
                         <tr>
                             <td><span class="fw-bold">Tháng ${i.billingMonth}/${i.billingYear}</span></td>
                             <td class="text-primary fw-bold">${i.totalAmount.toLocaleString('vi-VN')}đ</td>
-                            <td><span class="status-pill status-${i.invoiceStatus.toLowerCase() === 'unpaid' ? 'locked' : 'active'}">${i.invoiceStatus}</span></td>
+                            <td><span class="status-pill status-${i.invoiceStatus.toLowerCase() === 'unpaid' ? 'locked' : 'active'}">${i.invoiceStatus === 'Unpaid' ? 'Chưa thanh toán' : 'Đã thanh toán'}</span></td>
                             <td class="text-muted small">${new Date(i.dueDate).toLocaleDateString('vi-VN')}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
@@ -148,7 +148,7 @@
         async function loadRequests() {
             const container = document.getElementById('request-history-list');
             try {
-                const response = await fetch('/api/Request/GetMyRequests');
+                const response = await fetch('/api/TenantPortal/MyRequests');
                 const result = await response.json();
                 if (result.success) {
                     if (result.data.length === 0) {
@@ -177,7 +177,7 @@
             }
 
             try {
-                const response = await fetch('/api/Request/CreateRequest', {
+                const response = await fetch('/api/TenantPortal/CreateRequest', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)

@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "admin,superuser")]
+    [Authorize(Policy = "Management")]
     public class TenantManagementController : ControllerBase
     {
         private readonly ITenantService _tenantService;

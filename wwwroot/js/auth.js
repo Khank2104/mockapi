@@ -302,3 +302,20 @@ document.getElementById('resetPasswordBtn')?.addEventListener('click', async () 
         btn.innerHTML = 'Xác nhận Đổi mật khẩu';
     }
 });
+
+async function logout() {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('tokenExpiry');
+    
+    try {
+        // Gọi API Logout để xóa Cookie trên Server
+        await fetch(`${API_PROXY_URL}/Logout`, { method: 'POST' });
+    } catch (e) {
+        console.error("Lỗi khi gọi API Logout:", e);
+    }
+    
+    // Xóa cookie thủ công ở phía Client (nếu có thể)
+    document.cookie = "X-Access-Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    
+    window.location.href = '/Account/Login';
+}

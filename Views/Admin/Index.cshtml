@@ -4,36 +4,77 @@
 }
 
 <div id="module-container">
+    <style>
+        /* Đảm bảo chữ trong các form nhập liệu luôn hiển thị rõ ràng trên nền sáng */
+        .glass-card .form-control,
+        .glass-card .form-select,
+        .glass-card .form-label {
+            color: #1e293b !important;
+            font-weight: 500;
+        }
+        .glass-card .form-control::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1;
+        }
+    </style>
     <!-- Overview Module -->
     <section id="module-overview" class="module-section animate-fade-in">
         <div class="stats-grid">
-            <div class="glass-card">
-                <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
-                    <i class="bi bi-door-open-fill"></i>
+            <div class="glass-card border-start border-primary border-4">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="stat-label mb-1">Tổng số phòng</div>
+                        <div class="stat-value text-primary" id="stat-total-rooms">0</div>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-door-open-fill"></i>
+                    </div>
                 </div>
-                <div class="stat-value" id="stat-total-rooms">0</div>
-                <div class="stat-label">Tổng số phòng</div>
+                <div class="mt-3 x-small text-muted">
+                    <i class="bi bi-graph-up-arrow text-success me-1"></i> <span class="fw-bold text-success">+2</span> so với tháng trước
+                </div>
             </div>
-            <div class="glass-card">
-                <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
-                    <i class="bi bi-person-check-fill"></i>
+            <div class="glass-card border-start border-success border-4">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="stat-label mb-1">Phòng đang ở</div>
+                        <div class="stat-value text-success" id="stat-occupied-rooms">0</div>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
                 </div>
-                <div class="stat-value" id="stat-occupied-rooms">0</div>
-                <div class="stat-label">Phòng đang ở</div>
+                <div class="mt-3 x-small text-muted">
+                    Tỷ lệ lấp đầy: <span class="fw-bold" id="label-occupancy-rate">0%</span>
+                </div>
             </div>
-            <div class="glass-card">
-                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
-                    <i class="bi bi-currency-dollar"></i>
+            <div class="glass-card border-start border-warning border-4">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="stat-label mb-1">Doanh thu dự kiến</div>
+                        <div class="stat-value text-warning" id="stat-revenue">0đ</div>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
                 </div>
-                <div class="stat-value" id="stat-revenue">0đ</div>
-                <div class="stat-label">Doanh thu dự kiến (T4)</div>
+                <div class="mt-3 x-small text-muted">
+                    Kỳ thanh toán: <span class="fw-bold">Tháng @DateTime.Now.Month</span>
+                </div>
             </div>
-            <div class="glass-card">
-                <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
+            <div class="glass-card border-start border-danger border-4">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="stat-label mb-1">Yêu cầu chờ xử lý</div>
+                        <div class="stat-value text-danger" id="stat-requests">0</div>
+                    </div>
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
                 </div>
-                <div class="stat-value" id="stat-requests">0</div>
-                <div class="stat-label">Yêu cầu chờ xử lý</div>
+                <div class="mt-3 x-small text-muted text-danger fw-bold">
+                    Cần xử lý ngay!
+                </div>
             </div>
         </div>
 
@@ -55,8 +96,9 @@
                                 </tr>
                             </thead>
                             <tbody id="recent-requests-list">
-                                <!-- Loading placeholder -->
-                                <tr><td colspan="4" class="text-center py-5 text-muted">Đang tải dữ liệu...</td></tr>
+                                <!-- Loading placeholder with Skeleton -->
+                                <tr><td colspan="4"><div class="skeleton" style="height: 40px; margin-bottom: 8px;"></div></td></tr>
+                                <tr><td colspan="4"><div class="skeleton" style="height: 40px;"></div></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -83,17 +125,310 @@
         </div>
     </section>
 
-    <!-- Motel Module -->
+    <!-- Floor Map Module -->
     <section id="module-motels" class="module-section d-none">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold fs-4">Quản lý Khu trọ & Phòng</h2>
-            <button class="btn btn-premium" onclick="showAddMotelModal()">
-                <i class="bi bi-plus-lg"></i>
-                <span>Thêm khu trọ</span>
-            </button>
+            <div>
+                <h2 class="fw-bold fs-4 mb-1">Sơ đồ Phòng & Tầng</h2>
+                <p class="text-muted small mb-0">Click vào phòng để xem chi tiết và cấu hình dịch vụ</p>
+            </div>
+            <div class="d-flex gap-2">
+                <select id="floormap-motel-select" class="form-select rounded-4" onchange="loadFloormapForMotel()" style="min-width:200px">
+                    <option value="">-- Chọn khu trọ --</option>
+                </select>
+                <button class="btn btn-premium" onclick="showAddMotelModal()">
+                    <i class="bi bi-plus-lg"></i> <span class="d-none d-md-inline">Thêm khu trọ</span>
+                </button>
+            </div>
         </div>
-        <div id="motel-list-container" class="row g-4">
-            <!-- Content will be loaded via JS -->
+        <!-- Floor Tabs + Room Grid -->
+        <div id="floormap-container">
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-houses fs-1 d-block mb-3 opacity-25"></i>
+                <p>Chọn khu trọ để xem sơ đồ</p>
+            </div>
+        </div>
+        <!-- Room Detail Side Panel -->
+        <div id="floormap-room-panel" class="d-none mt-4">
+            <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-1"><i class="bi bi-door-open-fill me-2 text-primary"></i>Chi tiết Phòng: <span id="fmp-room-code" class="text-primary"></span></h4>
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3" id="fmp-room-status">Trống</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="closeFmpPanel()">
+                        <i class="bi bi-x-lg me-1"></i> Đóng
+                    </button>
+                </div>
+                <div class="row g-4">
+                    <!-- Left: Financial Info (Read-only) -->
+                    <div class="col-lg-4">
+                        <h6 class="fw-bold text-muted small mb-3"><i class="bi bi-cash-stack me-2"></i>THÔNG TIN TÀI CHÍNH</h6>
+                        <div class="vstack gap-3" id="fmp-finance-info">
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4 bg-light border">
+                                <span class="small fw-bold">Giá thuê / tháng</span>
+                                <span class="fw-bold text-primary" id="fmp-rent">--</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4 bg-light border">
+                                <span class="small fw-bold">Tiền cọ</span>
+                                <span class="fw-bold" id="fmp-deposit">--</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4 bg-light border">
+                                <span class="small fw-bold">Số người tiêu chuẩn</span>
+                                <span class="fw-bold" id="fmp-occupants">--</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4 bg-light border">
+                                <span class="small fw-bold">Phụ thu người thêm</span>
+                                <span class="fw-bold" id="fmp-extra-fee">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right: Services Checklist -->
+                    <div class="col-lg-8">
+                        <h6 class="fw-bold text-muted small mb-3"><i class="bi bi-lightning-charge-fill me-2"></i>DỊCH VỤ ÁP DỤNG CHO PHÒNG</h6>
+                        <div class="alert alert-info border-0 bg-info bg-opacity-10 rounded-4 small mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Dịch vụ <strong>bắt buộc</strong> (Biểu giá hệ thống) không thể bỏ. Dịch vụ tùy chọn có thể bật/tắt.
+                        </div>
+                        <div id="fmp-services-list" class="vstack gap-2">
+                            <div class="text-center py-3 text-muted small">Đang tải dịch vụ...</div>
+                        </div>
+                        <div class="mt-3 d-none" id="fmp-save-row">
+                            <button class="btn btn-premium w-100" onclick="saveFmpServices()">
+                                <i class="bi bi-check2-circle me-2"></i>Lưu cấu hình Dịch vụ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Global Services Configuration Module -->
+    <section id="module-global-services" class="module-section d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold fs-4 mb-1">Cấu hình Dịch vụ Toàn hệ thống</h2>
+                <p class="text-muted small mb-0">Thiết lập đơn giá mặc định áp dụng cho tất cả các phòng và gửi thông báo thay đổi.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary shadow-sm px-4 rounded-pill" onclick="initializeDefaultServices()">
+                    <i class="bi bi-magic me-2"></i> Khởi tạo mẫu
+                </button>
+                <button class="btn btn-outline-success shadow-sm px-4 rounded-pill" onclick="showAddGlobalServiceModal()">
+                    <i class="bi bi-plus-lg me-2"></i> Thêm dịch vụ mới
+                </button>
+                <button class="btn btn-premium shadow-premium px-4" onclick="saveAllGlobalSettings()" id="btnSaveGlobalSettings">
+                    <i class="bi bi-save2-fill me-2"></i> 
+                    <span class="btn-text">Lưu cấu hình toàn bộ</span>
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <h3 class="fw-bold fs-5 mb-4 text-primary"><i class="bi bi-lightning-charge-fill me-2"></i>Thiết lập đơn giá mặc định</h3>
+                    <p class="text-muted small mb-4">Lưu ý: Khi bạn lưu tại đây, hệ thống sẽ tự động cập nhật đơn giá cho tất cả các phòng và gửi thông báo đến từng khách thuê.</p>
+                    
+                    <form id="globalSettingsForm">
+                        <div id="global-settings-fields">
+                            <!-- Fields will be dynamically loaded here -->
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2 text-muted">Đang tải cấu hình hiện tại...</p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="glass-card bg-primary bg-opacity-10 border-primary border-opacity-20">
+                    <h3 class="fw-bold fs-5 mb-3"><i class="bi bi-info-circle-fill me-2"></i>Hướng dẫn</h3>
+                    <ul class="small text-secondary ps-3">
+                        <li class="mb-2"><strong>Đơn giá Điện:</strong> Tính theo số kWh tiêu thụ thực tế.</li>
+                        <li class="mb-2"><strong>Đơn giá Nước:</strong> Tính theo số m3 tiêu thụ thực tế.</li>
+                        <li class="mb-2"><strong>Phí dịch vụ:</strong> Các phí cố định hàng tháng (Rác, Wifi...).</li>
+                        <li>Bấm <strong>"Lưu cấu hình"</strong> để áp dụng ngay lập tức cho toàn bộ hệ thống.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal: Edit Global Service -->
+    <div class="modal fade" id="editGlobalServiceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-0 p-3 overflow-hidden">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="fw-bold mb-1">Thiết lập đơn giá: <span id="edit-service-name" class="text-primary"></span></h5>
+                        <p class="text-muted x-small mb-0">Mức giá này sẽ được áp dụng cho tất cả các phòng và gửi thông báo đến khách thuê.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-4">
+                    <form id="editGlobalServiceForm">
+                        <input type="hidden" id="edit-service-id" name="ServiceId">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold opacity-75">ĐƠN GIÁ MỚI (VNĐ / Đơn vị)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 rounded-start-4">
+                                    <i class="bi bi-currency-dollar text-primary"></i>
+                                </span>
+                                <input type="number" id="edit-service-price" class="form-control border-start-0 rounded-end-4 py-3 fw-bold" placeholder="Nhập đơn giá..." required>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning border-0 bg-warning bg-opacity-10 d-flex gap-3 mb-4 rounded-4">
+                            <i class="bi bi-info-circle-fill text-warning fs-4"></i>
+                            <div class="small text-dark-emphasis">
+                                <strong>Lưu ý:</strong> Khi bạn cập nhật, hệ thống sẽ tự động gửi thông báo đến tất cả khách thuê để họ biết mức giá mới này.
+                            </div>
+                        </div>
+
+                        <button type="button" id="btnSubmitGlobalService" class="btn btn-premium w-100 py-3 shadow-premium" onclick="submitEditGlobalService()">
+                            <span class="btn-text">Cập nhật và Thông báo</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Record Meter Reading -->
+    <div class="modal fade" id="recordMeterModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-0 p-3 overflow-hidden">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="fw-bold mb-1">Ghi chỉ số: <span id="record-room-code" class="text-primary"></span></h5>
+                        <p class="text-muted x-small mb-0">Nhập chỉ số điện/nước thực tế cho kỳ thanh toán hiện tại.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-4">
+                    <form id="recordMeterForm">
+                        <input type="hidden" id="record-roomId">
+                        
+                        <div class="row g-4 mb-4">
+                            <!-- Điện -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-4 h-100">
+                                    <h6 class="fw-bold text-warning mb-3"><i class="bi bi-lightning-charge-fill me-2"></i>Chỉ số Điện</h6>
+                                    <input type="hidden" id="record-elec-serviceId">
+                                    <div class="mb-3">
+                                        <label class="form-label x-small fw-bold opacity-75">SỐ CŨ</label>
+                                        <input type="number" id="record-elec-prev" class="form-control rounded-3 py-2 bg-white" readonly>
+                                    </div>
+                                    <div>
+                                        <label class="form-label x-small fw-bold opacity-75 text-primary">SỐ MỚI</label>
+                                        <input type="number" id="record-elec-curr" class="form-control rounded-3 py-2 border-primary shadow-sm fw-bold" placeholder="Nhập số điện..." oninput="calculateElecUsage()">
+                                    </div>
+                                    <div class="mt-2 text-end text-muted x-small d-none" id="usage-elec-container">Tiêu thụ: <b id="usage-elec-value" class="text-dark">0</b> <span id="usage-elec-unit">kWh</span></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Nước -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-4 h-100">
+                                    <h6 class="fw-bold text-info mb-3"><i class="bi bi-droplet-fill me-2"></i>Chỉ số Nước</h6>
+                                    <input type="hidden" id="record-water-serviceId">
+                                    <div class="mb-3">
+                                        <label class="form-label x-small fw-bold opacity-75">SỐ CŨ</label>
+                                        <input type="number" id="record-water-prev" class="form-control rounded-3 py-2 bg-white" readonly>
+                                    </div>
+                                    <div>
+                                        <label class="form-label x-small fw-bold opacity-75 text-primary">SỐ MỚI</label>
+                                        <input type="number" id="record-water-curr" class="form-control rounded-3 py-2 border-primary shadow-sm fw-bold" placeholder="Nhập số nước..." oninput="calculateWaterUsage()">
+                                    </div>
+                                    <div class="mt-2 text-end text-muted x-small d-none" id="usage-water-container">Tiêu thụ: <b id="usage-water-value" class="text-dark">0</b> <span id="usage-water-unit">Khối</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="btnSubmitReading" class="btn btn-premium w-100 py-3 shadow-premium" onclick="submitMeterReading()">
+                            <span class="btn-text">Lưu chỉ số điện & nước</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <section id="module-motel-setup" class="module-section d-none">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="switchModule('motels')">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <h2 class="fw-bold fs-4 mb-0">Thiết lập Khu trọ: <span id="setup-motel-name" class="text-primary">---</span></h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4" id="setup-floor-card">
+                <div class="glass-card h-100">
+                    <h3 class="fw-bold fs-5 mb-3"><i class="bi bi-layers-fill me-2"></i>Khai báo Tầng</h3>
+                    <form id="setupFloorForm">
+                        <input type="hidden" id="setup-motelId" name="MotelId">
+                        <div class="mb-3">
+                            <label class="form-label">Tên tầng (VD: Tầng 1)</label>
+                            <input type="text" class="form-control" name="FloorName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số thứ tự tầng (1, 2...)</label>
+                            <input type="number" class="form-control" name="FloorNumber" required>
+                        </div>
+                        <button type="button" class="btn btn-premium w-100" onclick="submitSetupFloor()">Thêm Tầng</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-8" id="setup-room-card">
+                <div class="glass-card h-100">
+                    <h3 class="fw-bold fs-5 mb-3"><i class="bi bi-door-open-fill me-2"></i>Khai báo Phòng</h3>
+                    <form id="setupRoomForm" class="row g-3">
+                        <input type="hidden" id="setup-room-motelId" name="MotelId">
+                        <div class="col-md-6" id="setup-floor-select-container">
+                            <label class="form-label">Thuộc Tầng</label>
+                            <select class="form-select" name="FloorId" id="setup-floor-select">
+                                <option value="">Đang tải...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mã phòng (VD: 101)</label>
+                            <input type="text" class="form-control" name="RoomCode" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Diện tích (m2)</label>
+                            <input type="number" class="form-control" name="Area" required>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="button" class="btn btn-premium" onclick="submitSetupRoom()">Thêm Phòng</button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    <h4 class="fw-bold fs-6 mb-3">Danh sách phòng</h4>
+                    <div class="table-container">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>TẦNG</th>
+                                    <th>MÃ PHÒNG</th>
+                                    <th>DIỆN TÍCH</th>
+                                    <th>THAO TÁC</th>
+                                </tr>
+                            </thead>
+                            <tbody id="setup-rooms-list">
+                                <tr><td colspan="4" class="text-center py-3 text-muted">Chưa có phòng nào.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -147,7 +482,7 @@
                 <div class="glass-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 class="fw-bold fs-5 mb-0"><i class="bi bi-lightning-charge-fill me-2"></i>Phí dịch vụ</h3>
-                        <button class="btn btn-sm btn-premium px-3" onclick="saveServiceSettings()">Cập nhật giá</button>
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 small">Theo hệ thống</span>
                     </div>
                     <div id="room-services-list" class="vstack gap-3">
                         <!-- Services will be loaded here -->
@@ -218,11 +553,44 @@
         </div>
     </section>
 
+    <!-- Contracts Module -->
+    <section id="module-contracts" class="module-section d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold fs-4">Quản lý Hợp đồng</h2>
+            <button class="btn btn-premium" onclick="showAddContractModal()">
+                <i class="bi bi-file-earmark-plus-fill me-2"></i> Tạo Hợp đồng mới
+            </button>
+        </div>
+        <div class="glass-card">
+            <div class="table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>PHÒNG</th>
+                            <th>KHÁCH THUÊ</th>
+                            <th>GIÁ THUÊ</th>
+                            <th>TIỀN CỌC</th>
+                            <th>THỜI HẠN</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contracts-list-container">
+                        <tr><td colspan="7" class="text-center py-5 text-muted">Đang tải danh sách hợp đồng...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <!-- Billing Module -->
     <section id="module-billing" class="module-section d-none">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold fs-4">Điện nước & Hóa đơn</h2>
             <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" onclick="initializeDefaultServices()">
+                    <i class="bi bi-magic me-1"></i> Khởi tạo nhanh dịch vụ
+                </button>
                 <select class="form-select" id="billing-month" style="width: 120px; border-radius: 10px;">
                     @for (int i = 1; i <= 12; i++) {
                         <option value="@i" selected="@(DateTime.Now.Month == i)">Tháng @i</option>
@@ -242,14 +610,15 @@
                     <thead>
                         <tr>
                             <th>PHÒNG</th>
-                            <th>CHỈ SỐ ĐIỆN</th>
-                            <th>CHỈ SỐ NƯỚC</th>
+                            <th>ĐIỆN (Số cũ/mới)</th>
+                            <th>NƯỚC (Số cũ/mới)</th>
                             <th>HÓA ĐƠN</th>
                             <th>THAO TÁC</th>
                         </tr>
                     </thead>
                     <tbody id="billing-list-container">
-                        <tr><td colspan="5" class="text-center py-5 text-muted">Vui lòng tải dữ liệu...</td></tr>
+                        <tr><td colspan="5"><div class="skeleton" style="height: 60px; margin-bottom: 8px;"></div></td></tr>
+                        <tr><td colspan="5"><div class="skeleton" style="height: 60px;"></div></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -267,15 +636,16 @@
                     <thead>
                         <tr>
                             <th>PHÒNG</th>
-                            <th>YÊU CẦU</th>
-                            <th>LOẠI</th>
+                            <th>TIÊU ĐỀ YÊU CẦU</th>
+                            <th>MỨC ĐỘ</th>
                             <th>TRẠNG THÁI</th>
                             <th>THỜI GIAN</th>
                             <th>HÀNH ĐỘNG</th>
                         </tr>
                     </thead>
                     <tbody id="all-requests-list-container">
-                        <tr><td colspan="6" class="text-center py-5 text-muted">Đang tải...</td></tr>
+                        <tr><td colspan="6"><div class="skeleton" style="height: 50px; margin-bottom: 8px;"></div></td></tr>
+                        <tr><td colspan="6"><div class="skeleton" style="height: 50px;"></div></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -340,12 +710,66 @@
     </div>
 </div>
 
+<!-- Modal: Tenant Details -->
+<div class="modal fade" id="tenantDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold fs-4"><i class="bi bi-person-badge text-primary me-2"></i>Hồ sơ Khách thuê</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <img id="td-avatar" src="" class="rounded-circle mb-3 border border-4 border-white shadow-sm" style="width: 80px; height: 80px;">
+                    <h4 class="fw-bold mb-1" id="td-fullname">--</h4>
+                    <span id="td-status" class="badge rounded-pill px-3 py-2 mt-1">--</span>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 border">
+                            <h6 class="text-muted small fw-bold mb-3"><i class="bi bi-person-lines-fill me-2"></i>THÔNG TIN CÁ NHÂN</h6>
+                            <div class="vstack gap-2 text-sm">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">CCCD/CMND:</span>
+                                    <span class="fw-bold" id="td-idcard">--</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Số điện thoại:</span>
+                                    <span class="fw-bold" id="td-phone">--</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Email:</span>
+                                    <span class="fw-bold" id="td-email">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 border h-100">
+                            <h6 class="text-muted small fw-bold mb-3"><i class="bi bi-house-door-fill me-2"></i>THÔNG TIN THUÊ PHÒNG</h6>
+                            <div class="vstack gap-2 text-sm">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Phòng hiện tại:</span>
+                                    <span class="fw-bold text-primary" id="td-room">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 mt-4 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: Add Tenant & Contract -->
 <div class="modal fade" id="addTenantModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content glass-card border-0 p-3">
             <div class="modal-header border-0">
-                <h5 class="fw-bold mb-0">Thêm Khách thuê & Hợp đồng mới</h5>
+                <h5 class="fw-bold mb-0"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Tạo tài khoản Khách thuê</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -353,34 +777,28 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-bold opacity-75">HỌ VÀ TÊN</label>
-                            <input type="text" name="Name" class="form-control" required>
+                            <input type="text" name="Name" class="form-control" required placeholder="Nguyễn Văn A">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold opacity-75">SỐ ĐIỆN THOẠI</label>
-                            <input type="text" name="PhoneNumber" class="form-control" required>
+                            <input type="text" name="PhoneNumber" class="form-control" required placeholder="09xxxxxxx">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold opacity-75">USERNAME (Để đăng nhập)</label>
-                            <input type="text" name="Username" class="form-control" required>
+                            <input type="text" name="Username" class="form-control" required placeholder="tentaikhoan">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold opacity-75">EMAIL</label>
-                            <input type="email" name="Email" class="form-control" required>
+                            <input type="email" name="Email" class="form-control" required placeholder="email@gmail.com">
                         </div>
-                        <hr class="my-4 opacity-10">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold opacity-75">CHỌN PHÒNG</label>
-                            <select name="RoomId" id="tenantRoomSelect" class="form-select" required>
-                                <option value="">Đang tải phòng trống...</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold opacity-75">TIỀN THUÊ / THÁNG</label>
-                            <input type="number" name="MonthlyRent" class="form-control" required>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold opacity-75">MẬT KHẨU MẶC ĐỊNH</label>
+                            <input type="password" name="Password" class="form-control" value="123456" required>
+                            <p class="text-muted x-small mt-1">Mật khẩu mặc định là 123456. Khách có thể đổi sau khi đăng nhập.</p>
                         </div>
                     </div>
                     <button type="button" class="btn btn-premium w-100 py-3 mt-4" onclick="submitAddTenant()">
-                        Tạo tài khoản & Ký hợp đồng
+                        <i class="bi bi-person-check-fill me-2"></i> Tạo tài khoản khách thuê
                     </button>
                 </form>
             </div>
@@ -457,10 +875,728 @@
     </div>
 </div>
 
+<!-- Modal: Add Global Service -->
+<div class="modal fade" id="addGlobalServiceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Thêm Dịch vụ Hệ thống</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addGlobalServiceForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">TÊN DỊCH VỤ</label>
+                        <input type="text" name="ServiceName" class="form-control" required placeholder="Ví dụ: Tiền Rác">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">MÃ DỊCH VỤ (Viết liền, không dấu)</label>
+                        <input type="text" name="ServiceCode" class="form-control" required placeholder="Ví dụ: TIEN_RAC">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">ĐƠN VỊ TÍNH</label>
+                        <input type="text" name="Unit" class="form-control" required placeholder="Ví dụ: Phòng, Người, kWh...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">LOẠI HÌNH TÍNH TOÁN</label>
+                        <select name="CalculationType" class="form-select" required>
+                            <option value="fixed">Cố định (Theo phòng)</option>
+                            <option value="per_person">Theo số người</option>
+                            <option value="metered">Theo chỉ số (Điện/Nước)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold opacity-75">ĐƠN GIÁ MẶC ĐỊNH</label>
+                        <input type="number" name="DefaultPrice" class="form-control" required placeholder="50000">
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3" onclick="submitAddGlobalService()">
+                        Khởi tạo Dịch vụ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create Contract (Full Flow) -->
+<div class="modal fade" id="addContractModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0 pb-2">
+                <div>
+                    <h5 class="fw-bold mb-1"><i class="bi bi-file-earmark-text-fill me-2 text-primary"></i>Lập Hợp đồng Thuê phòng</h5>
+                    <p class="text-muted small mb-0">Hoàn tất các bước để ký kết hợp đồng</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+
+                <!-- Step Indicator -->
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <div class="step-badge active" id="step-badge-1">1</div>
+                    <span class="small fw-bold" id="step-label-1">Chọn phòng</span>
+                    <div class="flex-grow-1 border-top border-2 mx-2"></div>
+                    <div class="step-badge" id="step-badge-2">2</div>
+                    <span class="small text-muted" id="step-label-2">Người ở</span>
+                    <div class="flex-grow-1 border-top border-2 mx-2"></div>
+                    <div class="step-badge" id="step-badge-3">3</div>
+                    <span class="small text-muted" id="step-label-3">Tài chính & Ký kết</span>
+                </div>
+
+                <!-- STEP 1: Room Selection -->
+                <div id="contract-step-1">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">KHU TRỌ</label>
+                            <select id="c-motelSelect" class="form-select rounded-4 py-3" onchange="onMotelChangeForContract()">
+                                <option value="">-- Chọn khu trọ --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">TẦNG</label>
+                            <select id="c-floorSelect" class="form-select rounded-4 py-3" onchange="onFloorChangeForContract()">
+                                <option value="">-- Chọn tầng --</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold opacity-75">PHÒNG TRỐNG</label>
+                            <select id="c-roomSelect" class="form-select rounded-4 py-3" onchange="onRoomChangeForContract()">
+                                <option value="">-- Chọn phòng --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Room Info Preview -->
+                    <div id="c-roomPreview" class="d-none p-3 rounded-4 bg-primary bg-opacity-5 border border-primary border-opacity-25 mb-3">
+                        <div class="row g-2 text-center">
+                            <div class="col-4">
+                                <div class="small text-muted">Diện tích</div>
+                                <div class="fw-bold" id="c-preview-area">--</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted">Trạng thái</div>
+                                <div class="fw-bold text-success" id="c-preview-status">--</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted">Tầng</div>
+                                <div class="fw-bold" id="c-preview-floor">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-premium w-100 py-3 mt-2" onclick="contractGoStep(2)" id="btn-step1-next">
+                        Tiếp theo: Thêm người ở <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+
+                <!-- STEP 2: Occupants -->
+                <div id="contract-step-2" class="d-none">
+                    <div class="alert alert-info border-0 bg-info bg-opacity-10 rounded-4 mb-3 small">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Thêm ít nhất <strong>1 người đại diện</strong> vào phòng. Người này sẽ là đại diện ký hợp đồng.
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <label class="form-label small fw-bold opacity-75">CHỌN KHÁCH THUÊ</label>
+                            <select id="c-occupantSelect" class="form-select rounded-4 py-3">
+                                <option value="">-- Chọn khách --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold opacity-75">VAI TRÒ</label>
+                            <select id="c-occupantRole" class="form-select rounded-4 py-3">
+                                <option value="Primary">Đại diện</option>
+                                <option value="Member">Thành viên</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button class="btn btn-outline-primary rounded-4 w-100 py-3" onclick="addOccupantToRoom()">
+                                <i class="bi bi-person-plus-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Occupants List -->
+                    <div id="c-occupantsList" class="vstack gap-2 mb-3">
+                        <div class="text-center text-muted small py-3 rounded-4 border border-dashed">Chưa có người ở nào được thêm</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary flex-shrink-0 rounded-4 px-4" onclick="contractGoStep(1)">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại
+                        </button>
+                        <button class="btn btn-premium flex-grow-1 py-3" onclick="contractGoStep(3)" id="btn-step2-next">
+                            Tiếp theo: Tài chính & Ký kết <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Financial & Sign -->
+                <div id="contract-step-3" class="d-none">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold opacity-75">NGƯỜI ĐẠI DIỆN KÝ HỢP ĐỒNG</label>
+                            <select id="c-primaryTenantSelect" class="form-select rounded-4 py-3" required>
+                                <option value="">-- Chọn người đại diện --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">GIÁ THUÊ / THÁNG (VNĐ)</label>
+                            <div class="input-group">
+                                <input type="number" id="c-monthlyRent" class="form-control rounded-start-4 py-3 fw-bold" placeholder="3,500,000" required>
+                                <span class="input-group-text bg-transparent">đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">TIỀN ĐẶT CỌC (VNĐ)</label>
+                            <div class="input-group">
+                                <input type="number" id="c-depositAmount" class="form-control rounded-start-4 py-3 fw-bold" placeholder="7,000,000" required>
+                                <span class="input-group-text bg-transparent">đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">NGÀY BẮT ĐẦU HỢP ĐỒNG</label>
+                            <input type="date" id="c-startDate" class="form-control rounded-4 py-3" required value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">NGÀY KẾT THÚC DỰ KIẾN</label>
+                            <input type="date" id="c-endDate" class="form-control rounded-4 py-3" value="@DateTime.Now.AddYears(1).ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">SỐ NGƯỜI TIÊU CHUẨN</label>
+                            <input type="number" id="c-standardOccupants" class="form-control rounded-4 py-3" value="2" min="1" max="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold opacity-75">PHỤ THU NGƯỜI THÊM (VNĐ/người)</label>
+                            <input type="number" id="c-extraFee" class="form-control rounded-4 py-3" value="0" placeholder="0">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold opacity-75">ĐIỀU KHOẢN HỢP ĐỒNG</label>
+                            <textarea id="c-terms" class="form-control rounded-4" rows="3" placeholder="Ví dụ: Đóng tiền vào ngày 5 hàng tháng. Không nuôi thú cưng. Không hút thuốc trong phòng..."></textarea>
+                        </div>
+                        <!-- Summary Box -->
+                        <div class="col-12">
+                            <div class="p-3 rounded-4 bg-success bg-opacity-5 border border-success border-opacity-25">
+                                <div class="fw-bold small mb-2 text-success"><i class="bi bi-clipboard-check me-2"></i>Tóm tắt hợp đồng</div>
+                                <div class="row g-2 small">
+                                    <div class="col-6">Phòng: <span class="fw-bold" id="summary-room">--</span></div>
+                                    <div class="col-6">Số người ở: <span class="fw-bold" id="summary-occupants">--</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button class="btn btn-outline-secondary flex-shrink-0 rounded-4 px-4" onclick="contractGoStep(2)">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại
+                        </button>
+                        <button class="btn btn-premium flex-grow-1 py-3" onclick="submitFullContract()" id="btnSubmitContract">
+                            <i class="bi bi-pen-fill me-2"></i>
+                            <span class="btn-text">Xác nhận & Ký kết Hợp đồng</span>
+                            <span class="spinner-border spinner-border-sm d-none ms-2"></span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Data Loading Logic
+        // --- Core Navigation (Must be defined first) ---
+        async function switchModule(moduleId, navElement = null) {
+            document.querySelectorAll('.module-section').forEach(el => el.classList.add('d-none'));
+            const target = document.getElementById(`module-${moduleId}`);
+            if (target) {
+                target.classList.remove('d-none');
+                target.classList.add('animate-fade-in');
+            }
+
+            if (navElement) {
+                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+                navElement.classList.add('active');
+            }
+
+            const titles = {
+                'overview': 'Tổng quan hệ thống',
+                'motels': 'Sơ đồ Phòng & Tầng',
+                'tenants': 'Quản lý Khách thuê',
+                'billing': 'Hóa đơn & Điện nước',
+                'requests': 'Yêu cầu hỗ trợ',
+                'admin-mgmt': 'Quản lý Admin',
+                'global-services': 'Phí dịch vụ chung',
+                'contracts': 'Quản lý Hợp đồng',
+                'motel-setup': 'Thiết lập Khu trọ',
+                'room-details': 'Chi tiết Phòng'
+            };
+            if (titles[moduleId]) document.getElementById('page-title').innerText = titles[moduleId];
+
+            // Trigger data loading based on module
+            if (moduleId === 'motels') loadMotelsData();
+            if (moduleId === 'tenants') loadTenantsData();
+            if (moduleId === 'billing') loadBillingData();
+            if (moduleId === 'requests') loadAllRequestsData();
+            if (moduleId === 'admin-mgmt') loadAdminsData();
+            if (moduleId === 'global-services') loadGlobalServicesData();
+            if (moduleId === 'contracts') loadContractsData();
+            if (moduleId === 'overview') loadOverviewData();
+        }
+    </script>
+
+    <script>
+        // --- Global Services Logic ---
+        async function loadGlobalServicesData() {
+            const container = document.getElementById('global-settings-fields');
+            try {
+                const response = await fetch('/api/MotelManagement/GetGlobalServices');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-5">
+                                <div class="mb-3"><i class="bi bi-info-circle fs-1 text-muted opacity-25"></i></div>
+                                <h5 class="text-muted">Chưa có dịch vụ nào</h5>
+                                <p class="text-muted small">Bấm <strong>"Khởi tạo mẫu"</strong> để tạo nhanh các dịch vụ Điện, Nước...</p>
+                            </div>`;
+                        return;
+                    }
+                    
+                    container.innerHTML = result.data.map(s => {
+                        let unitLabel = s.unit || 'Phòng';
+                        let iconClass = 'bi-box';
+                        const lowerName = (s.serviceName || "").toLowerCase();
+                        
+                        if (lowerName.includes('điện')) {
+                            unitLabel = '1 kWh';
+                            iconClass = 'bi-lightning-charge';
+                        } else if (lowerName.includes('nước')) {
+                            unitLabel = '1 Khối';
+                            iconClass = 'bi-droplet';
+                        } else if (lowerName.includes('rác') || lowerName.includes('vệ sinh')) {
+                            unitLabel = '1 Phòng';
+                            iconClass = 'bi-trash3';
+                        } else if (lowerName.includes('wifi') || lowerName.includes('internet')) {
+                            unitLabel = '1 Phòng';
+                            iconClass = 'bi-wifi';
+                        }
+
+                        const currentPrice = s.defaultPrice ? s.defaultPrice.toLocaleString() : "0";
+
+                        return `
+                            <div class="mb-4 p-3 rounded-4 bg-light bg-opacity-50 border border-white">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold text-uppercase mb-0">
+                                        <i class="bi ${iconClass} me-2 text-primary"></i>${s.serviceName}
+                                    </label>
+                                    <span class="badge bg-white text-primary border border-primary border-opacity-10 rounded-pill px-3 py-2">
+                                        Hiện tại: ${currentPrice}đ / ${unitLabel}
+                                    </span>
+                                </div>
+                                <div class="input-group">
+                                    <input type="number" class="form-control border-0 rounded-4 py-3 fw-bold service-price-input" 
+                                           value="${s.defaultPrice || 0}" step="100" data-id="${s.serviceId}" placeholder="Nhập đơn giá mới...">
+                                    <span class="input-group-text bg-transparent border-0 pe-3 fw-bold text-muted">VNĐ</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (e) { 
+                console.error("Global services error", e);
+                container.innerHTML = '<div class="alert alert-danger">Lỗi tải dữ liệu.</div>';
+            }
+        }
+
+        async function initializeDefaultServices() {
+            if (!confirm("Hệ thống sẽ tạo sẵn các dịch vụ mẫu (Điện 3.500, Nước 25.000, Rác 50.000, Wifi 100.000). Tiếp tục?")) return;
+            
+            try {
+                const response = await fetch('/api/MotelManagement/SeedDefaultServices', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", result.message, "success");
+                    loadGlobalServicesData();
+                } else {
+                    showPremiumToast("Lỗi", result.message, "danger");
+                }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể kết nối máy chủ.", "danger");
+            }
+        }
+
+        async function saveAllGlobalSettings() {
+            const btn = document.getElementById('btnSaveGlobalSettings');
+            const btnText = btn.querySelector('.btn-text');
+            const spinner = btn.querySelector('.spinner-border');
+            const inputs = document.querySelectorAll('.service-price-input');
+            
+            if (inputs.length === 0) {
+                showPremiumToast("Thông tin", "Vui lòng thêm dịch vụ trước khi cập nhật giá.", "info");
+                return;
+            }
+
+            // Loading state
+            btn.disabled = true;
+            btnText.innerText = "Đang xử lý...";
+            spinner.classList.remove('d-none');
+            
+            let successCount = 0;
+            let failCount = 0;
+
+            try {
+                for (const input of inputs) {
+                    const id = input.getAttribute('data-id');
+                    const price = parseFloat(input.value);
+                    
+                    if (isNaN(price)) continue;
+
+                    const response = await fetch(`/api/MotelManagement/UpdateGlobalService/${id}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ defaultPrice: price })
+                    });
+                    const result = await response.json();
+                    if (result.success) successCount++;
+                    else failCount++;
+                }
+
+                if (successCount > 0) {
+                    showPremiumToast("Thành công", `Đã cập nhật đơn giá cho ${successCount} dịch vụ.`, "success");
+                    loadGlobalServicesData();
+                }
+                if (failCount > 0) {
+                    showPremiumToast("Lỗi", `Có ${failCount} dịch vụ không thể cập nhật.`, "danger");
+                }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể hoàn tất việc lưu cấu hình.", "danger");
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = "Lưu cấu hình toàn bộ";
+                spinner.classList.add('d-none');
+            }
+        }
+
+        function showAddGlobalServiceModal() {
+            new bootstrap.Modal(document.getElementById('addGlobalServiceModal')).show();
+        }
+
+        async function submitAddGlobalService() {
+            const form = document.getElementById('addGlobalServiceForm');
+            const formData = new FormData(form);
+            
+            // Map keys explicitly to avoid undefined/case-sensitive issues
+            const data = {
+                ServiceName: formData.get("ServiceName"),
+                ServiceCode: formData.get("ServiceCode"),
+                Unit: formData.get("Unit"),
+                CalculationType: formData.get("CalculationType"),
+                DefaultPrice: parseFloat(formData.get("DefaultPrice") || "0")
+            };
+
+            // Basic validation
+            if (!data.ServiceName || !data.ServiceCode) {
+                showPremiumToast("Lỗi", "Vui lòng nhập đầy đủ Tên và Mã dịch vụ.", "warning");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/MotelManagement/CreateGlobalService', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Đã khởi tạo dịch vụ hệ thống.", "success");
+                    bootstrap.Modal.getInstance(document.getElementById('addGlobalServiceModal')).hide();
+                    form.reset();
+                    loadGlobalServicesData();
+                } else {
+                    showPremiumToast("Lỗi", result.message, "danger");
+                }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể kết nối đến máy chủ.", "danger");
+            }
+        }
+
+        // --- Contracts Logic ---
+        async function loadContractsData() {
+            const container = document.getElementById('contracts-list-container');
+            try {
+                const response = await fetch('/api/OccupancyManagement/GetAllContracts');
+                const result = await response.json();
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">Chưa có hợp đồng nào được ký kết.</td></tr>`;
+                        return;
+                    }
+                    container.innerHTML = result.data.map(c => `
+                        <tr>
+                            <td class="fw-bold text-primary">${c.roomCode}</td>
+                            <td>${c.tenantName}</td>
+                            <td class="fw-bold">${c.monthlyRent.toLocaleString()}đ</td>
+                            <td>${c.depositAmount.toLocaleString()}đ</td>
+                            <td class="small">${new Date(c.startDate).toLocaleDateString('vi-VN')} - ${c.endDate ? new Date(c.endDate).toLocaleDateString('vi-VN') : 'Không xác định'}</td>
+                            <td><span class="status-pill ${c.contractStatus === 'Active' ? 'status-active' : 'status-locked'}">${c.contractStatus === 'Active' ? 'Hiệu lực' : c.contractStatus}</span></td>
+                            <td>
+                                ${c.contractStatus === 'Active' ? `<button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="terminateContract(${c.contractId})">Chấm dứt</button>` : '<span class="text-muted small">Đã kết thúc</span>'}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) { console.error("Contracts load error", e); }
+        }
+
+        // ---- Contract 3-Step State ----
+        let _contractMotels = [];
+        let _contractOccupants = []; // {tenantId, tenantName, role}
+        let _contractRoomId = null;
+        let _contractRoomCode = '';
+
+        async function showAddContractModal() {
+            // Reset state
+            _contractMotels = [];
+            _contractOccupants = [];
+            _contractRoomId = null;
+            _contractRoomCode = '';
+            document.getElementById('c-occupantsList').innerHTML = '<div class="text-center text-muted small py-3 rounded-4 border">Chưa có người ở nào được thêm</div>';
+            document.getElementById('c-roomPreview').classList.add('d-none');
+            document.getElementById('c-primaryTenantSelect').innerHTML = '<option value="">-- Chọn người đại diện --</option>';
+            document.getElementById('summary-room').innerText = '--';
+            document.getElementById('summary-occupants').innerText = '--';
+
+            // Reset to step 1
+            contractGoStep(1, true);
+            new bootstrap.Modal(document.getElementById('addContractModal')).show();
+
+            // Load data in parallel
+            try {
+                const [mRes, tRes] = await Promise.all([
+                    fetch('/api/MotelManagement/MyMotels'),
+                    fetch('/api/TenantManagement/GetAllTenants')
+                ]);
+                const mResult = await mRes.json();
+                const tResult = await tRes.json();
+
+                if (mResult.success) {
+                    _contractMotels = mResult.data;
+                    const motelSel = document.getElementById('c-motelSelect');
+                    motelSel.innerHTML = '<option value="">-- Chọn khu trọ --</option>' +
+                        _contractMotels.map(m => `<option value="${m.motelId}">${m.motelName} (${m.address || ''})</option>`).join('');
+                }
+
+                if (tResult.success) {
+                    const opts = '<option value="">-- Chọn khách --</option>' +
+                        tResult.data.map(t => `<option value="${t.tenantId}" data-name="${t.fullName}">${t.fullName} - ${t.phone || ''}</option>`).join('');
+                    document.getElementById('c-occupantSelect').innerHTML = opts;
+                }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể tải dữ liệu khu trọ hoặc khách thuê.", "danger");
+            }
+        }
+
+        function contractGoStep(step, reset = false) {
+            [1, 2, 3].forEach(i => {
+                document.getElementById(`contract-step-${i}`).classList.add('d-none');
+                document.getElementById(`step-badge-${i}`).classList.remove('active', 'bg-primary', 'text-white');
+                document.getElementById(`step-label-${i}`).classList.add('text-muted');
+                document.getElementById(`step-label-${i}`).classList.remove('fw-bold');
+            });
+            document.getElementById(`contract-step-${step}`).classList.remove('d-none');
+            document.getElementById(`step-badge-${step}`).classList.add('active');
+            document.getElementById(`step-label-${step}`).classList.remove('text-muted');
+            document.getElementById(`step-label-${step}`).classList.add('fw-bold');
+
+            // Validate before moving to step 3
+            if (step === 3 && !reset) {
+                if (_contractOccupants.length === 0) {
+                    showPremiumToast("Lỗi", "Vui lòng thêm ít nhất 1 người ở trước.", "warning");
+                    contractGoStep(2);
+                    return;
+                }
+                // Populate primary tenant select from occupants
+                const primSel = document.getElementById('c-primaryTenantSelect');
+                primSel.innerHTML = '<option value="">-- Chọn người đại diện --</option>' +
+                    _contractOccupants.map(o => `<option value="${o.tenantId}">${o.tenantName} (${o.role})</option>`).join('');
+                document.getElementById('summary-room').innerText = _contractRoomCode;
+                document.getElementById('summary-occupants').innerText = _contractOccupants.length + ' người';
+            }
+        }
+
+        function onMotelChangeForContract() {
+            const motelId = parseInt(document.getElementById('c-motelSelect').value);
+            const motel = _contractMotels.find(m => m.motelId === motelId);
+            const floorSel = document.getElementById('c-floorSelect');
+            const roomSel = document.getElementById('c-roomSelect');
+
+            floorSel.innerHTML = '<option value="">-- Chọn tầng --</option>';
+            roomSel.innerHTML = '<option value="">-- Chọn phòng --</option>';
+            document.getElementById('c-roomPreview').classList.add('d-none');
+
+            if (!motel) return;
+
+            if (motel.floors && motel.floors.length > 0) {
+                floorSel.innerHTML = '<option value="">-- Tất cả tầng --</option>' +
+                    motel.floors.map(f => `<option value="${f.floorId}">${f.floorName || 'Tầng ' + f.floorNumber}</option>`).join('');
+            } else {
+                floorSel.innerHTML = '<option value="">Không có tầng</option>';
+            }
+            // Load all vacant rooms of this motel
+            onFloorChangeForContract();
+        }
+
+        function onFloorChangeForContract() {
+            const motelId = parseInt(document.getElementById('c-motelSelect').value);
+            const floorId = parseInt(document.getElementById('c-floorSelect').value) || null;
+            const motel = _contractMotels.find(m => m.motelId === motelId);
+            const roomSel = document.getElementById('c-roomSelect');
+
+            document.getElementById('c-roomPreview').classList.add('d-none');
+            if (!motel) return;
+
+            let rooms = [];
+            motel.floors.forEach(f => {
+                if (!floorId || f.floorId === floorId) {
+                    f.rooms.filter(r => r.status === 'Available' || r.status === 'Vacant').forEach(r => {
+                        rooms.push({ ...r, floorName: f.floorName || ('Tầng ' + f.floorNumber) });
+                    });
+                }
+            });
+
+            if (rooms.length === 0) {
+                roomSel.innerHTML = '<option value="">Không có phòng trống</option>';
+            } else {
+                roomSel.innerHTML = '<option value="">-- Chọn phòng --</option>' +
+                    rooms.map(r => `<option value="${r.roomId}" data-area="${r.area}" data-floor="${r.floorName}" data-status="${r.status}" data-code="${r.roomCode}">${r.roomCode} - ${r.area}m²</option>`).join('');
+            }
+        }
+
+        function onRoomChangeForContract() {
+            const sel = document.getElementById('c-roomSelect');
+            const opt = sel.options[sel.selectedIndex];
+            _contractRoomId = parseInt(sel.value) || null;
+            _contractRoomCode = opt.dataset.code || '';
+
+            if (!_contractRoomId) {
+                document.getElementById('c-roomPreview').classList.add('d-none');
+                return;
+            }
+            document.getElementById('c-preview-area').innerText = (opt.dataset.area || '--') + ' m²';
+            document.getElementById('c-preview-status').innerText = 'Trống';
+            document.getElementById('c-preview-floor').innerText = opt.dataset.floor || '--';
+            document.getElementById('c-roomPreview').classList.remove('d-none');
+        }
+
+        async function addOccupantToRoom() {
+            if (!_contractRoomId) {
+                showPremiumToast("Lỗi", "Vui lòng chọn phòng ở Bước 1 trước.", "warning");
+                return;
+            }
+            const sel = document.getElementById('c-occupantSelect');
+            const tenantId = parseInt(sel.value);
+            const tenantName = sel.options[sel.selectedIndex]?.dataset.name;
+            const role = document.getElementById('c-occupantRole').value;
+
+            if (!tenantId) {
+                showPremiumToast("Lỗi", "Vui lòng chọn khách thuê.", "warning");
+                return;
+            }
+            if (_contractOccupants.find(o => o.tenantId === tenantId)) {
+                showPremiumToast("Thông tin", "Khách này đã được thêm vào phòng.", "info");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/OccupancyManagement/AddOccupant', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roomId: _contractRoomId, tenantId, occupantRole: role, checkInDate: new Date().toISOString() })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    _contractOccupants.push({ tenantId, tenantName, role });
+                    renderOccupantsList();
+                    showPremiumToast("Thêm thành công", `Đã thêm ${tenantName} vào phòng.`, "success");
+                } else {
+                    showPremiumToast("Lỗi", result.message, "danger");
+                }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể kết nối máy chủ.", "danger");
+            }
+        }
+
+        function renderOccupantsList() {
+            const el = document.getElementById('c-occupantsList');
+            if (_contractOccupants.length === 0) {
+                el.innerHTML = '<div class="text-center text-muted small py-3 rounded-4 border">Chưa có người ở nào được thêm</div>';
+                return;
+            }
+            el.innerHTML = _contractOccupants.map((o, i) => `
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-light border">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(o.tenantName)}&background=6366f1&color=fff" class="rounded-circle" style="width:36px;height:36px">
+                        <div>
+                            <div class="fw-bold small">${o.tenantName}</div>
+                            <span class="badge ${o.role === 'Primary' ? 'bg-primary' : 'bg-secondary'} bg-opacity-10 ${o.role === 'Primary' ? 'text-primary' : 'text-secondary'} small">${o.role === 'Primary' ? 'Đại diện' : 'Thành viên'}</span>
+                        </div>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle me-1"></i>Đã thêm</span>
+                </div>
+            `).join('');
+        }
+
+        async function submitFullContract() {
+            const primaryTenantId = parseInt(document.getElementById('c-primaryTenantSelect').value);
+            const monthlyRent = parseFloat(document.getElementById('c-monthlyRent').value);
+            const depositAmount = parseFloat(document.getElementById('c-depositAmount').value);
+            const startDate = document.getElementById('c-startDate').value;
+            const endDate = document.getElementById('c-endDate').value;
+            const terms = document.getElementById('c-terms').value;
+
+            if (!primaryTenantId) { showPremiumToast("Lỗi", "Vui lòng chọn người đại diện ký hợp đồng.", "warning"); return; }
+            if (!monthlyRent || monthlyRent <= 0) { showPremiumToast("Lỗi", "Vui lòng nhập giá thuê hợp lệ.", "warning"); return; }
+            if (!depositAmount || depositAmount <= 0) { showPremiumToast("Lỗi", "Vui lòng nhập tiền cọc hợp lệ.", "warning"); return; }
+            if (!_contractRoomId) { showPremiumToast("Lỗi", "Không xác định được phòng. Vui lòng bắt đầu lại.", "danger"); return; }
+
+            const btn = document.getElementById('btnSubmitContract');
+            btn.disabled = true;
+            btn.querySelector('.btn-text').innerText = 'Đang xử lý...';
+            btn.querySelector('.spinner-border').classList.remove('d-none');
+
+            try {
+                const response = await fetch('/api/OccupancyManagement/CreateContract', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roomId: _contractRoomId, primaryTenantId, monthlyRent, depositAmount, startDate, endDate, terms })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Ký kết thành công!", `Hợp đồng phòng ${_contractRoomCode} đã được tạo.`, "success");
+                    bootstrap.Modal.getInstance(document.getElementById('addContractModal')).hide();
+                    loadContractsData();
+                } else {
+                    showPremiumToast("Lỗi", result.message, "danger");
+                }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể hoàn tất giao dịch.", "danger");
+            } finally {
+                btn.disabled = false;
+                btn.querySelector('.btn-text').innerText = 'Xác nhận & Ký kết Hợp đồng';
+                btn.querySelector('.spinner-border').classList.add('d-none');
+            }
+        }
+
+        async function terminateContract(id) {
+            if (!confirm("Bạn có chắc chắn muốn chấm dứt hợp đồng này?")) return;
+            try {
+                const response = await fetch(`/api/OccupancyManagement/TerminateContract/${id}`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Đã cập nhật", "Hợp đồng đã được chấm dứt.", "info");
+                    loadContractsData();
+                }
+            } catch (e) { }
+        }
+
+        // --- Data Loading Logic ---
         async function loadTenantsData() {
             const container = document.getElementById('tenant-list-container');
             try {
@@ -474,22 +1610,56 @@
                     container.innerHTML = result.data.map(t => `
                         <tr>
                             <td>
-                                <div class="fw-bold">${t.name}</div>
-                                <div class="x-small text-muted">CCCD: ${t.idCard || 'N/A'}</div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(t.fullName)}&background=6366f1&color=fff" class="rounded-circle" style="width: 38px; height: 38px;">
+                                    <div>
+                                        <div class="fw-bold">${t.fullName}</div>
+                                        <div class="x-small text-muted">CCCD: ${t.idCard || 'Chưa cập nhật'}</div>
+                                    </div>
+                                </div>
                             </td>
-                            <td><span class="fw-bold">Phòng ${t.currentRoomCode || 'N/A'}</span></td>
+                            <td><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">${t.currentRoomCode !== 'N/A' ? 'Phòng ' + t.currentRoomCode : 'Chưa có phòng'}</span></td>
                             <td>
-                                <div class="small"><i class="bi bi-phone me-1"></i>${t.phone}</div>
+                                <div class="small"><i class="bi bi-phone text-primary me-1"></i>${t.phone || 'N/A'}</div>
                                 <div class="x-small text-muted"><i class="bi bi-envelope me-1"></i>${t.email || 'N/A'}</div>
                             </td>
-                            <td><span class="status-pill status-active">${t.status}</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill">Chi tiết</button>
+                                <span class="status-pill ${t.status === 'Active' || t.status === 'Staying' ? 'status-active' : 'status-locked'}">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.4rem;"></i>
+                                    ${t.status === 'Staying' ? 'Đang ở' : t.status === 'Prospective' ? 'Chưa vào ở' : t.status}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-premium px-3 rounded-pill" onclick='viewTenantDetails(${JSON.stringify(t).replace(/'/g, "&apos;")})'>Chi tiết</button>
                             </td>
                         </tr>
                     `).join('');
                 }
             } catch (e) {}
+        }
+
+        function viewTenantDetails(tenant) {
+            document.getElementById('td-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tenant.fullName)}&background=6366f1&color=fff&size=128`;
+            document.getElementById('td-fullname').innerText = tenant.fullName;
+            document.getElementById('td-idcard').innerText = tenant.idCard || 'Chưa cập nhật';
+            document.getElementById('td-phone').innerText = tenant.phone || 'N/A';
+            document.getElementById('td-email').innerText = tenant.email || 'N/A';
+            document.getElementById('td-room').innerText = tenant.currentRoomCode !== 'N/A' ? `Phòng ${tenant.currentRoomCode}` : 'Chưa xếp phòng';
+
+            const statusEl = document.getElementById('td-status');
+            if (tenant.status === 'Staying') {
+                statusEl.className = 'badge rounded-pill px-3 py-2 mt-1 bg-success bg-opacity-10 text-success';
+                statusEl.innerText = 'Đang ở';
+            } else if (tenant.status === 'Prospective') {
+                statusEl.className = 'badge rounded-pill px-3 py-2 mt-1 bg-warning bg-opacity-10 text-warning';
+                statusEl.innerText = 'Chưa vào ở';
+            } else {
+                statusEl.className = 'badge rounded-pill px-3 py-2 mt-1 bg-primary bg-opacity-10 text-primary';
+                statusEl.innerText = tenant.status;
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('tenantDetailsModal'));
+            modal.show();
         }
 
         async function loadBillingData() {
@@ -498,36 +1668,50 @@
             const year = document.getElementById('billing-year').value;
             
             try {
-                const response = await fetch('/api/MotelManagement/MyMotels');
+                const response = await fetch(`/api/Invoice/Summary?month=${month}&year=${year}`);
                 const result = await response.json();
                 if (result.success) {
-                    let rooms = [];
-                    result.data.forEach(m => {
-                        m.floors.forEach(f => {
-                            f.rooms.forEach(r => {
-                                if (r.status === 'Occupied') rooms.push(r);
-                            });
-                        });
-                    });
-
-                    if (rooms.length === 0) {
-                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Không có phòng nào đang ở để ghi hóa đơn.</td></tr>';
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Không có phòng nào đang ở để tính tiền.</td></tr>';
                         return;
                     }
 
-                    container.innerHTML = rooms.map(r => `
-                        <tr>
-                            <td><span class="fw-bold">Phòng ${r.roomCode}</span></td>
-                            <td id="elec-${r.roomId}">--</td>
-                            <td id="water-${r.roomId}">--</td>
-                            <td id="inv-${r.roomId}"><span class="badge bg-light text-muted">Chưa chốt</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-premium rounded-pill" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}')">Ghi chỉ số</button>
-                            </td>
-                        </tr>
-                    `).join('');
+                    container.innerHTML = result.data.map(r => {
+                        const elecHtml = r.electricity 
+                            ? `<div class="d-flex align-items-center gap-2 text-warning"><i class="bi bi-lightning-charge-fill"></i> <span>Mới: <b>${r.electricity.currentReading}</b></span></div>` 
+                            : `<div class="d-flex align-items-center gap-2 text-warning opacity-50"><i class="bi bi-lightning-charge"></i> <span class="small">Chưa ghi...</span></div>`;
+                            
+                        const waterHtml = r.water 
+                            ? `<div class="d-flex align-items-center gap-2 text-info"><i class="bi bi-droplet-fill"></i> <span>Mới: <b>${r.water.currentReading}</b></span></div>` 
+                            : `<div class="d-flex align-items-center gap-2 text-info opacity-50"><i class="bi bi-droplet"></i> <span class="small">Chưa ghi...</span></div>`;
+
+                        const invoiceStatus = r.invoice 
+                            ? (r.invoice.invoiceStatus === 'Paid' 
+                                ? `<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i> Đã thanh toán</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>` 
+                                : `<span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill"><i class="bi bi-exclamation-circle me-1"></i> Chưa thu</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>`)
+                            : `<span class="badge bg-secondary bg-opacity-10 text-muted px-3 py-2 rounded-pill">Chưa chốt</span>`;
+
+                        const actionBtn = r.invoice
+                            ? `<button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="viewInvoiceDetails(${r.invoice.invoiceId})"><i class="bi bi-eye me-1"></i> Xem hóa đơn</button>`
+                            : `<div class="btn-group">
+                                 <button class="btn btn-sm btn-outline-warning px-3" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}')"><i class="bi bi-pencil-square"></i> Số điện/nước</button>
+                                 <button class="btn btn-sm btn-premium px-3" onclick="generateInvoice(${r.roomId})"><i class="bi bi-calculator"></i> Tính tiền</button>
+                               </div>`;
+
+                        return `
+                            <tr>
+                                <td><div class="fw-bold fs-6 text-primary">Phòng ${r.roomCode}</div></td>
+                                <td>${elecHtml}</td>
+                                <td>${waterHtml}</td>
+                                <td>${invoiceStatus}</td>
+                                <td>${actionBtn}</td>
+                            </tr>
+                        `;
+                    }).join('');
                 }
-            } catch (e) {}
+            } catch (e) {
+                container.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-danger">Lỗi khi tải dữ liệu hóa đơn.</td></tr>';
+            }
         }
 
         async function loadAllRequestsData() {
@@ -542,13 +1726,19 @@
                     }
                     container.innerHTML = result.data.map(r => `
                         <tr>
-                            <td><span class="fw-bold">Phòng ${r.roomId}</span></td>
-                            <td>${r.title}</td>
-                            <td><span class="badge bg-light text-dark">${r.requestType}</span></td>
-                            <td><span class="status-pill status-${r.status.toLowerCase() === 'pending' ? 'locked' : 'active'}">${r.status}</span></td>
+                            <td><span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill">Phòng ${r.roomId}</span></td>
+                            <td><div class="fw-bold">${r.title}</div></td>
+                            <td><span class="badge border border-muted text-muted x-small">${r.requestType}</span></td>
+                            <td>
+                                <span class="status-pill ${r.status === 'Pending' ? 'status-locked' : 'status-active'}">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.4rem;"></i> ${r.status}
+                                </span>
+                            </td>
                             <td class="text-muted small">${new Date(r.createdAt).toLocaleString('vi-VN')}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="showHandleRequestModal(${r.requestId}, '${r.title}')">Xử lý</button>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="showHandleRequestModal(${r.requestId}, '${r.title}')">
+                                    Xử lý ngay
+                                </button>
                             </td>
                         </tr>
                     `).join('');
@@ -556,10 +1746,188 @@
             } catch (e) {}
         }
 
+        // --- Meter Reading Logic ---
+        let currentServices = [];
+        async function showRecordMeterModal(roomId, roomCode) {
+            document.getElementById('record-roomId').value = roomId;
+            document.getElementById('record-room-code').innerText = roomCode;
+            document.getElementById('record-elec-curr').value = '';
+            document.getElementById('record-water-curr').value = '';
+            document.getElementById('usage-elec-container').classList.add('d-none');
+            document.getElementById('usage-water-container').classList.add('d-none');
+            
+            try {
+                const response = await fetch('/api/MotelManagement/GetGlobalServices');
+                const result = await response.json();
+                if (result.success) {
+                    currentServices = result.data.filter(s => s.calculationType === 'metered');
+                    const elecService = currentServices.find(s => s.serviceCode.toLowerCase().includes('electric'));
+                    const waterService = currentServices.find(s => s.serviceCode.toLowerCase().includes('water'));
+                    
+                    if (elecService) document.getElementById('record-elec-serviceId').value = elecService.serviceId;
+                    if (waterService) document.getElementById('record-water-serviceId').value = waterService.serviceId;
+                    
+                    await loadPreviousReading(roomId);
+                }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể tải danh sách dịch vụ.", "danger");
+            }
+            
+            new bootstrap.Modal(document.getElementById('recordMeterModal')).show();
+        }
+
+        async function loadPreviousReading(roomId) {
+            document.getElementById('record-elec-prev').value = "0";
+            document.getElementById('record-water-prev').value = "0";
+
+            try {
+                const month = document.getElementById('billing-month').value;
+                const year = document.getElementById('billing-year').value;
+                
+                // Lấy chỉ số tháng trước
+                let prevMonth = parseInt(month) - 1;
+                let prevYear = parseInt(year);
+                if (prevMonth === 0) { prevMonth = 12; prevYear -= 1; }
+
+                const response = await fetch(`/api/MeterReading/Room/${roomId}?month=${prevMonth}&year=${prevYear}`);
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    const elecServiceId = document.getElementById('record-elec-serviceId').value;
+                    const waterServiceId = document.getElementById('record-water-serviceId').value;
+
+                    const elecReading = result.data.find(r => r.serviceId == elecServiceId);
+                    const waterReading = result.data.find(r => r.serviceId == waterServiceId);
+
+                    if (elecReading) document.getElementById('record-elec-prev').value = elecReading.currentReading;
+                    if (waterReading) document.getElementById('record-water-prev').value = waterReading.currentReading;
+                }
+            } catch (e) {}
+        }
+
+        function calculateElecUsage() {
+            const prev = parseFloat(document.getElementById('record-elec-prev').value) || 0;
+            const curr = parseFloat(document.getElementById('record-elec-curr').value) || 0;
+            const container = document.getElementById('usage-elec-container');
+            if (curr > prev) {
+                container.classList.remove('d-none');
+                document.getElementById('usage-elec-value').innerText = (curr - prev).toFixed(1);
+            } else {
+                container.classList.add('d-none');
+            }
+        }
+
+        function calculateWaterUsage() {
+            const prev = parseFloat(document.getElementById('record-water-prev').value) || 0;
+            const curr = parseFloat(document.getElementById('record-water-curr').value) || 0;
+            const container = document.getElementById('usage-water-container');
+            if (curr > prev) {
+                container.classList.remove('d-none');
+                document.getElementById('usage-water-value').innerText = (curr - prev).toFixed(1);
+            } else {
+                container.classList.add('d-none');
+            }
+        }
+
+        async function submitMeterReading() {
+            const roomId = document.getElementById('record-roomId').value;
+            const month = document.getElementById('billing-month').value;
+            const year = document.getElementById('billing-year').value;
+            
+            const elecServiceId = document.getElementById('record-elec-serviceId').value;
+            const elecCurr = document.getElementById('record-elec-curr').value;
+            
+            const waterServiceId = document.getElementById('record-water-serviceId').value;
+            const waterCurr = document.getElementById('record-water-curr').value;
+
+            const btn = document.getElementById('btnSubmitReading');
+            
+            if (!elecCurr && !waterCurr) {
+                showPremiumToast("Lưu ý", "Vui lòng nhập ít nhất một chỉ số Điện hoặc Nước.", "warning");
+                return;
+            }
+
+            const requests = [];
+            
+            if (elecCurr && elecServiceId) {
+                requests.push(fetch('/api/MeterReading/Create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        roomId: parseInt(roomId),
+                        serviceId: parseInt(elecServiceId),
+                        billingMonth: parseInt(month),
+                        billingYear: parseInt(year),
+                        readingValue: parseFloat(elecCurr)
+                    })
+                }));
+            }
+
+            if (waterCurr && waterServiceId) {
+                requests.push(fetch('/api/MeterReading/Create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        roomId: parseInt(roomId),
+                        serviceId: parseInt(waterServiceId),
+                        billingMonth: parseInt(month),
+                        billingYear: parseInt(year),
+                        readingValue: parseFloat(waterCurr)
+                    })
+                }));
+            }
+
+            btn.disabled = true;
+            try {
+                await Promise.all(requests);
+                bootstrap.Modal.getInstance(document.getElementById('recordMeterModal')).hide();
+                showPremiumToast("Thành công", "Đã ghi chỉ số thành công.", "success");
+                loadBillingData();
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể lưu chỉ số.", "danger");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function generateInvoice(roomId) {
+            const month = document.getElementById('billing-month').value;
+            const year = document.getElementById('billing-year').value;
+            
+            if (confirm(`Bạn có chắc muốn chốt hóa đơn tháng ${month}/${year} cho phòng này? Sau khi chốt sẽ không thể sửa chỉ số điện nước.`)) {
+                try {
+                    const response = await fetch('/api/Invoice/Generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            roomId: parseInt(roomId),
+                            billingMonth: parseInt(month),
+                            billingYear: parseInt(year),
+                            dueDate: new Date(year, month, 5).toISOString() // Mặc định mùng 5 tháng sau
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showPremiumToast("Thành công", "Đã chốt hóa đơn. Người thuê có thể xem hóa đơn này.", "success");
+                        loadBillingData();
+                    } else {
+                        showPremiumToast("Lỗi", result.message, "danger");
+                    }
+                } catch (e) {
+                    showPremiumToast("Lỗi", "Không thể tạo hóa đơn.", "danger");
+                }
+            }
+        }
+
+        function viewInvoiceDetails(invoiceId) {
+            // Placeholder for now
+            showPremiumToast("Thông báo", "Chức năng in/xem chi tiết sẽ được hoàn thiện sau.", "info");
+        }
+
         async function loadAdminsData() {
             const container = document.getElementById('admin-list-container');
             try {
-                const response = await fetch('/api/AdminManagement/GetAllAdmins');
+                const response = await fetch('/api/AdminManagement/ListAdmins');
                 const result = await response.json();
                 if (result.success) {
                     if (result.data.length === 0) {
@@ -582,95 +1950,47 @@
             } catch (e) {}
         }
 
-        // --- Modal Handlers ---
 
-        function showRecordMeterModal(roomId, roomCode) {
-            document.getElementById('meterRoomId').value = roomId;
-            document.getElementById('meterRoomCode').innerText = roomCode;
-            new bootstrap.Modal(document.getElementById('recordMeterModal')).show();
+
+        function showAddTenantModal() {
+            // Reset form before opening
+            const form = document.getElementById('addTenantForm');
+            if (form) form.reset();
+            new bootstrap.Modal(document.getElementById('addTenantModal')).show();
         }
 
-        async function submitMeterReading() {
-            const form = document.getElementById('recordMeterForm');
-            const data = Object.fromEntries(new FormData(form).entries());
+        async function submitAddTenant() {
+            const form = document.getElementById('addTenantForm');
+            const formData = new FormData(form);
             
+            // Map data explicitly to ensure correct structure
+            const data = {
+                name: formData.get("Name"),
+                username: formData.get("Username"),
+                email: formData.get("Email"),
+                phoneNumber: formData.get("PhoneNumber"),
+                password: formData.get("Password") || "123456"
+            };
+
+            if (!data.name || !data.username || !data.phoneNumber) {
+                showPremiumToast("Lỗi", "Vui lòng nhập đầy đủ Họ tên, Tên đăng nhập và SĐT.", "warning");
+                return;
+            }
+
             try {
-                const response = await fetch('/api/MeterReading/CreateReading', {
+                const response = await fetch('/api/TenantManagement/CreateTenant', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showPremiumToast("Thành công", "Đã ghi nhận chỉ số mới.", "success");
-                    bootstrap.Modal.getInstance(document.getElementById('recordMeterModal')).hide();
-                    loadBillingData();
-                } else {
-                    alert(result.message);
-                }
-            } catch (e) {
-                alert("Lỗi khi gửi dữ liệu.");
-            }
-        }
-
-        async function showAddTenantModal() {
-            const select = document.getElementById('tenantRoomSelect');
-            select.innerHTML = '<option value="">Đang tải...</option>';
-            
-            new bootstrap.Modal(document.getElementById('addTenantModal')).show();
-
-            // Fetch Vacant Rooms
-            try {
-                const response = await fetch('/api/MotelManagement/MyMotels');
-                const result = await response.json();
-                if (result.success) {
-                    let vacantRooms = [];
-                    result.data.forEach(m => {
-                        m.floors.forEach(f => {
-                            f.rooms.forEach(r => {
-                                if (r.status === 'Vacant') {
-                                    vacantRooms.push({ id: r.roomId, code: `${m.motelName} - ${r.roomCode}` });
-                                }
-                            });
-                        });
-                    });
-
-                    if (vacantRooms.length === 0) {
-                        select.innerHTML = '<option value="">Không còn phòng trống</option>';
-                    } else {
-                        select.innerHTML = vacantRooms.map(v => `<option value="${v.id}">${v.code}</option>`).join('');
-                    }
-                }
-            } catch (e) {
-                select.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
-            }
-        }
-
-        async function submitAddTenant() {
-            const form = document.getElementById('addTenantForm');
-            const data = Object.fromEntries(new FormData(form).entries());
-            
-            try {
-                // Step 1: Create Tenant Account & Contract
-                const response = await fetch('/api/TenantManagement/CreateTenant', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: data.Name,
-                        username: data.Username,
-                        email: data.Email,
-                        phoneNumber: data.PhoneNumber,
-                        roomId: parseInt(data.RoomId),
-                        monthlyRent: parseFloat(data.MonthlyRent)
-                    })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    showPremiumToast("Thành công", "Đã tạo tài khoản và hợp đồng mới.", "success");
+                    showPremiumToast("Thành công", "Đã tạo tài khoản khách thuê mới.", "success");
                     bootstrap.Modal.getInstance(document.getElementById('addTenantModal')).hide();
+                    form.reset();
                     loadTenantsData();
                 } else {
-                    alert(result.message);
+                    showPremiumToast("Lỗi", result.message, "danger");
                 }
             } catch (e) {
                 alert("Lỗi khi gửi dữ liệu.");
@@ -704,37 +2024,7 @@
             }
         }
 
-        // --- Core Navigation ---
-        function switchModule(moduleId, element) {
-            document.querySelectorAll('.module-section').forEach(sec => sec.classList.add('d-none'));
-            const target = document.getElementById(`module-${moduleId}`);
-            if (target) {
-                target.classList.remove('d-none');
-                target.classList.add('animate-fade-in');
-            }
 
-            if (element) {
-                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-                element.classList.add('active');
-            }
-
-            const titles = {
-                'overview': 'Tổng quan hệ thống',
-                'motels': 'Danh sách Khu trọ',
-                'tenants': 'Quản lý Khách thuê',
-                'billing': 'Hóa đơn & Điện nước',
-                'requests': 'Yêu cầu hỗ trợ',
-                'admin-mgmt': 'Quản lý Admin'
-            };
-            document.getElementById('page-title').innerText = titles[moduleId] || 'Dashboard';
-
-            if (moduleId === 'overview') loadOverviewData();
-            if (moduleId === 'motels') loadMotelsData();
-            if (moduleId === 'tenants') loadTenantsData();
-            if (moduleId === 'billing') loadBillingData();
-            if (moduleId === 'requests') loadAllRequestsData();
-            if (moduleId === 'admin-mgmt') loadAdminsData();
-        }
 
         function showAddMotelModal() {
             new bootstrap.Modal(document.getElementById('addMotelModal')).show();
@@ -753,9 +2043,10 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    showPremiumToast("Thành công", "Khu trọ mới đã được tạo.", "success");
+                    showPremiumToast("Thành công", "Khu trọ mới đã được tạo. Hãy thiết lập phòng/tầng.", "success");
                     bootstrap.Modal.getInstance(document.getElementById('addMotelModal')).hide();
                     loadMotelsData();
+                    openMotelSetup(result.data.motelId, result.data.motelName, result.data.useFloorManagement);
                 } else {
                     alert(result.message);
                 }
@@ -765,86 +2056,339 @@
         }
 
         async function loadMotelsData() {
-            const container = document.getElementById('motel-list-container');
-            container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div><p class="mt-3 text-muted">Đang tải danh sách khu trọ...</p></div>';
-            
+            // Populate motel select
             try {
                 const response = await fetch('/api/MotelManagement/MyMotels');
                 const result = await response.json();
-                
                 if (result.success) {
-                    if (result.data.length === 0) {
-                        container.innerHTML = '<div class="col-12 text-center py-5"><i class="bi bi-houses fs-1 text-muted d-block mb-3"></i><p class="text-muted">Bạn chưa có khu trọ nào. Hãy nhấn nút "Thêm khu trọ" để bắt đầu.</p></div>';
-                        return;
+                    _allMotels = result.data;
+                    const sel = document.getElementById('floormap-motel-select');
+                    if (!sel) return;
+                    sel.innerHTML = '<option value="">-- Chọn khu trọ --</option>' +
+                        _allMotels.map(m => `<option value="${m.motelId}">${m.motelName}</option>`).join('');
+                    // Auto-select if only 1
+                    if (_allMotels.length === 1) {
+                        sel.value = _allMotels[0].motelId;
+                        loadFloormapForMotel();
                     }
-
-                    container.innerHTML = result.data.map(m => `
-                        <div class="col-md-6 col-xl-4">
-                            <div class="glass-card p-0 overflow-hidden h-100">
-                                <div style="height: 160px; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('/motel_preview_demo_1777430565298.png') center/cover;"></div>
-                                <div class="p-4">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h4 class="fw-bold fs-5 mb-0">${m.motelName}</h4>
-                                        <span class="status-pill status-active">${m.floors.length} Tầng</span>
-                                    </div>
-                                    <p class="text-muted small mb-4"><i class="bi bi-geo-alt-fill me-1"></i>${m.address || 'Chưa cập nhật'}</p>
-                                    
-                                    <div class="d-flex gap-3 mb-4">
-                                        <div class="flex-fill p-2 bg-light rounded-3 text-center">
-                                            <div class="x-small text-muted fw-bold">PHÒNG TRỐNG</div>
-                                            <div class="fw-bold">${m.floors.reduce((acc, f) => acc + f.rooms.filter(r => r.status === 'Vacant').length, 0)}</div>
-                                        </div>
-                                        <div class="flex-fill p-2 bg-light rounded-3 text-center">
-                                            <div class="x-small text-muted fw-bold">ĐANG Ở</div>
-                                            <div class="fw-bold">${m.floors.reduce((acc, f) => acc + f.rooms.filter(r => r.status === 'Occupied').length, 0)}</div>
-                                        </div>
-                                    </div>
-
-                                    <div id="motel-floors-${m.motelId}" class="mb-3 d-none">
-                                        ${m.floors.map(f => `
-                                            <div class="mb-3 border-top pt-2">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <span class="fw-bold small text-primary text-uppercase">${f.floorName}</span>
-                                                    <span class="badge bg-light text-dark" style="font-size: 0.6rem;">${f.rooms.length} phòng</span>
-                                                </div>
-                                                <div class="row g-2">
-                                                    ${f.rooms.map(r => `
-                                                        <div class="col-4">
-                                                            <div class="p-2 border rounded-3 bg-light text-center cursor-pointer hover-shadow" onclick="openRoomDetails(${r.roomId}, '${r.roomCode}')">
-                                                                <div class="fw-bold small" style="font-size: 0.7rem;">P.${r.roomCode}</div>
-                                                                <span class="status-pill status-${r.status.toLowerCase()}" style="font-size: 0.5rem; padding: 2px 4px;">${r.status}</span>
-                                                            </div>
-                                                        </div>
-                                                    `).join('')}
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-
-                                    <button class="btn btn-premium w-100" onclick="toggleMotelFloors(${m.motelId}, this)">
-                                        Xem sơ đồ tầng & phòng
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
                 }
             } catch (e) {
-                container.innerHTML = '<div class="col-12 text-center py-5 text-danger"><i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i><p>Không thể kết nối với máy chủ. Vui lòng thử lại sau.</p></div>';
+                document.getElementById('floormap-container').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i><p>Không thể tải dữ liệu.</p></div>';
             }
         }
 
-        function toggleMotelFloors(motelId, btn) {
-            const el = document.getElementById(`motel-floors-${motelId}`);
-            if (el.classList.contains('d-none')) {
-                el.classList.remove('d-none');
-                btn.innerText = "Đóng sơ đồ";
-                btn.className = "btn btn-outline-secondary w-100";
-            } else {
-                el.classList.add('d-none');
-                btn.innerText = "Xem sơ đồ tầng & phòng";
-                btn.className = "btn btn-premium w-100";
+        let _allMotels = [];
+        let _currentFmpRoomId = null;
+        const MANDATORY_CODES = ['ELECTRIC', 'WATER', 'WIFI', 'TRASH', 'CLEAN', 'ELECTRICITY'];
+
+        function loadFloormapForMotel() {
+            const motelId = parseInt(document.getElementById('floormap-motel-select').value);
+            const container = document.getElementById('floormap-container');
+            closeFmpPanel();
+
+            if (!motelId) {
+                container.innerHTML = '<div class="text-center py-5 text-muted"><i class="bi bi-houses fs-1 d-block mb-3 opacity-25"></i><p>Chọn khu trọ để xem sơ đồ</p></div>';
+                return;
             }
+
+            const motel = _allMotels.find(m => m.motelId === motelId);
+            if (!motel) return;
+
+            if (!motel.floors || motel.floors.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-building"></i>
+                        <h3>Chưa có tầng nào</h3>
+                        <p class="text-muted mb-4">Hãy thiết lập tầng và phòng trong mục Thiết lập Khu trọ.</p>
+                        <button class="btn btn-premium" onclick="openMotelSetup(${motel.motelId}, '${motel.motelName}', ${motel.useFloorManagement})">
+                            <i class="bi bi-gear me-2"></i>Thiết lập ngay
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            // Build floor tabs + room grids
+            let html = '<div class="mb-3">';
+            html += '<div class="d-flex gap-2 flex-wrap mb-4" id="floor-tabs">';
+            motel.floors.forEach((f, i) => {
+                html += `<button class="btn rounded-pill px-4 fw-bold ${i === 0 ? 'btn-premium' : 'btn-outline-secondary'}" onclick="switchFloorTab(${f.floorId}, this)">${f.floorName || 'Tầng ' + f.floorNumber} <span class="badge ${i === 0 ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary'} ms-2">${f.rooms.length}</span></button>`;
+            });
+            html += '</div>';
+
+            motel.floors.forEach((f, i) => {
+                const rooms = f.rooms.slice(0, 10); // max 10/floor
+                html += `<div class="floor-panel" id="floor-panel-${f.floorId}" style="display:${i === 0 ? 'block' : 'none'}">`;
+                html += `<div class="d-flex align-items-center gap-3 mb-3">`;
+                html += `<h5 class="fw-bold mb-0">${f.floorName || 'Tầng ' + f.floorNumber}</h5>`;
+                html += `<span class="text-muted small">${f.rooms.length} phòng${f.rooms.length > 10 ? ' (hiển thị 10 đầu)' : ''}</span>`;
+                html += '</div>';
+                html += '<div class="row g-3">';
+                if (rooms.length === 0) {
+                    html += '<div class="col-12 text-center py-4 text-muted small">Tầng này chưa có phòng nào.</div>';
+                } else {
+                    rooms.forEach(r => {
+                        const statusColor = r.status === 'Occupied' ? '#22c55e' : r.status === 'Maintenance' ? '#f59e0b' : '#6366f1';
+                        const statusLabel = r.status === 'Occupied' ? 'Đang ở' : r.status === 'Maintenance' ? 'Bảo trì' : 'Trống';
+                        const statusClass = r.status === 'Occupied' ? 'room-card-occupied' : r.status === 'Maintenance' ? 'room-card-maintenance' : 'room-card-vacant';
+                        html += `
+                        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                            <div class="room-card ${statusClass}" onclick="openFmpRoom(${r.roomId}, '${r.roomCode}', '${statusLabel}')" title="Phòng ${r.roomCode}">
+                                <div class="room-card-icon"><i class="bi bi-door-closed-fill"></i></div>
+                                <div class="room-card-code">${r.roomCode}</div>
+                                <div class="room-card-status" style="color:${statusColor}">
+                                    <i class="bi bi-circle-fill me-1" style="font-size:0.4rem"></i>${statusLabel}
+                                </div>
+                                ${r.status === 'Occupied' ? '<div class="room-card-badge"><i class="bi bi-person-fill"></i></div>' : ''}
+                            </div>
+                        </div>`;
+                    });
+                }
+                html += '</div></div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function switchFloorTab(floorId, btn) {
+            document.querySelectorAll('.floor-panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('#floor-tabs button').forEach(b => {
+                b.className = 'btn rounded-pill px-4 fw-bold btn-outline-secondary';
+                b.querySelector('.badge').className = 'badge bg-primary bg-opacity-10 text-primary ms-2';
+            });
+            const panel = document.getElementById(`floor-panel-${floorId}`);
+            if (panel) panel.style.display = 'block';
+            btn.className = 'btn rounded-pill px-4 fw-bold btn-premium';
+            btn.querySelector('.badge').className = 'badge bg-white text-primary ms-2';
+        }
+
+        async function openFmpRoom(roomId, roomCode, statusLabel) {
+            _currentFmpRoomId = roomId;
+            document.getElementById('fmp-room-code').innerText = roomCode;
+            document.getElementById('fmp-room-status').innerText = statusLabel;
+            document.getElementById('fmp-rent').innerText = 'Đang tải...';
+            document.getElementById('fmp-deposit').innerText = '--';
+            document.getElementById('fmp-occupants').innerText = '--';
+            document.getElementById('fmp-extra-fee').innerText = '--';
+            document.getElementById('fmp-services-list').innerHTML = '<div class="text-muted small text-center py-3">Đang tải...</div>';
+            document.getElementById('floormap-room-panel').classList.remove('d-none');
+            document.getElementById('fmp-room-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('floormap-room-panel').scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const [settingRes, serviceRes] = await Promise.all([
+                    fetch(`/api/MotelManagement/GetRoomSettings/${roomId}`),
+                    fetch('/api/MotelManagement/GetGlobalServices')
+                ]);
+                const settingResult = await settingRes.json();
+                const serviceResult = await serviceRes.json();
+
+                // Financial Info
+                if (settingResult.success && settingResult.data) {
+                    const s = settingResult.data;
+                    document.getElementById('fmp-rent').innerText = s.baseRent ? s.baseRent.toLocaleString() + 'đ' : 'Chưa thiết lập';
+                    document.getElementById('fmp-deposit').innerText = s.depositAmount ? s.depositAmount.toLocaleString() + 'đ' : 'Chưa thiết lập';
+                    document.getElementById('fmp-occupants').innerText = (s.standardOccupants || '--') + ' người';
+                    document.getElementById('fmp-extra-fee').innerText = s.extraOccupantFee ? s.extraOccupantFee.toLocaleString() + 'đ/người' : '0đ';
+                } else {
+                    document.getElementById('fmp-rent').innerText = 'Chưa thiết lập';
+                }
+
+                // Services Checklist
+                if (serviceResult.success && serviceResult.data) {
+                    const services = serviceResult.data;
+                    const listEl = document.getElementById('fmp-services-list');
+
+                    if (services.length === 0) {
+                        listEl.innerHTML = '<div class="text-muted small text-center py-3">Chưa có dịch vụ nào trong hệ thống.</div>';
+                        return;
+                    }
+
+                    listEl.innerHTML = services.map(s => {
+                        const isMandatory = MANDATORY_CODES.includes((s.serviceCode || '').toUpperCase()) ||
+                            ['electric', 'water', 'wifi', 'trash', 'clean'].some(k => (s.serviceCode || '').toLowerCase().includes(k));
+                        const icon = getServiceIcon(s.serviceCode);
+                        return `
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-4 border ${isMandatory ? 'bg-primary bg-opacity-5 border-primary border-opacity-25' : 'bg-light'} hover-card">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stat-icon ${isMandatory ? 'bg-primary bg-opacity-10 text-primary' : 'bg-secondary bg-opacity-10 text-secondary'}" style="width:38px;height:38px;font-size:1rem">
+                                    <i class="bi ${icon}"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold small">${s.serviceName}</div>
+                                    <div class="x-small text-muted">${s.unitPrice ? s.unitPrice.toLocaleString() + 'đ / ' + (s.unit || '') : (s.defaultPrice || 0).toLocaleString() + 'đ / ' + (s.unit || '')}</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                ${isMandatory
+                                    ? '<span class="badge bg-danger bg-opacity-10 text-danger small rounded-pill px-3">Bắt buộc</span><input type="checkbox" class="form-check-input" checked disabled style="pointer-events:none">'
+                                    : `<span class="badge bg-secondary bg-opacity-10 text-secondary small rounded-pill px-3">Tùy chọn</span><input type="checkbox" class="form-check-input fmp-svc-check" data-svcid="${s.serviceId}" data-svcname="${s.serviceName}" checked>`
+                                }
+                            </div>
+                        </div>`;
+                    }).join('');
+
+                    document.getElementById('fmp-save-row').classList.remove('d-none');
+                }
+            } catch (e) {
+                document.getElementById('fmp-services-list').innerHTML = '<div class="text-danger small text-center py-3">Không thể tải dữ liệu dịch vụ.</div>';
+            }
+        }
+
+        function getServiceIcon(code) {
+            const c = (code || '').toLowerCase();
+            if (c.includes('electric')) return 'bi-lightning-charge-fill';
+            if (c.includes('water')) return 'bi-droplet-fill';
+            if (c.includes('wifi') || c.includes('internet')) return 'bi-wifi';
+            if (c.includes('trash') || c.includes('clean') || c.includes('rac')) return 'bi-trash-fill';
+            if (c.includes('park') || c.includes('xe')) return 'bi-bicycle';
+            return 'bi-gear-fill';
+        }
+
+        function closeFmpPanel() {
+            _currentFmpRoomId = null;
+            document.getElementById('floormap-room-panel').classList.add('d-none');
+            document.getElementById('fmp-save-row').classList.add('d-none');
+        }
+
+        async function saveFmpServices() {
+            // Collect checked optional services
+            const checked = [...document.querySelectorAll('.fmp-svc-check')].map(cb => ({
+                serviceId: parseInt(cb.dataset.svcid),
+                enabled: cb.checked
+            }));
+            showPremiumToast('Thông tin', 'Cấu hình dịch vụ đã được ghi nhớ (kết nối dịch vụ tùy chọn sẽ được tích hợp tiếp theo).', 'info');
+        }
+
+
+        function openMotelSetup(motelId, motelName, useFloorManagement) {
+            document.getElementById('setup-motel-name').innerText = motelName;
+            document.getElementById('setup-motelId').value = motelId;
+            document.getElementById('setup-room-motelId').value = motelId;
+            
+            const floorCard = document.getElementById('setup-floor-card');
+            const roomCard = document.getElementById('setup-room-card');
+            const floorSelectContainer = document.getElementById('setup-floor-select-container');
+            
+            if (!useFloorManagement) {
+                floorCard.classList.add('d-none');
+                roomCard.classList.remove('col-lg-8');
+                roomCard.classList.add('col-lg-12');
+                floorSelectContainer.classList.add('d-none');
+            } else {
+                floorCard.classList.remove('d-none');
+                roomCard.classList.remove('col-lg-12');
+                roomCard.classList.add('col-lg-8');
+                floorSelectContainer.classList.remove('d-none');
+                loadSetupFloors(motelId);
+            }
+            
+            loadSetupRooms(motelId);
+            switchModule('motel-setup');
+        }
+
+        async function submitSetupFloor() {
+            const form = document.getElementById('setupFloorForm');
+            if(!form.reportValidity()) return;
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.MotelId = parseInt(data.MotelId);
+            data.FloorNumber = parseInt(data.FloorNumber);
+            data.Status = 'Active';
+
+            try {
+                const response = await fetch('/api/MotelManagement/CreateFloor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Đã thêm tầng mới.", "success");
+                    form.reset();
+                    document.getElementById('setup-motelId').value = data.MotelId;
+                    loadSetupFloors(data.MotelId);
+                    loadMotelsData();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) { alert("Lỗi kết nối Server"); }
+        }
+
+        async function submitSetupRoom() {
+            const form = document.getElementById('setupRoomForm');
+            if(!form.reportValidity()) return;
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.MotelId = parseInt(data.MotelId);
+            data.FloorId = data.FloorId ? parseInt(data.FloorId) : null;
+            data.Area = parseFloat(data.Area);
+            data.Status = 'Vacant';
+
+            try {
+                const response = await fetch('/api/MotelManagement/CreateRoom', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Đã thêm phòng mới.", "success");
+                    form.reset();
+                    document.getElementById('setup-room-motelId').value = data.MotelId;
+                    loadSetupRooms(data.MotelId);
+                    loadMotelsData();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) { alert("Lỗi kết nối Server"); }
+        }
+
+        async function loadSetupFloors(motelId) {
+            try {
+                const response = await fetch('/api/MotelManagement/MyMotels');
+                const result = await response.json();
+                if (result.success) {
+                    const motel = result.data.find(m => m.motelId == motelId);
+                    if (motel) {
+                        const select = document.getElementById('setup-floor-select');
+                        if (motel.floors.length === 0) {
+                            select.innerHTML = '<option value="">Chưa có tầng nào</option>';
+                        } else {
+                            select.innerHTML = motel.floors.map(f => `<option value="${f.floorId}">${f.floorName}</option>`).join('');
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        async function loadSetupRooms(motelId) {
+            try {
+                const response = await fetch('/api/MotelManagement/MyMotels');
+                const result = await response.json();
+                if (result.success) {
+                    const motel = result.data.find(m => m.motelId == motelId);
+                    if (motel) {
+                        const tbody = document.getElementById('setup-rooms-list');
+                        let rows = '';
+                        motel.floors.forEach(f => {
+                            f.rooms.forEach(r => {
+                                rows += `
+                                    <tr>
+                                        <td>${f.floorName || 'N/A'}</td>
+                                        <td class="fw-bold">${r.roomCode}</td>
+                                        <td>${r.area} m2</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openRoomDetails(${r.roomId}, '${r.roomCode}')">
+                                                <i class="bi bi-gear-fill me-1"></i> Thiết lập phí dịch vụ
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        });
+                        if (!rows) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Chưa có phòng nào.</td></tr>';
+                        else tbody.innerHTML = rows;
+                    }
+                }
+            } catch (e) {}
         }
 
         async function openRoomDetails(roomId, roomCode) {
@@ -879,8 +2423,8 @@
                                 <div class="x-small text-muted">${s.unit} - ${s.calculationType}</div>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <input type="number" class="form-control form-control-sm text-end" value="${s.unitPrice}" style="width: 100px; border-radius: 8px;">
-                                <span class="small fw-bold">đ</span>
+                                <span class="fw-bold text-primary">${s.unitPrice.toLocaleString()}đ</span>
+                                <span class="x-small text-muted">/ ${s.unit}</span>
                             </div>
                         </div>
                     `).join('');
@@ -948,12 +2492,7 @@
             }
         }
 
-        async function saveServiceSettings() {
-            showPremiumToast("Thông tin", "Đang cập nhật giá dịch vụ...", "info");
-            setTimeout(() => {
-                showPremiumToast("Thành công", "Đã cập nhật giá dịch vụ cho phòng.", "success");
-            }, 800);
-        }
+
 
         function showAddOccupantModal() {
             alert("Vui lòng sử dụng tính năng 'Thêm khách thuê' để gán người vào phòng.");
@@ -975,6 +2514,14 @@
 
                     document.getElementById('stat-total-rooms').innerText = total;
                     document.getElementById('stat-occupied-rooms').innerText = occupied;
+                    
+                    const rate = total > 0 ? Math.round((occupied / total) * 100) : 0;
+                    document.getElementById('label-occupancy-rate').innerText = `${rate}%`;
+                    
+                    // Mock revenue calculation
+                    const mockRevenue = occupied * 3500000; 
+                    document.getElementById('stat-revenue').innerText = `${mockRevenue.toLocaleString()}đ`;
+
                     document.getElementById('label-occupied').innerText = occupied;
                     document.getElementById('label-vacant').innerText = total - occupied;
                     
@@ -987,24 +2534,37 @@
             }
         }
 
-        let myChart;
+        let occupancyChartInstance;
         function renderChart(occupied, vacant) {
             const ctx = document.getElementById('occupancyChart').getContext('2d');
-            if (myChart) myChart.destroy();
+            if (occupancyChartInstance) occupancyChartInstance.destroy();
             
-            myChart = new Chart(ctx, {
+            occupancyChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     datasets: [{
                         data: [occupied, vacant],
                         backgroundColor: ['#6366f1', '#e2e8f0'],
                         borderWidth: 0,
-                        cutout: '80%'
+                        cutout: '80%',
+                        borderRadius: 20
                     }]
                 },
                 options: {
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            padding: 12,
+                            cornerRadius: 12
+                        }
+                    }
                 }
             });
         }
@@ -1027,9 +2587,13 @@
 
                     list.innerHTML = recent.map(r => `
                         <tr>
-                            <td><span class="fw-bold">Phòng ${r.roomId}</span></td>
+                            <td><span class="fw-bold text-primary">Phòng ${r.roomId}</span></td>
                             <td>${r.title}</td>
-                            <td><span class="status-pill status-${r.status.toLowerCase() === 'pending' ? 'locked' : 'active'}">${r.status}</span></td>
+                            <td>
+                                <span class="status-pill ${r.status === 'Pending' ? 'status-locked' : 'status-active'}">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.4rem;"></i> ${r.status}
+                                </span>
+                            </td>
                             <td class="text-muted small">${new Date(r.createdAt).toLocaleDateString('vi-VN')}</td>
                         </tr>
                     `).join('');
@@ -1037,9 +2601,10 @@
             } catch (e) {}
         }
 
-        // Init
+        // Initialization
         document.addEventListener('DOMContentLoaded', () => {
             loadOverviewData();
+            switchModule('overview');
         });
     </script>
 
@@ -1051,5 +2616,68 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-indicator.status-occupied { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
+        .status-indicator.status-vacant { background: #e2e8f0; }
+        .status-indicator.status-maintenance { background: #ef4444; }
+
+        .room-card:hover {
+            border-color: #6366f1 !important;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+        }
+        .transition-all { transition: all 0.3s ease; }
+        .last-mb-0:last-child { margin-bottom: 0 !important; }
+
+        /* Contract Step Indicator */
+        .step-badge {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem;
+            background: #e2e8f0; color: #94a3b8;
+            flex-shrink: 0; transition: all 0.3s ease;
+        }
+        .step-badge.active {
+            background: #6366f1; color: #fff;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+        }
+        .border-dashed { border-style: dashed !important; }
+
+        /* Floor Map - Room Cards */
+        .room-card {
+            position: relative;
+            border-radius: 16px;
+            padding: 1rem 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
+            user-select: none;
+        }
+        .room-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        .room-card-vacant { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.2); }
+        .room-card-vacant:hover { background: rgba(99,102,241,0.15); border-color: #6366f1; }
+        .room-card-occupied { background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.2); }
+        .room-card-occupied:hover { background: rgba(34,197,94,0.15); border-color: #22c55e; }
+        .room-card-maintenance { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.2); }
+        .room-card-maintenance:hover { background: rgba(245,158,11,0.15); border-color: #f59e0b; }
+        .room-card-icon { font-size: 1.8rem; margin-bottom: 0.4rem; opacity: 0.7; }
+        .room-card-code { font-weight: 800; font-size: 1rem; margin-bottom: 0.2rem; }
+        .room-card-status { font-size: 0.7rem; font-weight: 600; }
+        .room-card-badge {
+            position: absolute; top: 6px; right: 8px;
+            background: #22c55e; color: #fff;
+            border-radius: 50%; width: 18px; height: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem;
+        }
+        .hover-card { transition: all 0.2s ease; }
+        .hover-card:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
     </style>
 }

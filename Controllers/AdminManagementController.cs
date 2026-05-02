@@ -7,7 +7,7 @@ namespace UserManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "superuser")]
+    [Authorize(Policy = "SuperuserOnly")]
     public class AdminManagementController : ControllerBase
     {
         private readonly IAdminService _adminService;

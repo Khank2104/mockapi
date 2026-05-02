@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using UserManagementSystem.Data;
 using UserManagementSystem.Models;
+using Serilog;
 
 namespace UserManagementSystem.Services
 {
@@ -71,11 +72,14 @@ namespace UserManagementSystem.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            var role = user.Role?.RoleName ?? "tenant";
+            Log.Information("Generating JWT for User: {Username}, ID: {Id}, Role: {Role}", user.Username, user.UserId, role);
+
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("role", user.Role?.RoleName ?? "tenant"),
+                new Claim("role", role),
                 new Claim("id", user.UserId.ToString()),
                 new Claim("mustChangePassword", user.MustChangePassword.ToString().ToLower())
             };

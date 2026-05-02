@@ -88,6 +88,11 @@ namespace UserManagementSystem.Models
         public bool IsActive { get; set; } = true;
         public string? Note { get; set; }
     }
+    
+    public class GlobalServiceUpdateRequest
+    {
+        public decimal DefaultPrice { get; set; }
+    }
 
     // --- Occupancy & Contracts ---
     public class RoomOccupantRequest
@@ -109,14 +114,22 @@ namespace UserManagementSystem.Models
         public string? Terms { get; set; }
     }
 
+    public class ServiceRequest
+    {
+        public string ServiceName { get; set; } = string.Empty;
+        public string ServiceCode { get; set; } = string.Empty;
+        public string Unit { get; set; } = "Tháng";
+        public decimal DefaultPrice { get; set; }
+        public string CalculationType { get; set; } = "fixed"; // metered, per_person, fixed
+    }
+
     public class CreateTenantRequest
     {
         public string Name { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
-        public int RoomId { get; set; }
-        public decimal MonthlyRent { get; set; }
+        public string Password { get; set; } = "123456";
     }
 
     // --- Response DTOs (The professional way to return data) ---

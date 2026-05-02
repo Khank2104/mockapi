@@ -32,8 +32,10 @@ namespace UserManagementSystem.Controllers
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
+                Secure = false, // Phải để false khi chạy http://localhost
                 Expires = DateTime.UtcNow.AddHours(6),
-                SameSite = SameSiteMode.Strict
+                SameSite = SameSiteMode.Lax,
+                Path = "/"
             };
             Response.Cookies.Append("X-Access-Token", token, cookieOptions);
         }
@@ -44,7 +46,7 @@ namespace UserManagementSystem.Controllers
             Name = u.Name,
             Username = u.Username,
             Email = u.Email,
-            Role = u.Role?.RoleName ?? "tenant",
+            Role = u.Role?.RoleName?.ToLower() ?? "tenant",
             Avatar = u.Avatar,
             Phone = u.Phone,
             Status = u.Status
