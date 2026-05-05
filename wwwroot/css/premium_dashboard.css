@@ -7,12 +7,60 @@
     --glass-bg: rgba(255, 255, 255, 0.75);
     --glass-border: rgba(255, 255, 255, 0.4);
     --dark-glass-bg: rgba(15, 23, 42, 0.85);
-    --text-main: #000000;  /* Pure Black */
-    --text-muted: #1e293b; /* Dark Slate Gray */
+    --text-main: #0f172a;  /* Very Dark Slate for maximum readability */
+    --text-muted: #334155; /* Darker slate for sub-text */
+    --text-light: #64748b; /* For really muted things */
     --sidebar-width: 280px;
     --header-height: 80px;
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     --shadow-premium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode Overrides */
+[data-theme='dark'] {
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-main: #f8fafc;  /* Near white */
+    --text-muted: #cbd5e1; /* Light slate */
+    --dark-glass-bg: rgba(15, 23, 42, 0.95);
+}
+
+[data-theme='dark'] body {
+    background: #0f172a;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.2) 0, transparent 50%), 
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0, transparent 50%);
+    color: var(--text-main);
+}
+
+[data-theme='dark'] .premium-table td {
+    background: rgba(30, 41, 59, 0.5) !important;
+    color: #f8fafc !important;
+}
+
+[data-theme='dark'] .glass-card {
+    background: rgba(30, 41, 59, 0.7) !important;
+    color: #f8fafc !important;
+}
+
+[data-theme='dark'] .nav-link {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme='dark'] .sidebar {
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select {
+    background: rgba(15, 23, 42, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+[data-theme='dark'] .modal-content {
+    background: #1e293b !important;
+    color: white !important;
 }
 
 * {
@@ -187,8 +235,8 @@ body {
 
 /* Buttons */
 .btn-premium {
-    background: var(--primary-gradient);
-    color: white;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); /* Slightly darker gradient for white text contrast */
+    color: white !important;
     border: none;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
@@ -219,8 +267,8 @@ body {
 .premium-table th {
     text-align: left;
     padding: 1rem;
-    color: var(--text-muted);
-    font-weight: 600;
+    color: var(--text-main); /* Use main text for headers in light mode */
+    font-weight: 700;
     font-size: 0.875rem;
 }
 

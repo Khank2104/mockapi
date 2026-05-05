@@ -12,6 +12,14 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
+    
+    <script>
+        // Apply theme immediately to prevent flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
     <div class="dashboard-wrapper">
@@ -104,6 +112,10 @@
                         <input type="text" class="border-0 bg-transparent small" placeholder="Tìm kiếm nhanh..." style="outline: none;">
                     </div>
                     
+                    <div class="theme-toggle cursor-pointer bg-white bg-opacity-50 p-2 rounded-circle border border-white" onclick="toggleTheme()" title="Đổi giao diện">
+                        <i id="theme-icon" class="bi bi-moon-stars fs-5 text-muted"></i>
+                    </div>
+
                     <div class="position-relative cursor-pointer">
                         <i class="bi bi-bell fs-5 text-muted"></i>
                         <span class="position-absolute top-0 start-100 translate-middle p-1 bg-primary border border-light rounded-circle"></span>
@@ -134,6 +146,30 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="~/js/dashboard-charts.js" asp-append-version="true"></script>
+    
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'bi bi-sun fs-5 text-warning' : 'bi bi-moon-stars fs-5 text-muted';
+            }
+        }
+
+        // Initialize icon on load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateThemeIcon(document.documentElement.getAttribute('data-theme'));
+        });
+    </script>
     
     <script>
         // SignalR Initialization
@@ -167,7 +203,12 @@
             }, 5000);
         }
 
-        function logout() {
+        async function logout() {
+            try {
+                await fetch('/api/UserProxy/Logout', { method: 'POST' });
+            } catch (e) {
+                console.error("Logout API failed", e);
+            }
             localStorage.removeItem('currentUser');
             window.location.href = '/Account/Login';
         }

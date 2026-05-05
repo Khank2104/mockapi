@@ -12,5 +12,7 @@ namespace UserManagementSystem.Services
         Task<ApiResponse> CreateContractAsync(ContractRequest request, int adminId);
         Task<ApiResponse> TerminateContractAsync(int contractId, int adminId);
         Task<ApiResponse> GetAllContractsAsync(int adminId);
+        Task<ApiResponse> GetActiveContractByRoomAsync(int roomId);
+        Task<ApiResponse> UpdateContractAsync(int contractId, ContractRequest request);
     }
 }

@@ -1,0 +1,237 @@
+<!-- Modal: Edit Contract / Tenancy -->
+<div class="modal fade" id="editContractModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="fw-bold mb-1">Cập nhật Hợp đồng & Hồ sơ: <span id="e-roomCode" class="text-primary"></span></h5>
+                    <p class="text-muted x-small mb-0">Chỉnh sửa các điều khoản tài chính và dịch vụ cho kỳ ở hiện tại.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <form id="editContractForm">
+                    <input type="hidden" id="e-contractId">
+                    <input type="hidden" id="e-roomId">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">GIÁ THUÊ / THÁNG</label>
+                            <input type="number" id="e-monthlyRent" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">TIỀN CỌC</label>
+                            <input type="number" id="e-depositAmount" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">NGÀY BẮT ĐẦU</label>
+                            <input type="date" id="e-startDate" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">NGÀY KẾT THÚC (DỰ KIẾN)</label>
+                            <input type="date" id="e-endDate" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-primary"><i class="bi bi-gear-fill me-2"></i>DỊCH VỤ SỬ DỤNG</label>
+                            <div id="e-services-checkboxes" class="row g-2 mt-1 p-3 bg-light rounded-4">
+                                <!-- Services checkboxes will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">GHI CHÚ / ĐIỀU KHOẢN</label>
+                            <textarea id="e-terms" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-outline-danger px-4 rounded-pill shadow-sm" onclick="confirmTerminateFromEdit()">
+                            <i class="bi bi-door-closed-fill me-2"></i>Kết thúc Hợp đồng
+                        </button>
+                        <button type="button" class="btn btn-premium flex-grow-1 py-3" onclick="submitUpdateContract()">
+                            <i class="bi bi-check2-circle me-2"></i>Lưu thay đổi hồ sơ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create Contract (Full Flow) -->
+<div class="modal fade" id="addContractModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0 pb-2">
+                <div>
+                    <h5 class="fw-bold mb-1"><i class="bi bi-file-earmark-text-fill me-2 text-primary"></i>Lập Hợp đồng Thuê phòng</h5>
+                    <p class="text-muted small mb-0">Hoàn tất các bước để ký kết hợp đồng</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+
+                <!-- Step Indicator -->
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <div class="step-badge active" id="step-badge-1">1</div>
+                    <span class="small fw-bold" id="step-label-1">Chọn phòng</span>
+                    <div class="flex-grow-1 border-top border-2 mx-2"></div>
+                    <div class="step-badge" id="step-badge-2">2</div>
+                    <span class="small text-muted" id="step-label-2">Người ở</span>
+                    <div class="flex-grow-1 border-top border-2 mx-2"></div>
+                    <div class="step-badge" id="step-badge-3">3</div>
+                    <span class="small text-muted" id="step-label-3">Tài chính & Ký kết</span>
+                </div>
+
+                <!-- STEP 1: Room Selection -->
+                <div id="contract-step-1">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">KHU TRỌ</label>
+                            <select id="c-motelSelect" class="form-select rounded-4 py-3" onchange="onMotelChangeForContract()">
+                                <option value="">-- Chọn khu trọ --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">TẦNG</label>
+                            <select id="c-floorSelect" class="form-select rounded-4 py-3" onchange="onFloorChangeForContract()">
+                                <option value="">-- Chọn tầng --</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">PHÒNG TRỐNG</label>
+                            <select id="c-roomSelect" class="form-select rounded-4 py-3" onchange="onRoomChangeForContract()">
+                                <option value="">-- Chọn phòng --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Room Info Preview -->
+                    <div id="c-roomPreview" class="d-none p-3 rounded-4 bg-primary bg-opacity-5 border border-primary border-opacity-25 mb-3">
+                        <div class="row g-2 text-center">
+                            <div class="col-4">
+                                <div class="small text-muted">Diện tích</div>
+                                <div class="fw-bold" id="c-preview-area">--</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted">Trạng thái</div>
+                                <div class="fw-bold text-success" id="c-preview-status">--</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted">Tầng</div>
+                                <div class="fw-bold" id="c-preview-floor">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-premium w-100 py-3 mt-2" onclick="contractGoStep(2)" id="btn-step1-next">
+                        Tiếp theo: Thêm người ở <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+
+                <!-- STEP 2: Choose Primary Tenant -->
+                <div id="contract-step-2" class="d-none">
+                    <div class="mb-4 text-center">
+                        <i class="bi bi-person-badge fs-1 text-primary opacity-50 mb-3 d-block"></i>
+                        <h6 class="fw-bold">Chọn người đại diện ký hợp đồng</h6>
+                        <p class="text-muted small">Người này sẽ đứng tên chính trên hợp đồng và là người đầu tiên ở phòng.</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">CHỌN KHÁCH THUÊ</label>
+                        <select id="c-primaryTenantSelectGlobal" class="form-select rounded-4 py-3" required onchange="onPrimaryTenantChange()">
+                            <option value="">-- Chọn khách từ hệ thống --</option>
+                        </select>
+                    </div>
+                    <div id="c-tenantInfoPreview" class="p-3 bg-light rounded-4 d-none">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-white p-2 rounded-circle border"><i class="bi bi-person-check-fill text-success fs-4"></i></div>
+                            <div>
+                                <div class="fw-bold" id="c-preview-name">--</div>
+                                <div class="text-muted small" id="c-preview-phone">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-5">
+                        <button class="btn btn-outline-secondary flex-shrink-0 rounded-4 px-4" onclick="contractGoStep(1)">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại
+                        </button>
+                        <button class="btn btn-premium flex-grow-1 py-3" onclick="contractGoStep(3)">
+                            Tiếp theo: Tài chính & Ký kết <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Financial & Sign -->
+                <div id="contract-step-3" class="d-none">
+                    <div class="row g-3">
+                        <div class="col-12 d-none">
+                            <label class="form-label small fw-bold">NGƯỜI ĐẠI DIỆN KÝ HỢP ĐỒNG</label>
+                            <select id="c-primaryTenantSelect" class="form-select rounded-4 py-3" required>
+                                <option value="">-- Đã chọn ở bước 2 --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">GIÁ THUÊ / THÁNG (VNĐ)</label>
+                            <div class="input-group">
+                                <input type="number" id="c-monthlyRent" class="form-control rounded-start-4 py-3 fw-bold" placeholder="3,500,000" required>
+                                <span class="input-group-text bg-transparent">đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">TIỀN ĐẶT CỌC (VNĐ)</label>
+                            <div class="input-group">
+                                <input type="number" id="c-depositAmount" class="form-control rounded-start-4 py-3 fw-bold" placeholder="7,000,000" required>
+                                <span class="input-group-text bg-transparent">đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">NGÀY BẮT ĐẦU HỢP ĐỒNG</label>
+                            <input type="date" id="c-startDate" class="form-control rounded-4 py-3" required value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">NGÀY KẾT THÚC DỰ KIẾN</label>
+                            <input type="date" id="c-endDate" class="form-control rounded-4 py-3" value="@DateTime.Now.AddYears(1).ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">SỐ NGƯỜI TIÊU CHUẨN</label>
+                            <input type="number" id="c-standardOccupants" class="form-control rounded-4 py-3" value="2" min="1" max="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">PHỤ THU NGƯỜI THÊM (VNĐ/người)</label>
+                            <input type="number" id="c-extraFee" class="form-control rounded-4 py-3" value="0" placeholder="0">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">ĐIỀU KHOẢN HỢP ĐỒNG</label>
+                            <textarea id="c-terms" class="form-control rounded-4" rows="3" placeholder="Ví dụ: Đóng tiền vào ngày 5 hàng tháng. Không nuôi thú cưng. Không hút thuốc trong phòng..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-primary"><i class="bi bi-gear-fill me-2"></i>DỊCH VỤ ĐI KÈM (Tích chọn để tính tiền hàng tháng)</label>
+                            <div id="c-services-checkboxes" class="row g-2 mt-1">
+                                <!-- Checkboxes will be rendered here -->
+                                <div class="col-12 text-center py-2 text-muted small">Đang tải danh sách dịch vụ...</div>
+                            </div>
+                        </div>
+                        <!-- Summary Box -->
+                        <div class="col-12">
+                            <div class="p-3 rounded-4 bg-success bg-opacity-5 border border-success border-opacity-25">
+                                <div class="fw-bold small mb-2 text-success"><i class="bi bi-clipboard-check me-2"></i>Tóm tắt hợp đồng</div>
+                                <div class="row g-2 small">
+                                    <div class="col-6">Phòng: <span class="fw-bold" id="summary-room">--</span></div>
+                                    <div class="col-6">Người đứng tên: <span class="fw-bold" id="summary-primary">--</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button class="btn btn-outline-secondary flex-shrink-0 rounded-4 px-4" onclick="contractGoStep(2)">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại
+                        </button>
+                        <button class="btn btn-premium flex-grow-1 py-3" onclick="submitFullContract()" id="btnSubmitContract">
+                            <i class="bi bi-pen-fill me-2"></i>
+                            <span class="btn-text">Xác nhận & Ký kết Hợp đồng</span>
+                            <span class="spinner-border spinner-border-sm d-none ms-2"></span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

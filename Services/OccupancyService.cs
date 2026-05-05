@@ -27,6 +27,11 @@ namespace UserManagementSystem.Services
             if (room.Setting != null && room.Occupants.Count(o => o.Status == "Staying") >= room.Setting.MaxOccupants)
                 return new ApiResponse { Success = false, Message = "Phòng đã đạt số người ở tối đa." };
 
+            // KIỂM TRA HỢP ĐỒNG: Phải có hợp đồng hiệu lực mới được thêm người ở
+            var hasContract = await _db.Contracts.AnyAsync(c => c.RoomId == request.RoomId && c.ContractStatus == "Active");
+            if (!hasContract)
+                return new ApiResponse { Success = false, Message = "Phòng chưa có hợp đồng hiệu lực. Vui lòng ký hợp đồng trước khi thêm người vào ở." };
+
             if (await _db.RoomOccupants.AnyAsync(o => o.RoomId == request.RoomId && o.TenantId == request.TenantId && o.Status == "Staying"))
                 return new ApiResponse { Success = false, Message = "Khách thuê này đã có trong phòng." };
 
@@ -76,12 +81,10 @@ namespace UserManagementSystem.Services
             if (room.Floor != null && (room.Floor.Status == "Inactive" || room.Floor.Status == "Maintenance"))
                 return new ApiResponse { Success = false, Message = "Không thể tạo hợp đồng cho phòng thuộc tầng đang bảo trì hoặc ngừng hoạt động." };
 
-            // Kiểm tra Primary Tenant có trong danh sách người ở không
-            bool isOccupant = await _db.RoomOccupants.AnyAsync(o => 
-                o.RoomId == request.RoomId && o.TenantId == request.PrimaryTenantId && o.Status == "Staying");
-            
-            if (!isOccupant)
-                return new ApiResponse { Success = false, Message = "Người đại diện hợp đồng phải có tên trong danh sách người ở của phòng." };
+            // Kiểm tra xem phòng đã có hợp đồng nào đang Active chưa
+            var existingContract = await _db.Contracts.AnyAsync(c => c.RoomId == request.RoomId && c.ContractStatus == "Active");
+            if (existingContract)
+                return new ApiResponse { Success = false, Message = "Phòng đã có hợp đồng đang hoạt động. Vui lòng chấm dứt hợp đồng cũ trước." };
 
             var contract = new Contract
             {
@@ -99,6 +102,70 @@ namespace UserManagementSystem.Services
 
             _db.Contracts.Add(contract);
             
+            // TỰ ĐỘNG THÊM NGƯỜI ĐẠI DIỆN VÀO DANH SÁCH NGƯỜI Ở
+            var primaryOccupant = new RoomOccupant
+            {
+                RoomId = request.RoomId,
+                TenantId = request.PrimaryTenantId,
+                OccupantRole = "Owner",
+                CheckInDate = request.StartDate,
+                Status = "Staying",
+                CreatedAt = DateTime.Now
+            };
+            _db.RoomOccupants.Add(primaryOccupant);
+
+            // CẬP NHẬT CẤU HÌNH PHÒNG (ROOM SETTINGS) TỪ HỢP ĐỒNG
+            var roomSetting = await _db.RoomSettings.FirstOrDefaultAsync(rs => rs.RoomId == request.RoomId);
+            if (roomSetting == null)
+            {
+                roomSetting = new RoomSetting { RoomId = request.RoomId };
+                _db.RoomSettings.Add(roomSetting);
+            }
+            roomSetting.BaseRent = request.MonthlyRent;
+            roomSetting.DepositAmount = request.DepositAmount;
+            
+            // Lưu thiết lập số người và phụ thu
+            roomSetting.StandardOccupants = request.StandardOccupants;
+            roomSetting.MaxOccupants = request.StandardOccupants + 5; // Cho phép thêm nhiều người hơn tiêu chuẩn
+            roomSetting.ExtraOccupantFee = request.ExtraOccupantFee;
+            roomSetting.ApplyExtraOccupantFee = request.ExtraOccupantFee > 0;
+            
+            roomSetting.UpdatedAt = DateTime.Now;
+
+            // CẬP NHẬT DỊCH VỤ CỦA PHÒNG
+            var globalServices = await _db.Services.Where(s => s.IsActive).ToListAsync();
+            var roomServiceSettings = await _db.RoomServiceSettings.Where(rs => rs.RoomId == request.RoomId).ToListAsync();
+            
+            foreach (var service in globalServices)
+            {
+                var setting = roomServiceSettings.FirstOrDefault(rs => rs.ServiceId == service.ServiceId);
+                if (setting == null)
+                {
+                    setting = new RoomServiceSetting
+                    {
+                        RoomId = request.RoomId,
+                        ServiceId = service.ServiceId,
+                        UnitPrice = service.DefaultPrice,
+                        CalculationType = service.CalculationType,
+                        CreatedAt = DateTime.Now
+                    };
+                    _db.RoomServiceSettings.Add(setting);
+                }
+
+                string sName = service.ServiceName?.ToLower() ?? "";
+                bool isMandatory = sName.Contains("điện") || sName.Contains("nước");
+
+                if (isMandatory)
+                {
+                    setting.IsActive = true; // Luôn bật Điện/Nước
+                }
+                else
+                {
+                    setting.IsActive = request.SelectedServiceIds != null && request.SelectedServiceIds.Contains(service.ServiceId);
+                }
+                setting.UpdatedAt = DateTime.Now;
+            }
+
             // Cập nhật trạng thái phòng sang Occupied
             room.Status = "Occupied";
             await _db.SaveChangesAsync();
@@ -118,48 +185,47 @@ namespace UserManagementSystem.Services
 
             int roomId = contract.RoomId;
             
-            // Xóa tất cả Invoices liên quan đến hợp đồng này
-            var invoices = await _db.Invoices.Where(i => i.ContractId == contractId).ToListAsync();
-            _db.Invoices.RemoveRange(invoices);
+            // 1. Chuyển trạng thái hợp đồng sang Terminated
+            contract.ContractStatus = "Terminated";
+            contract.EndDate = DateTime.Now;
+            contract.UpdatedAt = DateTime.Now;
 
-            // Tìm tất cả người ở trong phòng
-            var occupants = await _db.RoomOccupants.Where(o => o.RoomId == roomId).ToListAsync();
-            var tenantIds = occupants.Select(o => o.TenantId).ToList();
-
-            // Xóa tất cả yêu cầu (Requests) của các khách thuê này
-            if (tenantIds.Any()) {
-                var requests = await _db.Requests.Where(r => tenantIds.Contains(r.TenantId)).ToListAsync();
-                _db.Requests.RemoveRange(requests);
-            }
-
-            // Xóa RoomOccupants
-            _db.RoomOccupants.RemoveRange(occupants);
-
-            // Xóa Hợp đồng
-            _db.Contracts.Remove(contract);
-
-            // Xóa Khách thuê (Tenants)
-            var tenants = await _db.Tenants.Where(t => tenantIds.Contains(t.TenantId)).ToListAsync();
-            var userIds = tenants.Where(t => t.UserId != null).Select(t => t.UserId.Value).ToList();
-            _db.Tenants.RemoveRange(tenants);
-
-            // Xóa Tài khoản Khách thuê (Users)
-            if (userIds.Any())
+            // 2. Chuyển trạng thái tất cả người ở trong phòng sang MovedOut
+            var occupants = await _db.RoomOccupants.Where(o => o.RoomId == roomId && o.Status == "Staying").ToListAsync();
+            foreach (var occupant in occupants)
             {
-                var users = await _db.Users.Where(u => userIds.Contains(u.UserId)).ToListAsync();
-                _db.Users.RemoveRange(users);
+                occupant.Status = "MovedOut";
+                occupant.CheckOutDate = DateTime.Now;
+                occupant.UpdatedAt = DateTime.Now;
             }
 
-            // Đặt phòng lại trạng thái Trống (Vacant)
+            // 3. Vô hiệu hóa tài khoản của các khách thuê (nếu có)
+            var tenantIds = occupants.Select(o => o.TenantId).ToList();
+            var tenants = await _db.Tenants.Where(t => tenantIds.Contains(t.TenantId)).ToListAsync();
+            foreach (var tenant in tenants)
+            {
+                tenant.TenantStatus = "MovedOut";
+                if (tenant.UserId.HasValue)
+                {
+                    var user = await _db.Users.FindAsync(tenant.UserId.Value);
+                    if (user != null)
+                    {
+                        user.Status = "Inactive";
+                    }
+                }
+            }
+
+            // 4. Đặt phòng lại trạng thái Trống (Vacant)
             var room = await _db.Rooms.FindAsync(roomId);
             if (room != null)
             {
                 room.Status = "Vacant";
+                room.UpdatedAt = DateTime.Now;
             }
 
             await _db.SaveChangesAsync();
 
-            return new ApiResponse { Success = true, Message = "Đã chấm dứt hợp đồng và dọn sạch dữ liệu khách thuê." };
+            return new ApiResponse { Success = true, Message = "Đã chấm dứt hợp đồng thành công. Dữ liệu cũ đã được lưu trữ vào lịch sử." };
         }
 
         public async Task<ApiResponse> GetAllContractsAsync(int adminId)
@@ -168,7 +234,9 @@ namespace UserManagementSystem.Services
                 .Include(c => c.Room)
                 .ThenInclude(r => r.Motel)
                 .Include(c => c.PrimaryTenant)
-                .Where(c => c.Room.Motel.OwnerUserId == adminId || _db.Users.Any(u => u.UserId == adminId && u.Role.RoleName == "superuser"))
+                .Where(c => (c.Room.Motel.OwnerUserId == adminId || _db.Users.Any(u => u.UserId == adminId && u.Role.RoleName == "superuser")) 
+                            && (c.ContractStatus == "Active" || c.ContractStatus == "Waiting") 
+                            && c.ContractStatus != "Terminated")
                 .Select(c => new
                 {
                     c.ContractId,
@@ -184,6 +252,95 @@ namespace UserManagementSystem.Services
                 .ToListAsync();
 
             return new ApiResponse { Success = true, Data = contracts };
+        }
+        public async Task<ApiResponse> GetActiveContractByRoomAsync(int roomId)
+        {
+            var contract = await _db.Contracts
+                .Include(c => c.PrimaryTenant)
+                .Where(c => c.RoomId == roomId && c.ContractStatus == "Active")
+                .Select(c => new
+                {
+                    c.ContractId,
+                    c.RoomId,
+                    c.PrimaryTenantId,
+                    PrimaryTenantName = c.PrimaryTenant.FullName,
+                    c.StartDate,
+                    c.EndDate,
+                    c.MonthlyRent,
+                    c.DepositAmount,
+                    c.Terms,
+                    SelectedServiceIds = _db.RoomServiceSettings
+                        .Where(rss => rss.RoomId == roomId && rss.IsActive)
+                        .Select(rss => rss.ServiceId)
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (contract == null) return new ApiResponse { Success = false, Message = "Phòng chưa có hợp đồng hiệu lực." };
+            return new ApiResponse { Success = true, Data = contract };
+        }
+
+        public async Task<ApiResponse> UpdateContractAsync(int contractId, ContractRequest request)
+        {
+            var contract = await _db.Contracts.FindAsync(contractId);
+            if (contract == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hợp đồng." };
+
+            contract.MonthlyRent = request.MonthlyRent;
+            contract.DepositAmount = request.DepositAmount;
+            contract.StartDate = request.StartDate;
+            contract.EndDate = request.EndDate;
+            contract.Terms = request.Terms;
+            contract.UpdatedAt = DateTime.Now;
+
+            // Đồng bộ sang RoomSetting
+            var roomSetting = await _db.RoomSettings.FirstOrDefaultAsync(rs => rs.RoomId == contract.RoomId);
+            if (roomSetting != null)
+            {
+                roomSetting.BaseRent = request.MonthlyRent;
+                roomSetting.DepositAmount = request.DepositAmount;
+                roomSetting.StandardOccupants = request.StandardOccupants;
+                roomSetting.MaxOccupants = request.StandardOccupants + 5;
+                roomSetting.ExtraOccupantFee = request.ExtraOccupantFee;
+                roomSetting.ApplyExtraOccupantFee = request.ExtraOccupantFee > 0;
+                roomSetting.UpdatedAt = DateTime.Now;
+            }
+
+            // Đồng bộ Dịch vụ
+            var globalServices = await _db.Services.Where(s => s.IsActive).ToListAsync();
+            var roomServiceSettings = await _db.RoomServiceSettings.Where(rs => rs.RoomId == contract.RoomId).ToListAsync();
+            
+            foreach (var service in globalServices)
+            {
+                var setting = roomServiceSettings.FirstOrDefault(rs => rs.ServiceId == service.ServiceId);
+                if (setting == null)
+                {
+                    setting = new RoomServiceSetting
+                    {
+                        RoomId = contract.RoomId,
+                        ServiceId = service.ServiceId,
+                        UnitPrice = service.DefaultPrice,
+                        CalculationType = service.CalculationType,
+                        CreatedAt = DateTime.Now
+                    };
+                    _db.RoomServiceSettings.Add(setting);
+                }
+
+                string sName = service.ServiceName?.ToLower() ?? "";
+                bool isMandatory = sName.Contains("điện") || sName.Contains("nước");
+
+                if (isMandatory)
+                {
+                    setting.IsActive = true;
+                }
+                else
+                {
+                    setting.IsActive = request.SelectedServiceIds != null && request.SelectedServiceIds.Contains(service.ServiceId);
+                }
+                setting.UpdatedAt = DateTime.Now;
+            }
+
+            await _db.SaveChangesAsync();
+            return new ApiResponse { Success = true, Message = "Cập nhật hợp đồng và cấu hình phòng thành công." };
         }
     }
 }

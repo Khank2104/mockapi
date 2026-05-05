@@ -7,39 +7,17 @@ namespace UserManagementSystem.Services
     public class MeterReadingService : IMeterReadingService
     {
         private readonly ApplicationDbContext _db;
+        private readonly IAccessControlService _accessControl;
 
-        public MeterReadingService(ApplicationDbContext db)
+        public MeterReadingService(ApplicationDbContext db, IAccessControlService accessControl)
         {
             _db = db;
-        }
-
-        private async Task<bool> CanAccessRoom(int roomId, int userId)
-        {
-            var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
-            if (user == null) return false;
-            if (user.Role.RoleName == "superuser") return true;
-
-            var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == roomId);
-            if (room == null) return false;
-
-            if (user.Role.RoleName == "admin")
-            {
-                return room.Motel.OwnerUserId == userId;
-            }
-
-            if (user.Role.RoleName == "tenant")
-            {
-                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == userId);
-                if (tenant == null) return false;
-                return await _db.RoomOccupants.AnyAsync(o => o.RoomId == roomId && o.TenantId == tenant.TenantId && o.Status == "Staying");
-            }
-
-            return false;
+            _accessControl = accessControl;
         }
 
         public async Task<ApiResponse> CreateReadingAsync(CreateMeterReadingRequest request, int adminId)
         {
-            if (!await CanAccessRoom(request.RoomId, adminId))
+            if (!await _accessControl.CanAccessRoomAsync(request.RoomId, adminId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ hoặc phòng không tồn tại." };
 
             var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == adminId);
@@ -98,7 +76,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> GetReadingsByRoomAsync(int roomId, int month, int year, int requesterId)
         {
-            if (!await CanAccessRoom(roomId, requesterId))
+            if (!await _accessControl.CanAccessRoomAsync(roomId, requesterId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var readings = await _db.MeterReadings
@@ -118,6 +96,40 @@ namespace UserManagementSystem.Services
                 })
                 .ToListAsync();
             return new ApiResponse { Success = true, Data = readings };
+        }
+
+        public async Task<ApiResponse> GetLatestReadingsAsync(int roomId, int requesterId)
+        {
+            if (!await _accessControl.CanAccessRoomAsync(roomId, requesterId))
+                return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+
+            // Lấy chỉ số mới nhất của từng dịch vụ (Điện, Nước...) cho phòng này
+            var allReadings = await _db.MeterReadings
+                .Include(r => r.Service)
+                .Where(r => r.RoomId == roomId)
+                .ToListAsync();
+
+            var latestReadings = allReadings
+                .GroupBy(r => r.ServiceId)
+                .Select(g => g.OrderByDescending(r => r.BillingYear)
+                             .ThenByDescending(r => r.BillingMonth)
+                             .First())
+                .Select(r => new MeterReadingResponse
+                {
+                    ReadingId = r.ReadingId,
+                    RoomId = r.RoomId,
+                    ServiceName = r.Service.ServiceName,
+                    ServiceId = r.ServiceId,
+                    PreviousReading = r.PreviousReading,
+                    CurrentReading = r.CurrentReading,
+                    UsageAmount = r.UsageAmount,
+                    BillingMonth = r.BillingMonth,
+                    BillingYear = r.BillingYear,
+                    RecordedAt = r.RecordedAt
+                })
+                .ToList();
+
+            return new ApiResponse { Success = true, Data = latestReadings };
         }
     }
 }

@@ -11,10 +11,14 @@ namespace UserManagementSystem.Controllers
     public class MotelManagementController : ControllerBase
     {
         private readonly IMotelService _motelService;
+        private readonly IGlobalServiceService _globalService;
+        private readonly IRoomManagementService _roomService;
 
-        public MotelManagementController(IMotelService motelService)
+        public MotelManagementController(IMotelService motelService, IGlobalServiceService globalService, IRoomManagementService roomService)
         {
             _motelService = motelService;
+            _globalService = globalService;
+            _roomService = roomService;
         }
 
         private int GetRequesterId()
@@ -72,7 +76,7 @@ namespace UserManagementSystem.Controllers
         [HttpPost("CreateRoom")]
         public async Task<IActionResult> CreateRoom([FromBody] RoomRequest request)
         {
-            var result = await _motelService.CreateRoomAsync(request, GetRequesterId());
+            var result = await _roomService.CreateRoomAsync(request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -80,7 +84,7 @@ namespace UserManagementSystem.Controllers
         [HttpPost("UpdateRoomSetting")]
         public async Task<IActionResult> UpdateRoomSetting([FromBody] RoomSettingRequest request)
         {
-            var result = await _motelService.UpdateRoomSettingAsync(request, GetRequesterId());
+            var result = await _roomService.UpdateRoomSettingAsync(request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -89,21 +93,21 @@ namespace UserManagementSystem.Controllers
         [HttpGet("GetRoomSettings/{roomId}")]
         public async Task<IActionResult> GetRoomSettings(int roomId)
         {
-            var result = await _motelService.GetRoomSettingsAsync(roomId, GetRequesterId());
+            var result = await _roomService.GetRoomSettingsAsync(roomId, GetRequesterId());
             return Ok(result);
         }
 
         [HttpGet("GetRoomServices/{roomId}")]
         public async Task<IActionResult> GetRoomServices(int roomId)
         {
-            var result = await _motelService.GetRoomServicesAsync(roomId, GetRequesterId());
+            var result = await _roomService.GetRoomServicesAsync(roomId, GetRequesterId());
             return Ok(result);
         }
 
         [HttpGet("GetRoomOccupants/{roomId}")]
         public async Task<IActionResult> GetRoomOccupants(int roomId)
         {
-            var result = await _motelService.GetRoomOccupantsAsync(roomId, GetRequesterId());
+            var result = await _roomService.GetRoomOccupantsAsync(roomId, GetRequesterId());
             return Ok(result);
         }
 
@@ -111,28 +115,28 @@ namespace UserManagementSystem.Controllers
         [HttpGet("GetGlobalServices")]
         public async Task<IActionResult> GetGlobalServices()
         {
-            var result = await _motelService.GetGlobalServicesAsync();
+            var result = await _globalService.GetGlobalServicesAsync();
             return Ok(result);
         }
 
         [HttpPost("UpdateGlobalService/{serviceId}")]
         public async Task<IActionResult> UpdateGlobalService(int serviceId, [FromBody] GlobalServiceUpdateRequest request)
         {
-            var result = await _motelService.UpdateGlobalServiceAsync(serviceId, request.DefaultPrice, GetRequesterId());
+            var result = await _globalService.UpdateGlobalServiceAsync(serviceId, request.DefaultPrice, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPost("CreateGlobalService")]
         public async Task<IActionResult> CreateGlobalService([FromBody] ServiceRequest request)
         {
-            var result = await _motelService.CreateGlobalServiceAsync(request, GetRequesterId());
+            var result = await _globalService.CreateGlobalServiceAsync(request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPost("SeedDefaultServices")]
         public async Task<IActionResult> SeedDefaultServices()
         {
-            var result = await _motelService.SeedDefaultServicesAsync(GetRequesterId());
+            var result = await _globalService.SeedDefaultServicesAsync(GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
     }

@@ -1,0 +1,41 @@
+<!-- Billing Module -->
+<section id="module-billing" class="module-section d-none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-4">Điện nước & Hóa đơn</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" onclick="initializeDefaultServices()">
+                <i class="bi bi-magic me-1"></i> Khởi tạo nhanh dịch vụ
+            </button>
+            <select class="form-select" id="billing-month" style="width: 120px; border-radius: 10px;">
+                @for (int i = 1; i <= 12; i++) {
+                    <option value="@i" selected="@(DateTime.Now.Month == i)">Tháng @i</option>
+                }
+            </select>
+            <select class="form-select" id="billing-year" style="width: 100px; border-radius: 10px;">
+                <option value="@DateTime.Now.Year">@DateTime.Now.Year</option>
+            </select>
+            <button class="btn btn-premium" onclick="loadBillingData()">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+    </div>
+    <div class="glass-card">
+        <div class="table-container">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>PHÒNG</th>
+                        <th>ĐIỆN (Số cũ/mới)</th>
+                        <th>NƯỚC (Số cũ/mới)</th>
+                        <th>HÓA ĐƠN</th>
+                        <th>THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody id="billing-list-container">
+                    <tr><td colspan="5"><div class="skeleton" style="height: 60px; margin-bottom: 8px;"></div></td></tr>
+                    <tr><td colspan="5"><div class="skeleton" style="height: 60px;"></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

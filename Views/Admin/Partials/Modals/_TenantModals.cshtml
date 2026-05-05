@@ -1,0 +1,164 @@
+<!-- Modal: Tenant Details -->
+<div class="modal fade" id="tenantDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold fs-4"><i class="bi bi-person-badge text-primary me-2"></i>Hồ sơ Khách thuê</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <img id="td-avatar" src="" class="rounded-circle mb-3 border border-4 border-white shadow-sm" style="width: 80px; height: 80px;">
+                    <h4 class="fw-bold mb-1" id="td-fullname">--</h4>
+                    <span id="td-status" class="badge rounded-pill px-3 py-2 mt-1">--</span>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 border">
+                            <h6 class="text-muted small fw-bold mb-3"><i class="bi bi-person-lines-fill me-2"></i>THÔNG TIN CÁ NHÂN</h6>
+                            <div class="vstack gap-2 text-sm">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">CCCD/CMND:</span>
+                                    <span class="fw-bold" id="td-idcard">--</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Số điện thoại:</span>
+                                    <span class="fw-bold" id="td-phone">--</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Email:</span>
+                                    <span class="fw-bold" id="td-email">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 border h-100">
+                            <h6 class="text-muted small fw-bold mb-3"><i class="bi bi-house-door-fill me-2"></i>THÔNG TIN THUÊ PHÒNG</h6>
+                            <div class="vstack gap-2 text-sm">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Phòng hiện tại:</span>
+                                    <span class="fw-bold text-primary" id="td-room">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 mt-4 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Tenant -->
+<div class="modal fade" id="addTenantModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Tạo tài khoản Khách thuê</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTenantForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">HỌ VÀ TÊN</label>
+                            <input type="text" name="Name" class="form-control" required placeholder="Nguyễn Văn A">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">SỐ ĐIỆN THOẠI</label>
+                            <input type="text" name="PhoneNumber" class="form-control" required placeholder="09xxxxxxx">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">USERNAME (Để đăng nhập)</label>
+                            <input type="text" name="Username" class="form-control" required placeholder="tentaikhoan">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">EMAIL</label>
+                            <input type="email" name="Email" class="form-control" required placeholder="email@gmail.com">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">MẬT KHẨU MẶC ĐỊNH</label>
+                            <input type="password" name="Password" class="form-control" value="123456" required>
+                            <p class="text-muted x-small mt-1">Mật khẩu mặc định là 123456. Khách có thể đổi sau khi đăng nhập.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3 mt-4" onclick="submitAddTenant()">
+                        <i class="bi bi-person-check-fill me-2"></i> Tạo tài khoản khách thuê
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Admin (Superuser Only) -->
+<div class="modal fade" id="addAdminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Thêm Quản trị viên (Admin)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAdminForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">HỌ VÀ TÊN</label>
+                        <input type="text" name="Name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">TÊN ĐĂNG NHẬP</label>
+                        <input type="text" name="Username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">EMAIL</label>
+                        <input type="email" name="Email" class="form-control" required>
+                    </div>
+                    <div class="mb-4 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i> Mật khẩu mặc định sẽ được gửi qua email hoặc đặt là 123456 (theo cấu hình hệ thống).
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3" onclick="submitAddAdmin()">
+                        Tạo tài khoản Admin
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Occupant (Roommate) -->
+<div class="modal fade" id="addOccupantModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold mb-1"><i class="bi bi-person-plus text-primary me-2"></i>Thêm người ở chung</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="text-muted small mb-3">Thêm khách thuê vào phòng hiện tại. Khách phải được tạo tài khoản trước trong mục Khách thuê.</p>
+                <form id="addOccupantForm">
+                    <input type="hidden" id="ao-roomId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">CHỌN KHÁCH THUÊ</label>
+                        <select id="ao-tenantSelect" class="form-select rounded-4 py-3" required>
+                            <option value="">-- Đang tải danh sách... --</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">VAI TRÒ (MỐI QUAN HỆ)</label>
+                        <select id="ao-occupantRole" class="form-select rounded-4 py-3">
+                            <option value="Roommate">Bạn cùng phòng</option>
+                            <option value="Family">Người nhà/Gia đình</option>
+                            <option value="Spouse">Vợ/Chồng</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3" onclick="submitAddOccupant()">
+                        <i class="bi bi-plus-circle me-2"></i>Thêm vào phòng
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

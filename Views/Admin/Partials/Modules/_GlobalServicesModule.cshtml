@@ -1,0 +1,53 @@
+<!-- Global Services Configuration Module -->
+<section id="module-global-services" class="module-section d-none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold fs-4 mb-1">Cấu hình Dịch vụ Toàn hệ thống</h2>
+            <p class="text-muted small mb-0">Thiết lập đơn giá mặc định áp dụng cho tất cả các phòng và gửi thông báo thay đổi.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary shadow-sm px-4 rounded-pill" onclick="initializeDefaultServices()">
+                <i class="bi bi-magic me-2"></i> Khởi tạo mẫu
+            </button>
+            <button class="btn btn-outline-success shadow-sm px-4 rounded-pill" onclick="showAddGlobalServiceModal()">
+                <i class="bi bi-plus-lg me-2"></i> Thêm dịch vụ mới
+            </button>
+            <button class="btn btn-premium shadow-premium px-4" onclick="saveAllGlobalSettings()" id="btnSaveGlobalSettings">
+                <i class="bi bi-save2-fill me-2"></i> 
+                <span class="btn-text">Lưu cấu hình toàn bộ</span>
+                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="glass-card">
+                <h3 class="fw-bold fs-5 mb-4 text-primary"><i class="bi bi-lightning-charge-fill me-2"></i>Thiết lập đơn giá mặc định</h3>
+                <p class="text-muted small mb-4">Lưu ý: Khi bạn lưu tại đây, hệ thống sẽ tự động cập nhật đơn giá cho tất cả các phòng và gửi thông báo đến từng khách thuê.</p>
+                
+                <form id="globalSettingsForm">
+                    <div id="global-settings-fields">
+                        <!-- Fields will be dynamically loaded here -->
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Đang tải cấu hình hiện tại...</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="glass-card bg-primary bg-opacity-10 border-primary border-opacity-20">
+                <h3 class="fw-bold fs-5 mb-3"><i class="bi bi-info-circle-fill me-2"></i>Hướng dẫn</h3>
+                <ul class="small text-secondary ps-3">
+                    <li class="mb-2"><strong>Đơn giá Điện:</strong> Tính theo số kWh tiêu thụ thực tế.</li>
+                    <li class="mb-2"><strong>Đơn giá Nước:</strong> Tính theo số m3 tiêu thụ thực tế.</li>
+                    <li class="mb-2"><strong>Phí dịch vụ:</strong> Các phí cố định hàng tháng (Rác, Wifi...).</li>
+                    <li>Bấm <strong>"Lưu cấu hình"</strong> để áp dụng ngay lập tức cho toàn bộ hệ thống.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>

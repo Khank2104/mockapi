@@ -36,5 +36,11 @@ namespace UserManagementSystem.Controllers
             var result = await _readingService.GetReadingsByRoomAsync(roomId, month, year, GetRequesterId());
             return Ok(result);
         }
+        [HttpGet("Latest/{roomId}")]
+        public async Task<IActionResult> GetLatest(int roomId)
+        {
+            var result = await _readingService.GetLatestReadingsAsync(roomId, GetRequesterId());
+            return Ok(result);
+        }
     }
 }

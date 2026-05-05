@@ -1,0 +1,29 @@
+<!-- Contracts Module -->
+<section id="module-contracts" class="module-section d-none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-4">Quản lý Hợp đồng</h2>
+        <button class="btn btn-premium" onclick="showAddContractModal()">
+            <i class="bi bi-file-earmark-plus-fill me-2"></i> Tạo Hợp đồng mới
+        </button>
+    </div>
+    <div class="glass-card">
+        <div class="table-container">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>PHÒNG</th>
+                        <th>KHÁCH THUÊ</th>
+                        <th>GIÁ THUÊ</th>
+                        <th>TIỀN CỌC</th>
+                        <th>THỜI HẠN</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody id="contracts-list-container">
+                    <tr><td colspan="7" class="text-center py-5 text-muted">Đang tải danh sách hợp đồng...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

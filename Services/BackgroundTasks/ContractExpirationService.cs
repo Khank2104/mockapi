@@ -50,6 +50,9 @@ namespace UserManagementSystem.Services.BackgroundTasks
 
             // 1. Chuyển hợp đồng hết hạn sang trạng thái "Waiting"
             var newlyExpiredContracts = await db.Contracts
+                .Include(c => c.Room)
+                    .ThenInclude(r => r.Occupants)
+                .Include(c => c.PrimaryTenant)
                 .Where(c => c.ContractStatus == "Active" && c.EndDate.HasValue && c.EndDate.Value < now)
                 .ToListAsync();
 
@@ -58,57 +61,45 @@ namespace UserManagementSystem.Services.BackgroundTasks
                 foreach (var contract in newlyExpiredContracts)
                 {
                     contract.ContractStatus = "Waiting";
+                    if (contract.Room != null)
+                    {
+                        contract.Room.Status = "Vacant";
+                        // Cập nhật tất cả người ở trong phòng này thành đã dời đi
+                        foreach (var occ in contract.Room.Occupants.Where(o => o.CheckOutDate == null))
+                        {
+                            occ.Status = "MovedOut";
+                            occ.CheckOutDate = now;
+                            occ.UpdatedAt = now;
+                        }
+                    }
+                    if (contract.PrimaryTenant != null)
+                    {
+                        contract.PrimaryTenant.TenantStatus = "MovedOut";
+                        contract.PrimaryTenant.UpdatedAt = now;
+                    }
                     contract.UpdatedAt = now;
                     _logger.LogInformation($"Contract {contract.ContractId} moved to Waiting state (expired on {contract.EndDate}).");
                 }
                 await db.SaveChangesAsync();
             }
 
-            // 2. Xóa sạch dữ liệu nếu ở trạng thái "Waiting" quá 7 ngày
-            var pendingDeletionContracts = await db.Contracts
+            // 2. Chuyển sang trạng thái "Terminated" thay vì xóa dữ liệu nếu ở "Waiting" quá 7 ngày
+            var pendingTerminationContracts = await db.Contracts
                 .Where(c => c.ContractStatus == "Waiting" && c.EndDate.HasValue && c.EndDate.Value.AddDays(7) < now)
                 .ToListAsync();
 
-            if (pendingDeletionContracts.Any())
+            if (pendingTerminationContracts.Any())
             {
-                foreach (var contract in pendingDeletionContracts)
+                foreach (var contract in pendingTerminationContracts)
                 {
-                    _logger.LogInformation($"Deleting all data for Contract {contract.ContractId} (Waiting > 7 days).");
+                    _logger.LogInformation($"Terminating Contract {contract.ContractId} (Waiting > 7 days). Preserving all financial data.");
 
-                    int roomId = contract.RoomId;
+                    contract.ContractStatus = "Terminated";
+                    contract.UpdatedAt = now;
 
-                    // Xóa Invoices
-                    var invoices = await db.Invoices.Where(i => i.ContractId == contract.ContractId).ToListAsync();
-                    db.Invoices.RemoveRange(invoices);
-
-                    // Xóa RoomOccupants
-                    var occupants = await db.RoomOccupants.Where(o => o.RoomId == roomId).ToListAsync();
-                    var tenantIds = occupants.Select(o => o.TenantId).ToList();
-
-                    // Xóa Requests
-                    if (tenantIds.Any())
-                    {
-                        var requests = await db.Requests.Where(r => tenantIds.Contains(r.TenantId)).ToListAsync();
-                        db.Requests.RemoveRange(requests);
-                    }
-
-                    db.RoomOccupants.RemoveRange(occupants);
-                    db.Contracts.Remove(contract);
-
-                    // Xóa Tenants và Users
-                    var tenants = await db.Tenants.Where(t => tenantIds.Contains(t.TenantId)).ToListAsync();
-                    var userIds = tenants.Where(t => t.UserId != null).Select(t => t.UserId.Value).ToList();
-                    db.Tenants.RemoveRange(tenants);
-
-                    if (userIds.Any())
-                    {
-                        var users = await db.Users.Where(u => userIds.Contains(u.UserId)).ToListAsync();
-                        db.Users.RemoveRange(users);
-                    }
-
-                    // Đặt phòng lại trạng thái Trống (Vacant)
-                    var room = await db.Rooms.FindAsync(roomId);
-                    if (room != null)
+                    // Đảm bảo phòng ở trạng thái Trống (Vacant)
+                    var room = await db.Rooms.FindAsync(contract.RoomId);
+                    if (room != null && room.Status != "Vacant")
                     {
                         room.Status = "Vacant";
                     }

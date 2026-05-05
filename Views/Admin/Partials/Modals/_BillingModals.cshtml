@@ -1,0 +1,87 @@
+<!-- Modal: Invoice Details -->
+<div class="modal fade" id="invoiceDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold fs-4"><i class="bi bi-file-earmark-text text-primary me-2"></i>Chi tiết Hóa đơn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="invoice-detail-content">
+                    <!-- Dynamic content will be loaded here -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted">Đang tải chi tiết hóa đơn...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 mt-2 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-premium px-4" id="btnExportExcel">
+                    <i class="bi bi-file-earmark-excel me-2"></i> Xuất file Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Record Meter -->
+<div class="modal fade" id="recordMeterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3 overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="fw-bold mb-1">Ghi chỉ số: <span id="record-room-code" class="text-primary"></span></h5>
+                    <p class="text-muted x-small mb-0">Nhập chỉ số điện/nước thực tế cho kỳ thanh toán hiện tại.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <form id="recordMeterForm">
+                    <input type="hidden" id="record-roomId">
+                    
+                    <div class="row g-4 mb-4">
+                        <!-- Điện -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-4 h-100">
+                                <h6 class="fw-bold text-warning mb-3"><i class="bi bi-lightning-charge-fill me-2"></i>Chỉ số Điện</h6>
+                                <input type="hidden" id="record-elec-serviceId">
+                                <div class="mb-3">
+                                    <label class="form-label x-small fw-bold opacity-75">SỐ CŨ</label>
+                                    <input type="number" id="record-elec-prev" class="form-control rounded-3 py-2 bg-white" readonly>
+                                </div>
+                                <div>
+                                    <label class="form-label x-small fw-bold opacity-75 text-primary">SỐ MỚI</label>
+                                    <input type="number" id="record-elec-curr" class="form-control rounded-3 py-2 border-primary shadow-sm fw-bold" placeholder="Nhập số điện..." oninput="calculateElecUsage()">
+                                </div>
+                                <div class="mt-2 text-end text-muted x-small d-none" id="usage-elec-container">Tiêu thụ: <b id="usage-elec-value" class="text-dark">0</b> <span id="usage-elec-unit">kWh</span></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Nước -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-4 h-100">
+                                <h6 class="fw-bold text-info mb-3"><i class="bi bi-droplet-fill me-2"></i>Chỉ số Nước</h6>
+                                <input type="hidden" id="record-water-serviceId">
+                                <div class="mb-3">
+                                    <label class="form-label x-small fw-bold opacity-75">SỐ CŨ</label>
+                                    <input type="number" id="record-water-prev" class="form-control rounded-3 py-2 bg-white" readonly>
+                                </div>
+                                <div>
+                                    <label class="form-label x-small fw-bold opacity-75 text-primary">SỐ MỚI</label>
+                                    <input type="number" id="record-water-curr" class="form-control rounded-3 py-2 border-primary shadow-sm fw-bold" placeholder="Nhập số nước..." oninput="calculateWaterUsage()">
+                                </div>
+                                <div class="mt-2 text-end text-muted x-small d-none" id="usage-water-container">Tiêu thụ: <b id="usage-water-value" class="text-dark">0</b> <span id="usage-water-unit">Khối</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnSubmitReading" class="btn btn-premium w-100 py-3 shadow-premium" onclick="submitMeterReading()">
+                        <span class="btn-text">Lưu chỉ số điện & nước</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
