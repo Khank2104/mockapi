@@ -1,0 +1,73 @@
+<!-- Motel Setup Module -->
+<section id="module-motel-setup" class="module-section d-none">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="switchModule('motels')">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <h2 class="fw-bold fs-4 mb-0">Thiết lập Khu trọ: <span id="setup-motel-name" class="text-primary">---</span></h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4" id="setup-floor-card">
+            <div class="glass-card h-100">
+                <h3 class="fw-bold fs-5 mb-3"><i class="bi bi-layers-fill me-2"></i>Khai báo Tầng</h3>
+                <form id="setupFloorForm">
+                    <input type="hidden" id="setup-motelId" name="MotelId">
+                    <div class="mb-3">
+                        <label class="form-label">Tên tầng (VD: Tầng 1)</label>
+                        <input type="text" class="form-control" name="FloorName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số thứ tự tầng (1, 2...)</label>
+                        <input type="number" class="form-control" name="FloorNumber" required>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100" onclick="submitSetupFloor()">Thêm Tầng</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-lg-8" id="setup-room-card">
+            <div class="glass-card h-100">
+                <h3 class="fw-bold fs-5 mb-3"><i class="bi bi-door-open-fill me-2"></i>Khai báo Phòng</h3>
+                <form id="setupRoomForm" class="row g-3">
+                    <input type="hidden" id="setup-room-motelId" name="MotelId">
+                    <div class="col-md-6" id="setup-floor-select-container">
+                        <label class="form-label">Thuộc Tầng</label>
+                        <select class="form-select" name="FloorId" id="setup-floor-select">
+                            <option value="">Đang tải...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mã phòng (VD: 101)</label>
+                        <input type="text" class="form-control" name="RoomCode" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Diện tích (m2)</label>
+                        <input type="number" class="form-control" name="Area" required>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button type="button" class="btn btn-premium" onclick="submitSetupRoom()">Thêm Phòng</button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                <h4 class="fw-bold fs-6 mb-3">Danh sách phòng</h4>
+                <div class="table-container">
+                    <table class="premium-table">
+                        <thead>
+                            <tr>
+                                <th>TẦNG</th>
+                                <th>MÃ PHÒNG</th>
+                                <th>DIỆN TÍCH</th>
+                                <th>THAO TÁC</th>
+                            </tr>
+                        </thead>
+                        <tbody id="setup-rooms-list">
+                            <tr><td colspan="4" class="text-center py-3 text-muted">Chưa có phòng nào.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -15,9 +15,9 @@ namespace UserManagementSystem.Controllers
         {
             var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
             return Ok(new { 
-                User.Identity.IsAuthenticated, 
-                User.Identity.Name, 
-                RoleClaimType = ((System.Security.Claims.ClaimsIdentity)User.Identity).RoleClaimType,
+                IsAuthenticated = User.Identity?.IsAuthenticated ?? false, 
+                Name = User.Identity?.Name, 
+                RoleClaimType = (User.Identity as System.Security.Claims.ClaimsIdentity)?.RoleClaimType,
                 IsAdmin = User.IsInRole("admin"),
                 IsSuperuser = User.IsInRole("superuser"),
                 Claims = claims 

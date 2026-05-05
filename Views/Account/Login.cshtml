@@ -5,6 +5,11 @@
 
 <div class="login-page-container">
     <div class="login-card glass-card animate-fade-in">
+        <div class="text-end mb-2">
+            <div class="theme-toggle d-inline-flex cursor-pointer bg-white bg-opacity-20 p-2 rounded-circle border border-white" onclick="toggleTheme()" title="Đổi giao diện">
+                <i id="theme-icon" class="bi bi-moon-stars fs-5 text-white"></i>
+            </div>
+        </div>
         <div class="text-center mb-5">
             <div class="logo-icon mb-3">
                 <i class="bi bi-shield-lock-fill"></i>
@@ -17,7 +22,7 @@
             <!-- Credentials Section -->
             <div id="credentialsSection">
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-uppercase opacity-75">Tên đăng nhập</label>
+                    <label class="form-label small fw-bold text-uppercase" style="color: #0f172a; letter-spacing: 0.05em;">Tên đăng nhập</label>
                     <div class="input-container">
                         <i class="bi bi-person"></i>
                         <input type="text" id="username" class="form-input" placeholder="Nhập username" required>
@@ -25,7 +30,7 @@
                 </div>
                 <div class="mb-5">
                     <div class="d-flex justify-content-between">
-                        <label class="form-label small fw-bold text-uppercase opacity-75">Mật khẩu</label>
+                        <label class="form-label small fw-bold text-uppercase" style="color: #0f172a; letter-spacing: 0.05em;">Mật khẩu</label>
                         <a href="#" id="forgotPasswordLink" class="small text-primary text-decoration-none fw-bold">Quên?</a>
                     </div>
                     <div class="input-container">
@@ -55,7 +60,7 @@
             <!-- Forgot Password Section -->
             <div id="forgotPasswordSection" style="display: none;">
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-uppercase opacity-75">Email đăng ký</label>
+                    <label class="form-label small fw-bold text-uppercase" style="color: #475569;">Email đăng ký</label>
                     <div class="input-container">
                         <i class="bi bi-envelope"></i>
                         <input type="email" id="forgotEmail" class="form-input" placeholder="name@example.com">
@@ -139,7 +144,7 @@
     .input-container i {
         position: absolute;
         left: 1.25rem;
-        color: #94a3b8;
+        color: #475569;
         font-size: 1.1rem;
     }
 
@@ -151,8 +156,13 @@
         border-radius: 16px;
         outline: none;
         transition: all 0.2s;
-        color: #1e293b;
-        font-weight: 500;
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    .form-input::placeholder {
+        color: #64748b !important;
+        font-weight: 400;
     }
 
     .form-input:focus {
@@ -178,7 +188,42 @@
         30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
         40%, 60% { transform: translate3d(4px, 0, 0); }
     }
+
+    [data-theme='dark'] .login-card {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+
+    [data-theme='dark'] .form-input {
+        background: rgba(15, 23, 42, 0.6) !important;
+        color: white !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
+    }
 </style>
+
+<script>
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+        const icon = document.getElementById('theme-icon');
+        if (icon) {
+            icon.className = theme === 'dark' ? 'bi bi-sun fs-5 text-warning' : 'bi bi-moon-stars fs-5 text-white';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateThemeIcon(document.documentElement.getAttribute('data-theme'));
+    });
+</script>
 
 @section Scripts {
     <script src="~/js/auth.js"></script>

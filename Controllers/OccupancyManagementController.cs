@@ -57,5 +57,19 @@ namespace UserManagementSystem.Controllers
             var result = await _occupancyService.GetAllContractsAsync(GetRequesterId());
             return Ok(result);
         }
+
+        [HttpGet("GetActiveContractByRoom/{roomId}")]
+        public async Task<IActionResult> GetActiveContractByRoom(int roomId)
+        {
+            var result = await _occupancyService.GetActiveContractByRoomAsync(roomId);
+            return result.Success ? Ok(result) : NotFound(result);
+        }
+
+        [HttpPut("UpdateContract/{id}")]
+        public async Task<IActionResult> UpdateContract(int id, [FromBody] ContractRequest request)
+        {
+            var result = await _occupancyService.UpdateContractAsync(id, request);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

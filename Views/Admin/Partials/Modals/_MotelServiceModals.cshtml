@@ -1,0 +1,118 @@
+<!-- Modal: Add Motel -->
+<div class="modal fade" id="addMotelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Thêm Khu trọ mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addMotelForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">TÊN KHU TRỌ</label>
+                        <input type="text" name="MotelName" class="form-control" required placeholder="Ví dụ: Nhà trọ Sắc Màu">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">ĐỊA CHỈ</label>
+                        <input type="text" name="Address" class="form-control" required placeholder="Địa chỉ chi tiết...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">MÔ TẢ</label>
+                        <textarea name="Description" class="form-control" rows="2" placeholder="Thông tin thêm..."></textarea>
+                    </div>
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" name="UseFloorManagement" checked id="useFloors">
+                        <label class="form-check-label small fw-bold" for="useFloors">Sử dụng quản lý theo Tầng</label>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3" onclick="submitAddMotel()">
+                        Khởi tạo Khu trọ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Edit Global Service -->
+<div class="modal fade" id="editGlobalServiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3 overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="fw-bold mb-1">Thiết lập đơn giá: <span id="edit-service-name" class="text-primary"></span></h5>
+                    <p class="text-muted x-small mb-0">Mức giá này sẽ được áp dụng cho tất cả các phòng và gửi thông báo đến khách thuê.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <form id="editGlobalServiceForm">
+                    <input type="hidden" id="edit-service-id" name="ServiceId">
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">ĐƠN GIÁ MỚI (VNĐ / Đơn vị)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-4">
+                                <i class="bi bi-currency-dollar text-primary"></i>
+                            </span>
+                            <input type="number" id="edit-service-price" class="form-control border-start-0 rounded-end-4 py-3 fw-bold" placeholder="Nhập đơn giá..." required>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning border-0 bg-warning bg-opacity-10 d-flex gap-3 mb-4 rounded-4">
+                        <i class="bi bi-info-circle-fill text-warning fs-4"></i>
+                        <div class="small text-dark-emphasis">
+                            <strong>Lưu ý:</strong> Khi bạn cập nhật, hệ thống sẽ tự động gửi thông báo đến tất cả khách thuê để họ biết mức giá mới này.
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnSubmitGlobalService" class="btn btn-premium w-100 py-3 shadow-premium" onclick="submitEditGlobalService()">
+                        <span class="btn-text">Cập nhật và Thông báo</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Global Service -->
+<div class="modal fade" id="addGlobalServiceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Thêm Dịch vụ Hệ thống</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addGlobalServiceForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">TÊN DỊCH VỤ</label>
+                        <input type="text" name="ServiceName" class="form-control" required placeholder="Ví dụ: Tiền Rác">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">MÃ DỊCH VỤ (Viết liền, không dấu)</label>
+                        <input type="text" name="ServiceCode" class="form-control" required placeholder="Ví dụ: TIEN_RAC">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">ĐƠN VỊ TÍNH</label>
+                        <input type="text" name="Unit" class="form-control" required placeholder="Ví dụ: Phòng, Người, kWh...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">LOẠI HÌNH TÍNH TOÁN</label>
+                        <select name="CalculationType" class="form-select" required>
+                            <option value="fixed">Cố định (Theo phòng)</option>
+                            <option value="per_person">Theo số người</option>
+                            <option value="metered">Theo chỉ số (Điện/Nước)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">ĐƠN GIÁ MẶC ĐỊNH</label>
+                        <input type="number" name="DefaultPrice" class="form-control" required placeholder="50000">
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3" onclick="submitAddGlobalService()">
+                        Khởi tạo Dịch vụ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

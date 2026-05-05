@@ -71,7 +71,9 @@ namespace UserManagementSystem.Migrations
 
                     b.HasIndex("PrimaryTenantId");
 
-                    b.HasIndex("RoomId");
+                    b.HasIndex("RoomId")
+                        .IsUnique()
+                        .HasFilter("[ContractStatus] = 'Active'");
 
                     b.ToTable("Contracts");
                 });
@@ -274,9 +276,10 @@ namespace UserManagementSystem.Migrations
 
                     b.HasIndex("RecordedBy");
 
-                    b.HasIndex("RoomId");
-
                     b.HasIndex("ServiceId");
+
+                    b.HasIndex("RoomId", "ServiceId", "BillingMonth", "BillingYear")
+                        .IsUnique();
 
                     b.ToTable("MeterReadings");
                 });
@@ -542,7 +545,8 @@ namespace UserManagementSystem.Migrations
 
                     b.HasIndex("FloorId");
 
-                    b.HasIndex("MotelId");
+                    b.HasIndex("MotelId", "RoomCode")
+                        .IsUnique();
 
                     b.ToTable("Rooms");
                 });
@@ -636,9 +640,10 @@ namespace UserManagementSystem.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.HasIndex("RoomId");
-
                     b.HasIndex("ServiceId");
+
+                    b.HasIndex("RoomId", "ServiceId")
+                        .IsUnique();
 
                     b.ToTable("RoomServiceSettings");
                 });
@@ -748,6 +753,9 @@ namespace UserManagementSystem.Migrations
                     b.HasKey("ServiceId");
 
                     b.HasIndex("CreatedBy");
+
+                    b.HasIndex("ServiceCode")
+                        .IsUnique();
 
                     b.ToTable("Services");
                 });

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace UserManagementSystem.Models
 {
-    // --- Meter Readings ---
     public class CreateMeterReadingRequest
     {
         public int RoomId { get; set; }
@@ -18,6 +17,7 @@ namespace UserManagementSystem.Models
     {
         public int ReadingId { get; set; }
         public int RoomId { get; set; }
+        public int ServiceId { get; set; }
         public string ServiceName { get; set; } = string.Empty;
         public double PreviousReading { get; set; }
         public double CurrentReading { get; set; }
@@ -27,7 +27,6 @@ namespace UserManagementSystem.Models
         public DateTime RecordedAt { get; set; }
     }
 
-    // --- Invoices ---
     public class GenerateInvoiceRequest
     {
         public int RoomId { get; set; }
@@ -63,7 +62,6 @@ namespace UserManagementSystem.Models
         public decimal SubTotal { get; set; }
     }
 
-    // --- Payments ---
     public class CreatePaymentRequest
     {
         public int InvoiceId { get; set; }
@@ -73,31 +71,5 @@ namespace UserManagementSystem.Models
         public DateTime PaymentDate { get; set; } = DateTime.Now;
     }
 
-    // --- Requests ---
-    public class CreateServiceRequest
-    {
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string RequestType { get; set; } = "Repair"; // Repair, Complaint, Other
-    }
 
-    public class UpdateRequestStatus
-    {
-        public string Status { get; set; } = "Pending"; // Pending, InProgress, Resolved, Rejected
-        public string? ResolutionNote { get; set; }
-    }
-
-    public class ServiceRequestResponse
-    {
-        public int RequestId { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string RequestType { get; set; } = "Repair";
-        public string Status { get; set; } = "Pending";
-        public DateTime CreatedAt { get; set; }
-        public string? ResolutionNote { get; set; }
-        public string? TenantName { get; set; }
-        public string? RoomCode { get; set; }
-        public string? MotelName { get; set; }
-    }
 }

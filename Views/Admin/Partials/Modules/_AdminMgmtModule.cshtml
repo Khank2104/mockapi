@@ -1,0 +1,26 @@
+<!-- Superuser: Admin Management Module -->
+<section id="module-admin-mgmt" class="module-section d-none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold fs-4">Quản trị Hệ thống (Admins)</h2>
+        <button class="btn btn-premium" onclick="showAddAdminModal()">
+            <i class="bi bi-person-plus-fill"></i> Thêm Admin mới
+        </button>
+    </div>
+    <div class="glass-card">
+        <div class="table-container">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>HỌ TÊN</th>
+                        <th>TÀI KHOẢN</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-list-container">
+                    <tr><td colspan="4" class="text-center py-5 text-muted">Đang tải...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

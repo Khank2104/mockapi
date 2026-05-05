@@ -50,5 +50,34 @@ namespace UserManagementSystem.Controllers
             var result = await _invoiceService.GetBillingSummaryAsync(month, year, GetRequesterId());
             return Ok(result);
         }
+
+        [HttpGet("{id}/ExportExcel")]
+        public async Task<IActionResult> ExportExcel(int id)
+        {
+            var fileBytes = await _invoiceService.ExportInvoiceToExcelAsync(id, GetRequesterId());
+            if (fileBytes == null || fileBytes.Length == 0) return NotFound("Invoice not found or access denied.");
+
+            var fileName = $"HoaDon_Phong_{id}_{DateTime.Now:yyyyMMdd}.xlsx";
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var invoice = await _invoiceService.GetInvoiceByIdAsync(id, GetRequesterId());
+            if (!invoice.Success) return Forbid();
+            
+            // Delete invoice logic using DB context directly for quick admin action
+            var db = HttpContext.RequestServices.GetService<UserManagementSystem.Data.ApplicationDbContext>();
+            var inv = await db.Invoices.FindAsync(id);
+            if (inv != null) {
+                var details = db.InvoiceDetails.Where(d => d.InvoiceId == id).ToList();
+                db.InvoiceDetails.RemoveRange(details);
+                db.Invoices.Remove(inv);
+                await db.SaveChangesAsync();
+                return Ok(new ApiResponse { Success = true, Message = "Đã xóa hóa đơn." });
+            }
+            return NotFound();
+        }
     }
 }

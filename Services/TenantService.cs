@@ -8,22 +8,18 @@ namespace UserManagementSystem.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly IAuthService _authService;
+        private readonly IAccessControlService _accessControl;
 
-        public TenantService(ApplicationDbContext db, IAuthService authService)
+        public TenantService(ApplicationDbContext db, IAuthService authService, IAccessControlService accessControl)
         {
             _db = db;
             _authService = authService;
-        }
-
-        private async Task<bool> IsAdminOrSuper(int userId)
-        {
-            var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
-            return user?.Role?.RoleName == "admin" || user?.Role?.RoleName == "superuser";
+            _accessControl = accessControl;
         }
 
         public async Task<ApiResponse> CreateProfileAsync(CreateTenantProfileRequest request, int adminId)
         {
-            if (!await IsAdminOrSuper(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+            if (!await _accessControl.IsAdminOrSuperAsync(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var newTenant = new Tenant
             {
@@ -45,7 +41,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> UpdateProfileAsync(int tenantId, UpdateTenantProfileRequest request, int adminId)
         {
-            if (!await IsAdminOrSuper(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+            if (!await _accessControl.IsAdminOrSuperAsync(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var tenant = await _db.Tenants.FindAsync(tenantId);
             if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hồ sơ khách thuê." };
@@ -84,7 +80,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> GetAllProfilesAsync(int adminId)
         {
-            if (!await IsAdminOrSuper(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+            if (!await _accessControl.IsAdminOrSuperAsync(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var tenants = await _db.Tenants
                 .Include(t => t.User)
@@ -100,7 +96,8 @@ namespace UserManagementSystem.Services
                     CurrentRoomCode = t.RoomOccupancies
                         .Where(ro => ro.Status == "Staying")
                         .Select(ro => ro.Room.RoomCode)
-                        .FirstOrDefault() ?? "N/A"
+                        .FirstOrDefault() ?? "N/A",
+                    HasActiveContract = _db.Contracts.Any(c => c.PrimaryTenantId == t.TenantId && c.ContractStatus == "Active")
                 })
                 .ToListAsync();
 
@@ -109,7 +106,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> CreateAccountAsync(CreateTenantAccountRequest request, int adminId)
         {
-            if (!await IsAdminOrSuper(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+            if (!await _accessControl.IsAdminOrSuperAsync(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var tenant = await _db.Tenants.FindAsync(request.TenantId);
             if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hồ sơ khách thuê." };
@@ -147,7 +144,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> CreateTenantFullAsync(CreateTenantRequest request, int adminId)
         {
-            if (!await IsAdminOrSuper(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+            if (!await _accessControl.IsAdminOrSuperAsync(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             using var transaction = await _db.Database.BeginTransactionAsync();
             try

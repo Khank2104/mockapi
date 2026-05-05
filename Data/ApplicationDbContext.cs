@@ -67,11 +67,15 @@ namespace UserManagementSystem.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Room Relationships
-            modelBuilder.Entity<Room>()
-                .HasOne(r => r.Motel)
-                .WithMany(m => m.Rooms)
-                .HasForeignKey(r => r.MotelId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Room>(entity =>
+            {
+                entity.HasOne(r => r.Motel)
+                    .WithMany(m => m.Rooms)
+                    .HasForeignKey(r => r.MotelId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(r => new { r.MotelId, r.RoomCode }).IsUnique();
+            });
 
             modelBuilder.Entity<Room>()
                 .HasOne(r => r.Floor)
@@ -93,30 +97,36 @@ namespace UserManagementSystem.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Service
-            modelBuilder.Entity<Service>()
-                .HasOne(s => s.Creator)
-                .WithMany()
-                .HasForeignKey(s => s.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Service>(entity =>
+            {
+                entity.HasOne(s => s.Creator)
+                    .WithMany()
+                    .HasForeignKey(s => s.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(s => s.ServiceCode).IsUnique();
+            });
 
             // RoomServiceSetting
-            modelBuilder.Entity<RoomServiceSetting>()
-                .HasOne(rss => rss.Room)
-                .WithMany(r => r.ServiceSettings)
-                .HasForeignKey(rss => rss.RoomId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<RoomServiceSetting>(entity =>
+            {
+                entity.HasOne(rss => rss.Room)
+                    .WithMany(r => r.ServiceSettings)
+                    .HasForeignKey(rss => rss.RoomId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<RoomServiceSetting>()
-                .HasOne(rss => rss.Service)
-                .WithMany()
-                .HasForeignKey(rss => rss.ServiceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(rss => rss.Service)
+                    .WithMany()
+                    .HasForeignKey(rss => rss.ServiceId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<RoomServiceSetting>()
-                .HasOne(rss => rss.Creator)
-                .WithMany()
-                .HasForeignKey(rss => rss.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(rss => rss.Creator)
+                    .WithMany()
+                    .HasForeignKey(rss => rss.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(rss => new { rss.RoomId, rss.ServiceId }).IsUnique();
+            });
 
             // Tenant
             modelBuilder.Entity<Tenant>()
@@ -139,42 +149,49 @@ namespace UserManagementSystem.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Contract
-            modelBuilder.Entity<Contract>()
-                .HasOne(c => c.Room)
-                .WithMany(r => r.Contracts)
-                .HasForeignKey(c => c.RoomId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Contract>(entity =>
+            {
+                entity.HasOne(c => c.Room)
+                    .WithMany(r => r.Contracts)
+                    .HasForeignKey(c => c.RoomId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Contract>()
-                .HasOne(c => c.PrimaryTenant)
-                .WithMany()
-                .HasForeignKey(c => c.PrimaryTenantId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(c => c.PrimaryTenant)
+                    .WithMany()
+                    .HasForeignKey(c => c.PrimaryTenantId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Contract>()
-                .HasOne(c => c.Creator)
-                .WithMany()
-                .HasForeignKey(c => c.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(c => c.Creator)
+                    .WithMany()
+                    .HasForeignKey(c => c.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Chỉ cho phép tối đa 1 hợp đồng Active cho mỗi phòng
+                entity.HasIndex(c => c.RoomId)
+                    .IsUnique()
+                    .HasFilter("[ContractStatus] = 'Active'");
+            });
 
             // MeterReading
-            modelBuilder.Entity<MeterReading>()
-                .HasOne(mr => mr.Room)
-                .WithMany()
-                .HasForeignKey(mr => mr.RoomId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MeterReading>(entity =>
+            {
+                entity.HasOne(mr => mr.Room)
+                    .WithMany()
+                    .HasForeignKey(mr => mr.RoomId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<MeterReading>()
-                .HasOne(mr => mr.Service)
-                .WithMany()
-                .HasForeignKey(mr => mr.ServiceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(mr => mr.Service)
+                    .WithMany()
+                    .HasForeignKey(mr => mr.ServiceId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<MeterReading>()
-                .HasOne(mr => mr.Recorder)
-                .WithMany()
-                .HasForeignKey(mr => mr.RecordedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(mr => mr.Recorder)
+                    .WithMany()
+                    .HasForeignKey(mr => mr.RecordedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(mr => new { mr.RoomId, mr.ServiceId, mr.BillingMonth, mr.BillingYear }).IsUnique();
+            });
 
             // Invoice
             modelBuilder.Entity<Invoice>()

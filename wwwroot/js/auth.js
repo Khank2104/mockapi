@@ -177,7 +177,18 @@ document.getElementById('verifyRegisterOtpBtn')?.addEventListener('click', async
 
 function checkAuth() {
     const userJson = localStorage.getItem('currentUser');
+    const tokenExpiry = localStorage.getItem('tokenExpiry');
     const path = window.location.pathname.toLowerCase();
+
+    // Kiểm tra nếu Token đã hết hạn
+    if (tokenExpiry && Date.now() > parseInt(tokenExpiry)) {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('tokenExpiry');
+        if (path !== '/account/login' && path !== '/account/register') {
+            window.location.href = '/Account/Login';
+        }
+        return;
+    }
 
     if (!userJson) {
         if (path !== '/account/login' && path !== '/account/register') {
@@ -188,8 +199,22 @@ function checkAuth() {
 
     const user = JSON.parse(userJson);
     
-    // Nếu đã đăng nhập mà cố vào trang login/register
+    // Nếu đang ở trang Login/Register mà đã có user hợp lệ trong localStorage
     if (path === '/account/login' || path === '/account/register') {
+        // Chỉ chuyển hướng nếu thực sự có ý định đăng nhập (tránh vòng lặp nếu server side challenge)
+        // Tuy nhiên, để an toàn và tránh loop, nếu server đã redirect về đây thì thường là do Cookie hết hạn
+        // Ta nên kiểm tra thêm một flag hoặc đơn giản là để người dùng đăng nhập lại nếu cần.
+        
+        // Cải tiến: Nếu truy cập trực tiếp vào Login mà có user, thử vào Admin. 
+        // Nhưng nếu bị Server trả về Login (loop), ta cần cơ chế dừng.
+        const isRedirectedFromServerError = document.referrer.includes(window.location.host) && !document.referrer.includes('/Account');
+        if (isRedirectedFromServerError) {
+            console.warn("Detected potential redirect loop. Clearing stale session.");
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('tokenExpiry');
+            return;
+        }
+
         if (user.role === 'admin' || user.role === 'superuser') {
             window.location.href = '/Admin';
         } else {

@@ -58,6 +58,9 @@ try
     builder.Services.AddScoped<IInvoiceService, InvoiceService>();
     builder.Services.AddScoped<IPaymentService, PaymentService>();
     builder.Services.AddScoped<IRequestService, RequestService>();
+    builder.Services.AddScoped<IAccessControlService, AccessControlService>();
+    builder.Services.AddScoped<IGlobalServiceService, GlobalServiceService>();
+    builder.Services.AddScoped<IRoomManagementService, RoomManagementService>();
     
     // Add Background Services
     builder.Services.AddHostedService<UserManagementSystem.Services.BackgroundTasks.ContractExpirationService>();

@@ -8,36 +8,13 @@ namespace UserManagementSystem.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly INotificationService _notificationService;
+        private readonly IAccessControlService _accessControl;
 
-        public PaymentService(ApplicationDbContext db, INotificationService notificationService)
+        public PaymentService(ApplicationDbContext db, INotificationService notificationService, IAccessControlService accessControl)
         {
             _db = db;
             _notificationService = notificationService;
-        }
-
-        private async Task<bool> CanAccessInvoice(int invoiceId, int userId)
-        {
-            var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
-            if (user == null) return false;
-            if (user.Role.RoleName == "superuser") return true;
-
-            var invoice = await _db.Invoices.Include(i => i.Room).ThenInclude(r => r.Motel).FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
-            if (invoice == null) return false;
-
-            if (user.Role.RoleName == "admin")
-            {
-                return invoice.Room.Motel.OwnerUserId == userId;
-            }
-
-            if (user.Role.RoleName == "tenant")
-            {
-                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == userId);
-                if (tenant == null) return false;
-                // Tenant can see payment of their room's invoice
-                return await _db.RoomOccupants.AnyAsync(o => o.RoomId == invoice.RoomId && o.TenantId == tenant.TenantId && o.Status == "Staying");
-            }
-
-            return false;
+            _accessControl = accessControl;
         }
 
         public async Task<ApiResponse> CreatePaymentAsync(CreatePaymentRequest request, int adminId)
@@ -47,7 +24,7 @@ namespace UserManagementSystem.Services
             if (requester == null || (requester.Role.RoleName != "admin" && requester.Role.RoleName != "superuser"))
                 return new ApiResponse { Success = false, Message = "Chỉ quản trị viên mới có quyền ghi nhận thanh toán." };
 
-            if (!await CanAccessInvoice(request.InvoiceId, adminId))
+            if (!await _accessControl.CanAccessInvoiceAsync(request.InvoiceId, adminId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ hoặc hóa đơn không tồn tại." };
 
             var invoice = await _db.Invoices.Include(i => i.Payments).FirstOrDefaultAsync(i => i.InvoiceId == request.InvoiceId);
@@ -94,7 +71,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> GetPaymentsByInvoiceAsync(int invoiceId, int requesterId)
         {
-            if (!await CanAccessInvoice(invoiceId, requesterId))
+            if (!await _accessControl.CanAccessInvoiceAsync(invoiceId, requesterId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var payments = await _db.Payments.Where(p => p.InvoiceId == invoiceId).ToListAsync();

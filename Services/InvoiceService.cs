@@ -1,6 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using UserManagementSystem.Data;
 using UserManagementSystem.Models;
+using UserManagementSystem.Data;
+using ClosedXML.Excel;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
 
 namespace UserManagementSystem.Services
 {
@@ -9,36 +11,14 @@ namespace UserManagementSystem.Services
         private readonly ApplicationDbContext _db;
         private readonly IInvoiceCalculationService _calcService;
         private readonly INotificationService _notificationService;
+        private readonly IAccessControlService _accessControl;
 
-        public InvoiceService(ApplicationDbContext db, IInvoiceCalculationService calcService, INotificationService notificationService)
+        public InvoiceService(ApplicationDbContext db, IInvoiceCalculationService calcService, INotificationService notificationService, IAccessControlService accessControl)
         {
             _db = db;
             _calcService = calcService;
             _notificationService = notificationService;
-        }
-
-        private async Task<bool> CanAccessRoom(int roomId, int userId)
-        {
-            var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
-            if (user == null) return false;
-            if (user.Role.RoleName == "superuser") return true;
-
-            var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == roomId);
-            if (room == null) return false;
-
-            if (user.Role.RoleName == "admin")
-            {
-                return room.Motel.OwnerUserId == userId;
-            }
-
-            if (user.Role.RoleName == "tenant")
-            {
-                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == userId);
-                if (tenant == null) return false;
-                return await _db.RoomOccupants.AnyAsync(o => o.RoomId == roomId && o.TenantId == tenant.TenantId && o.Status == "Staying");
-            }
-
-            return false;
+            _accessControl = accessControl;
         }
 
         public async Task<ApiResponse> GenerateInvoiceAsync(GenerateInvoiceRequest request, int adminId)
@@ -47,7 +27,7 @@ namespace UserManagementSystem.Services
             if (user == null || (user.Role.RoleName != "admin" && user.Role.RoleName != "superuser"))
                 return new ApiResponse { Success = false, Message = "Chỉ quản trị viên mới có quyền phát hành hóa đơn." };
 
-            if (!await CanAccessRoom(request.RoomId, adminId))
+            if (!await _accessControl.CanAccessRoomAsync(request.RoomId, adminId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ hoặc phòng không tồn tại." };
 
             if (await _db.Invoices.AnyAsync(i => i.RoomId == request.RoomId && i.BillingMonth == request.BillingMonth && i.BillingYear == request.BillingYear))
@@ -60,6 +40,26 @@ namespace UserManagementSystem.Services
             List<InvoiceDetailResponse> details = calcData.Details;
 
             var contract = await _db.Contracts.FirstOrDefaultAsync(c => c.RoomId == request.RoomId && c.ContractStatus == "Active");
+            
+            // Tìm người đại diện (Primary Tenant)
+            int primaryTenantId = 0;
+            if (contract != null)
+            {
+                primaryTenantId = contract.PrimaryTenantId;
+            }
+            else
+            {
+                // Nếu không có hợp đồng, lấy người ở đầu tiên hoặc người có vai trò đại diện
+                var primaryOccupant = await _db.RoomOccupants
+                    .Where(o => o.RoomId == request.RoomId && o.Status == "Staying")
+                    .OrderByDescending(o => o.OccupantRole == "Owner" || o.OccupantRole == "Primary")
+                    .FirstOrDefaultAsync();
+                
+                if (primaryOccupant != null) primaryTenantId = primaryOccupant.TenantId;
+            }
+
+            if (primaryTenantId == 0)
+                return new ApiResponse { Success = false, Message = "Không tìm thấy người đại diện để xuất hóa đơn." };
 
             var invoice = new Invoice
             {
@@ -75,7 +75,7 @@ namespace UserManagementSystem.Services
                 InvoiceStatus = "Unpaid",
                 DueDate = request.DueDate,
                 ContractId = contract?.ContractId,
-                PrimaryTenantId = contract?.PrimaryTenantId ?? 0,
+                PrimaryTenantId = primaryTenantId,
                 CreatedBy = adminId,
                 CreatedAt = DateTime.Now
             };
@@ -123,7 +123,7 @@ namespace UserManagementSystem.Services
 
             if (i == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hóa đơn." };
 
-            if (!await CanAccessRoom(i.RoomId, requesterId))
+            if (!await _accessControl.CanAccessRoomAsync(i.RoomId, requesterId))
                 return new ApiResponse { Success = false, Message = "Bạn không có quyền xem hóa đơn này." };
 
             var response = new InvoiceResponse
@@ -155,7 +155,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> GetInvoicesByRoomAsync(int roomId, int requesterId)
         {
-            if (!await CanAccessRoom(roomId, requesterId))
+            if (!await _accessControl.CanAccessRoomAsync(roomId, requesterId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var invoices = await _db.Invoices
@@ -253,16 +253,143 @@ namespace UserManagementSystem.Services
                 .Where(i => roomIds.Contains(i.RoomId) && i.BillingMonth == month && i.BillingYear == year)
                 .ToListAsync();
 
-            var summary = rooms.Select(r => new
+            var summary = rooms.Select(r =>
             {
-                r.RoomId,
-                r.RoomCode,
-                Electricity = readings.FirstOrDefault(rd => rd.RoomId == r.RoomId && rd.Service.ServiceCode.ToLower().Contains("electric")),
-                Water = readings.FirstOrDefault(rd => rd.RoomId == r.RoomId && rd.Service.ServiceCode.ToLower().Contains("water")),
-                Invoice = invoices.FirstOrDefault(i => i.RoomId == r.RoomId)
+                // Tìm chỉ số điện (hỗ trợ cả serviceCode tiếng Anh và tiếng Việt)
+                var elecReading = readings.FirstOrDefault(rd =>
+                    rd.RoomId == r.RoomId && (
+                        rd.Service.ServiceCode.ToLower().Contains("electric") ||
+                        rd.Service.ServiceCode.ToLower().Contains("elec") ||
+                        rd.Service.ServiceCode.ToLower().Contains("dien") ||
+                        (rd.Service.CalculationType == "metered" && rd.Service.ServiceName.ToLower().Contains("điện"))
+                    ));
+
+                // Tìm chỉ số nước (hỗ trợ cả serviceCode tiếng Anh và tiếng Việt)
+                var waterReading = readings.FirstOrDefault(rd =>
+                    rd.RoomId == r.RoomId &&
+                    rd.ReadingId != (elecReading != null ? elecReading.ReadingId : 0) && (
+                        rd.Service.ServiceCode.ToLower().Contains("water") ||
+                        rd.Service.ServiceCode.ToLower().Contains("wat") ||
+                        rd.Service.ServiceCode.ToLower().Contains("nuoc") ||
+                        (rd.Service.CalculationType == "metered" && rd.Service.ServiceName.ToLower().Contains("nước"))
+                    ));
+
+                var invoice = invoices.FirstOrDefault(i => i.RoomId == r.RoomId);
+
+                return new
+                {
+                    roomId = r.RoomId,
+                    roomCode = r.RoomCode,
+                    electricity = elecReading == null ? null : (object)new
+                    {
+                        readingId = elecReading.ReadingId,
+                        serviceId = elecReading.ServiceId,
+                        serviceName = elecReading.Service.ServiceName,
+                        previousReading = elecReading.PreviousReading,
+                        currentReading = elecReading.CurrentReading,
+                        usageAmount = elecReading.UsageAmount
+                    },
+                    water = waterReading == null ? null : (object)new
+                    {
+                        readingId = waterReading.ReadingId,
+                        serviceId = waterReading.ServiceId,
+                        serviceName = waterReading.Service.ServiceName,
+                        previousReading = waterReading.PreviousReading,
+                        currentReading = waterReading.CurrentReading,
+                        usageAmount = waterReading.UsageAmount
+                    },
+                    invoice = invoice == null ? null : (object)new
+                    {
+                        invoiceId = invoice.InvoiceId,
+                        invoiceStatus = invoice.InvoiceStatus,
+                        totalAmount = invoice.TotalAmount
+                    }
+                };
             }).ToList();
 
             return new ApiResponse { Success = true, Data = summary };
+        }
+
+        public async Task<byte[]> ExportInvoiceToExcelAsync(int invoiceId, int requesterId)
+        {
+            var invoice = await _db.Invoices
+                .Include(i => i.Room).ThenInclude(r => r.Motel)
+                .Include(i => i.Details)
+                .Include(i => i.PrimaryTenant)
+                .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+
+            if (invoice == null || !await _accessControl.CanAccessRoomAsync(invoice.RoomId, requesterId))
+                return Array.Empty<byte>();
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("HoaDon");
+                
+                // Style - Header
+                var title = worksheet.Cell(1, 1);
+                title.Value = "HÓA ĐƠN TIỀN TRỌ";
+                title.Style.Font.Bold = true;
+                title.Style.Font.FontSize = 16;
+                worksheet.Range(1, 1, 1, 4).Merge();
+                title.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                // Info
+                worksheet.Cell(3, 1).Value = "Phòng:";
+                worksheet.Cell(3, 2).Value = invoice.Room.RoomCode;
+                worksheet.Cell(3, 3).Value = "Khu trọ:";
+                worksheet.Cell(3, 4).Value = invoice.Room.Motel.MotelName;
+
+                worksheet.Cell(4, 1).Value = "Khách thuê:";
+                worksheet.Cell(4, 2).Value = invoice.PrimaryTenant?.FullName ?? "N/A";
+                worksheet.Cell(4, 3).Value = "Tháng/Năm:";
+                worksheet.Cell(4, 4).Value = $"{invoice.BillingMonth}/{invoice.BillingYear}";
+
+                // Table Header
+                var currentRow = 6;
+                worksheet.Cell(currentRow, 1).Value = "Nội dung";
+                worksheet.Cell(currentRow, 2).Value = "Mô tả";
+                worksheet.Cell(currentRow, 3).Value = "Đơn giá";
+                worksheet.Cell(currentRow, 4).Value = "Thành tiền";
+                
+                var headerRange = worksheet.Range(currentRow, 1, currentRow, 4);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+                headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+
+                // Details
+                currentRow++;
+                foreach (var detail in invoice.Details)
+                {
+                    worksheet.Cell(currentRow, 1).Value = detail.ItemName;
+                    worksheet.Cell(currentRow, 2).Value = detail.Note;
+                    worksheet.Cell(currentRow, 3).Value = detail.UnitPrice;
+                    worksheet.Cell(currentRow, 4).Value = detail.Amount;
+                    currentRow++;
+                }
+
+                // Summary
+                currentRow++;
+                var totalCellLabel = worksheet.Cell(currentRow, 3);
+                totalCellLabel.Value = "TỔNG CỘNG:";
+                totalCellLabel.Style.Font.Bold = true;
+                
+                var totalCellValue = worksheet.Cell(currentRow, 4);
+                totalCellValue.Value = invoice.TotalAmount;
+                totalCellValue.Style.Font.Bold = true;
+                totalCellValue.Style.Font.FontColor = XLColor.Red;
+
+                // Border for Table
+                worksheet.Range(6, 1, currentRow, 4).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                worksheet.Range(6, 1, currentRow, 4).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    return stream.ToArray();
+                }
+            }
         }
     }
 }

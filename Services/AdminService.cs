@@ -8,22 +8,18 @@ namespace UserManagementSystem.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly IAuthService _authService;
+        private readonly IAccessControlService _accessControl;
 
-        public AdminService(ApplicationDbContext db, IAuthService authService)
+        public AdminService(ApplicationDbContext db, IAuthService authService, IAccessControlService accessControl)
         {
             _db = db;
             _authService = authService;
-        }
-
-        private async Task<bool> IsSuperuser(int userId)
-        {
-            var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
-            return user?.Role?.RoleName == "superuser";
+            _accessControl = accessControl;
         }
 
         public async Task<ApiResponse> CreateAdminAsync(CreateAdminRequest request, int superuserId)
         {
-            if (!await IsSuperuser(superuserId))
+            if (!await _accessControl.IsSuperuserAsync(superuserId))
                 return new ApiResponse { Success = false, Message = "Chỉ Superuser mới có quyền tạo Admin." };
 
             if (await _db.Users.AnyAsync(u => u.Username == request.Username))
@@ -54,7 +50,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> GetAllAdminsAsync(int superuserId)
         {
-            if (!await IsSuperuser(superuserId))
+            if (!await _accessControl.IsSuperuserAsync(superuserId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var admins = await _db.Users
@@ -76,7 +72,7 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> ToggleAdminStatusAsync(int adminId, bool active, int superuserId)
         {
-            if (!await IsSuperuser(superuserId))
+            if (!await _accessControl.IsSuperuserAsync(superuserId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             var admin = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == adminId);
