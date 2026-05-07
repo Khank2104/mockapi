@@ -1,0 +1,52 @@
+@{
+    Layout = "_TenantLayout";
+    ViewData["Title"] = "Hỗ trợ & Yêu cầu";
+}
+
+<link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
+
+<div class="profile-container animate-fade-in">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="glass-card p-4 border-0 shadow-premium sticky-top" style="top: 2rem;">
+                <h3 class="profile-section-title fs-5"><i class="bi bi-plus-circle"></i> Gửi yêu cầu mới</h3>
+                <form id="addRequestForm">
+                    <div class="profile-input-group">
+                        <label class="profile-label">Loại yêu cầu</label>
+                        <select id="req-type" class="form-select profile-input">
+                            <option value="Repair">Sửa chữa thiết bị</option>
+                            <option value="Complaint">Khiếu nại / Góp ý</option>
+                            <option value="Security">An ninh / Trật tự</option>
+                            <option value="Other">Khác</option>
+                        </select>
+                    </div>
+                    <div class="profile-input-group">
+                        <label class="profile-label">Tiêu đề</label>
+                        <input type="text" id="req-title" class="form-control profile-input" placeholder="VD: Hư vòi nước">
+                    </div>
+                    <div class="profile-input-group">
+                        <label class="profile-label">Mô tả chi tiết</label>
+                        <textarea id="req-desc" class="form-control profile-input" rows="4" placeholder="Mô tả cụ thể vấn đề..."></textarea>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3 rounded-pill shadow-lg mt-3" onclick="SupportMgmt.submitRequest()">
+                        Gửi yêu cầu ngay
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="glass-card p-4 p-md-5 border-0 shadow-premium">
+                <h3 class="profile-section-title"><i class="bi bi-chat-left-text"></i> Lịch sử yêu cầu</h3>
+                <div id="request-list-container">
+                    <!-- Requests populated by JS -->
+                    <div class="text-center py-5 opacity-50">Đang tải yêu cầu...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/tenants/support.js" asp-append-version="true"></script>
+}

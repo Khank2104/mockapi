@@ -220,6 +220,30 @@ namespace UserManagementSystem.Services
             if (occupant == null) return new ApiResponse { Success = false, Message = "Bạn hiện chưa ở phòng nào." };
 
             var room = occupant.Room;
+            
+            // Get all staying occupants in the room
+            var occupants = await _db.RoomOccupants
+                .Include(o => o.Tenant)
+                .Where(o => o.RoomId == room.RoomId && o.Status == "Staying")
+                .Select(o => new {
+                    o.Tenant.FullName,
+                    o.OccupantRole,
+                    o.Tenant.Phone,
+                    o.CheckInDate
+                })
+                .ToListAsync();
+
+            // Get services assigned to this room
+            var services = await _db.RoomServiceSettings
+                .Include(rss => rss.Service)
+                .Where(rss => rss.RoomId == room.RoomId)
+                .Select(rss => new {
+                    rss.Service.ServiceName,
+                    rss.Service.CalculationType,
+                    UnitPrice = rss.UnitPrice
+                })
+                .ToListAsync();
+
             return new ApiResponse { 
                 Success = true, 
                 Data = new {
@@ -227,19 +251,34 @@ namespace UserManagementSystem.Services
                     RoomCode = room.RoomCode,
                     Area = room.Area,
                     MonthlyRent = room.Setting?.BaseRent ?? 0,
-                    CheckInDate = occupant.CheckInDate
+                    CheckInDate = occupant.CheckInDate,
+                    Occupants = occupants,
+                    Services = services
                 }
             };
         }
 
-        public async Task<ApiResponse> GetBillingSummaryAsync(int month, int year, int adminId)
+        public async Task<ApiResponse> GetBillingSummaryAsync(int month, int year, int adminId, int? motelId = null, int page = 1, int pageSize = 10)
         {
             var isSuper = await _db.Users.AnyAsync(u => u.UserId == adminId && u.Role.RoleName == "superuser");
 
-            var rooms = await _db.Rooms
+            var query = _db.Rooms
                 .Include(r => r.Motel)
                 .Include(r => r.Contracts)
-                .Where(r => (isSuper || r.Motel.OwnerUserId == adminId) && r.Contracts.Any(c => c.ContractStatus == "Active"))
+                .Where(r => (isSuper || r.Motel.OwnerUserId == adminId) && r.Contracts.Any(c => c.ContractStatus == "Active"));
+
+            if (motelId.HasValue && motelId.Value > 0)
+            {
+                query = query.Where(r => r.MotelId == motelId.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var rooms = await query
+                .OrderBy(r => r.MotelId).ThenBy(r => r.RoomCode)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             var roomIds = rooms.Select(r => r.RoomId).ToList();
@@ -255,7 +294,6 @@ namespace UserManagementSystem.Services
 
             var summary = rooms.Select(r =>
             {
-                // Tìm chỉ số điện (hỗ trợ cả serviceCode tiếng Anh và tiếng Việt)
                 var elecReading = readings.FirstOrDefault(rd =>
                     rd.RoomId == r.RoomId && (
                         rd.Service.ServiceCode.ToLower().Contains("electric") ||
@@ -264,7 +302,6 @@ namespace UserManagementSystem.Services
                         (rd.Service.CalculationType == "metered" && rd.Service.ServiceName.ToLower().Contains("điện"))
                     ));
 
-                // Tìm chỉ số nước (hỗ trợ cả serviceCode tiếng Anh và tiếng Việt)
                 var waterReading = readings.FirstOrDefault(rd =>
                     rd.RoomId == r.RoomId &&
                     rd.ReadingId != (elecReading != null ? elecReading.ReadingId : 0) && (
@@ -280,6 +317,7 @@ namespace UserManagementSystem.Services
                 {
                     roomId = r.RoomId,
                     roomCode = r.RoomCode,
+                    motelName = r.Motel.MotelName,
                     electricity = elecReading == null ? null : (object)new
                     {
                         readingId = elecReading.ReadingId,
@@ -307,7 +345,17 @@ namespace UserManagementSystem.Services
                 };
             }).ToList();
 
-            return new ApiResponse { Success = true, Data = summary };
+            return new ApiResponse 
+            { 
+                Success = true, 
+                Data = new {
+                    Items = summary,
+                    TotalCount = totalCount,
+                    TotalPages = totalPages,
+                    CurrentPage = page,
+                    PageSize = pageSize
+                }
+            };
         }
 
         public async Task<byte[]> ExportInvoiceToExcelAsync(int invoiceId, int requesterId)

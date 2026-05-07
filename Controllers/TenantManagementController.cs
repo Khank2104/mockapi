@@ -46,10 +46,10 @@ namespace UserManagementSystem.Controllers
         }
 
         [HttpGet("GetAllTenants")]
-        public async Task<IActionResult> GetAllTenants()
+        public async Task<IActionResult> GetAllTenants([FromQuery] string? searchTerm = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _tenantService.GetAllProfilesAsync(GetRequesterId());
-            return result.Success ? Ok(result) : Forbid();
+            var result = await _tenantService.GetAllProfilesAsync(GetRequesterId(), searchTerm, page, pageSize);
+            return Ok(result);
         }
 
         // --- Integrated Management ---

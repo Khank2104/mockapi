@@ -78,13 +78,33 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Data = response };
         }
 
-        public async Task<ApiResponse> GetAllProfilesAsync(int adminId)
+        public async Task<ApiResponse> GetAllProfilesAsync(int adminId, string? searchTerm = null, int page = 1, int pageSize = 10)
         {
             if (!await _accessControl.IsAdminOrSuperAsync(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
-            var tenants = await _db.Tenants
+            var query = _db.Tenants
                 .Include(t => t.User)
                 .Include(t => t.RoomOccupancies).ThenInclude(ro => ro.Room)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                query = query.Where(t => 
+                    (t.FullName != null && t.FullName.ToLower().Contains(searchTerm)) || 
+                    (t.Phone != null && t.Phone.Contains(searchTerm)) || 
+                    (t.CitizenId != null && t.CitizenId.Contains(searchTerm)) ||
+                    (t.User != null && t.User.Username.ToLower().Contains(searchTerm))
+                );
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var tenants = await query
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(t => new TenantResponse
                 {
                     TenantId = t.TenantId,
@@ -101,7 +121,17 @@ namespace UserManagementSystem.Services
                 })
                 .ToListAsync();
 
-            return new ApiResponse { Success = true, Data = tenants };
+            return new ApiResponse 
+            { 
+                Success = true, 
+                Data = new {
+                    Items = tenants,
+                    TotalCount = totalCount,
+                    TotalPages = totalPages,
+                    CurrentPage = page,
+                    PageSize = pageSize
+                }
+            };
         }
 
         public async Task<ApiResponse> CreateAccountAsync(CreateTenantAccountRequest request, int adminId)
@@ -196,6 +226,45 @@ namespace UserManagementSystem.Services
                 await transaction.RollbackAsync();
                 return new ApiResponse { Success = false, Message = "Lỗi hệ thống: " + ex.Message };
             }
+        }
+
+        public async Task<ApiResponse> GetProfileByUserIdAsync(int userId)
+        {
+            var t = await _db.Tenants.Include(t => t.User).FirstOrDefaultAsync(t => t.UserId == userId);
+            if (t == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hồ sơ khách thuê." };
+
+            return new ApiResponse { 
+                Success = true, 
+                Data = new {
+                    t.TenantId,
+                    t.FullName,
+                    t.CitizenId,
+                    t.Phone,
+                    t.Gender,
+                    t.DateOfBirth,
+                    t.PermanentAddress,
+                    t.EmergencyContact,
+                    Email = t.User?.Email
+                } 
+            };
+        }
+
+        public async Task<ApiResponse> UpdateProfileByUserIdAsync(int userId, UpdateTenantProfileRequest request)
+        {
+            var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hồ sơ khách thuê." };
+
+            tenant.FullName = request.FullName;
+            tenant.CitizenId = request.CitizenId;
+            tenant.Phone = request.Phone;
+            tenant.Gender = request.Gender;
+            tenant.DateOfBirth = request.DateOfBirth;
+            tenant.PermanentAddress = request.PermanentAddress;
+            tenant.EmergencyContact = request.EmergencyContact;
+            tenant.UpdatedAt = DateTime.Now;
+
+            await _db.SaveChangesAsync();
+            return new ApiResponse { Success = true, Message = "Cập nhật thông tin hồ sơ cá nhân thành công." };
         }
     }
 }

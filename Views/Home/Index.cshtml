@@ -1,75 +1,91 @@
 @{
     Layout = "_TenantLayout";
-    ViewData["Title"] = "Cổng thông tin khách thuê";
+    ViewData["Title"] = "Bảng điều khiển khách thuê";
 }
 
-<div class="row g-4 animate-fade-in">
-    <!-- Left Column: Room Info & Invoices -->
-    <div class="col-lg-8">
-        <div class="glass-card mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="fw-bold fs-5">Thông tin phòng hiện tại</h3>
-                <span class="status-pill status-active" id="room-status-badge">Đang thuê</span>
+<div class="animate-fade-in">
+    <!-- Hero Summary Section -->
+    <div class="glass-card bg-primary bg-gradient text-white border-0 p-4 p-md-5 mb-5 shadow-premium overflow-hidden position-relative">
+        <div class="row align-items-center position-relative" style="z-index: 2;">
+            <div class="col-md-7">
+                <h2 class="fw-bold mb-2">Xin chào cư dân! 👋</h2>
+                <p class="opacity-75 mb-4">Chào mừng bạn đến với hệ thống quản lý phòng trọ thông minh. Hãy kiểm tra các thông báo và hóa đơn mới nhất của mình nhé.</p>
+                <div class="d-flex gap-3">
+                    <a href="/Home/MyInvoices" class="btn btn-white rounded-pill px-4 fw-bold">Thanh toán hóa đơn</a>
+                    <a href="/Home/MySupport" class="btn btn-outline-white rounded-pill px-4">Gửi yêu cầu hỗ trợ</a>
+                </div>
             </div>
-            <div id="room-info-display">
-                <div class="text-center py-4 text-muted small">Đang tải thông tin...</div>
+            <div class="col-md-5 d-none d-md-block text-end">
+                <img src="https://cdn-icons-png.flaticon.com/512/1042/1042304.png" style="width: 180px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));" />
             </div>
         </div>
-
-        <div class="glass-card">
-            <h3 class="fw-bold fs-5 mb-4">Hóa đơn & Lịch sử thanh toán</h3>
-            <div class="table-container">
-                <table class="premium-table">
-                    <thead>
-                        <tr>
-                            <th>KỲ THANH TOÁN</th>
-                            <th>TỔNG TIỀN</th>
-                            <th>TRẠNG THÁI</th>
-                            <th>HẠN CHỐT</th>
-                            <th>HÀNH ĐỘNG</th>
-                        </tr>
-                    </thead>
-                    <tbody id="invoice-list-display">
-                        <tr><td colspan="5" class="text-center py-5 text-muted">Đang tải hóa đơn...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="position-absolute top-0 end-0 p-5 opacity-10">
+            <i class="bi bi-house-door" style="font-size: 20rem;"></i>
         </div>
     </div>
 
-    <!-- Right Column: Support & History -->
-    <div class="col-lg-4">
-        <div class="glass-card mb-4">
-            <h3 class="fw-bold fs-5 mb-3">Gửi yêu cầu hỗ trợ</h3>
-            <p class="text-muted small mb-4">Gặp vấn đề về điện, nước hay cơ sở vật chất? Hãy báo ngay cho chúng tôi.</p>
-            
-            <form id="requestForm">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold opacity-75">TIÊU ĐỀ</label>
-                    <input type="text" name="Title" class="form-control" placeholder="Ví dụ: Hỏng bóng đèn..." style="border-radius: 12px;">
+    <!-- Quick Access Grid -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-md-3">
+            <a href="/Home/MyRoom" class="quick-access-card shadow-sm">
+                <div class="icon-box bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-door-open"></i>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold opacity-75">LOẠI YÊU CẦU</label>
-                    <select name="RequestType" class="form-select" style="border-radius: 12px;">
-                        <option value="Repair">Sửa chữa</option>
-                        <option value="Complaint">Khiếu nại</option>
-                        <option value="Other">Khác</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label class="form-label small fw-bold opacity-75">MÔ TẢ CHI TIẾT</label>
-                    <textarea name="Description" class="form-control" rows="3" placeholder="Nhà vệ sinh bị rò nước..." style="border-radius: 12px;"></textarea>
-                </div>
-                <button type="button" class="btn btn-premium w-100 py-3" onclick="submitRequest()">
-                    Gửi yêu cầu <i class="bi bi-send-fill ms-2"></i>
-                </button>
-            </form>
+                <h6 class="fw-bold">Phòng của tôi</h6>
+                <p class="x-small text-muted mb-0">Thông tin & Thành viên</p>
+            </a>
         </div>
+        <div class="col-6 col-md-3">
+            <a href="/Home/MyInvoices" class="quick-access-card shadow-sm">
+                <div class="icon-box bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <h6 class="fw-bold">Hóa đơn</h6>
+                <p class="x-small text-muted mb-0">Thanh toán hằng tháng</p>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="/Home/MySupport" class="quick-access-card shadow-sm">
+                <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-tools"></i>
+                </div>
+                <h6 class="fw-bold">Sửa chữa</h6>
+                <p class="x-small text-muted mb-0">Yêu cầu & Hỗ trợ</p>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="/Home/Profile" class="quick-access-card shadow-sm">
+                <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <h6 class="fw-bold">Hồ sơ</h6>
+                <p class="x-small text-muted mb-0">Cá nhân & Bảo mật</p>
+            </a>
+        </div>
+    </div>
 
-        <div class="glass-card">
-            <h3 class="fw-bold fs-6 mb-3">Yêu cầu gần đây</h3>
-            <div id="request-history-list">
-                <div class="text-center py-3 text-muted small">Đang tải...</div>
+    <!-- Summary Data Row -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="glass-card border-0 shadow-premium p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Hóa đơn chưa thanh toán</h5>
+                    <a href="/Home/MyInvoices" class="small text-decoration-none">Xem tất cả</a>
+                </div>
+                <div id="dashboard-invoice-summary">
+                    <div class="text-center py-5 opacity-50">Đang tải hóa đơn...</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="glass-card border-0 shadow-premium p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Yêu cầu hỗ trợ gần đây</h5>
+                    <a href="/Home/MySupport" class="small text-decoration-none">Gửi mới</a>
+                </div>
+                <div id="dashboard-request-summary">
+                    <div class="text-center py-5 opacity-50">Đang tải yêu cầu...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -78,126 +94,99 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            loadTenantData();
+            loadDashboardData();
         });
 
-        async function loadTenantData() {
-            loadRoomInfo();
-            loadInvoices();
-            loadRequests();
-        }
-
-        async function loadRoomInfo() {
-            const container = document.getElementById('room-info-display');
+        async function loadDashboardData() {
+            // Load Invoices Summary
             try {
-                const response = await fetch('/api/TenantPortal/MyRoomInfo');
-                const result = await response.json();
-                if (result.success && result.data) {
-                    const r = result.data;
-                    container.innerHTML = `
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="p-3 bg-light rounded-4">
-                                    <div class="x-small text-muted fw-bold mb-1">MÃ PHÒNG</div>
-                                    <div class="fw-bold fs-4 text-primary">${r.roomCode}</div>
-                                    <div class="small text-muted">${r.motelName}</div>
+                const invRes = await fetch('/api/TenantPortal/MyInvoices');
+                const invResult = await invRes.json();
+                if (invResult.success) {
+                    const unpaid = invResult.data.filter(i => i.invoiceStatus === 'Unpaid');
+                    const container = document.getElementById('dashboard-invoice-summary');
+                    if (unpaid.length === 0) {
+                        container.innerHTML = '<div class="alert alert-light border-0 rounded-4 p-4 text-center">🎉 Tuyệt vời! Bạn không còn hóa đơn nào chưa thanh toán.</div>';
+                    } else {
+                        container.innerHTML = unpaid.map(i => `
+                            <div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-light rounded-4">
+                                <div>
+                                    <div class="fw-bold">Tháng ${i.billingMonth}/${i.billingYear}</div>
+                                    <div class="small text-muted">Hạn chốt: ${new Date(i.dueDate).toLocaleDateString('vi-VN')}</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold text-danger">${i.totalAmount.toLocaleString('vi-VN')} đ</div>
+                                    <a href="/Home/MyInvoices" class="small text-primary fw-bold">Chi tiết</a>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="p-3 bg-light rounded-4">
-                                    <div class="x-small text-muted fw-bold mb-1">TIỀN THUÊ CỐ ĐỊNH</div>
-                                    <div class="fw-bold fs-4">${r.monthlyRent.toLocaleString('vi-VN')}đ</div>
-                                    <div class="small text-muted">Hợp đồng: ${new Date(r.checkInDate).toLocaleDateString('vi-VN')}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = '<div class="alert alert-info border-0 rounded-4 py-3 small">Bạn hiện chưa có hợp đồng phòng nào đang hoạt động.</div>';
-                }
-            } catch (e) {
-                container.innerHTML = '<div class="text-danger small">Lỗi khi tải dữ liệu phòng.</div>';
-            }
-        }
-
-        async function loadInvoices() {
-            const list = document.getElementById('invoice-list-display');
-            try {
-                const response = await fetch('/api/TenantPortal/MyInvoices');
-                const result = await response.json();
-                if (result.success) {
-                    if (result.data.length === 0) {
-                        list.innerHTML = '<tr><td colspan="5" class="text-center py-5">Chưa có hóa đơn nào được phát hành.</td></tr>';
-                        return;
+                        `).join('');
                     }
-                    list.innerHTML = result.data.map(i => `
-                        <tr>
-                            <td><span class="fw-bold">Tháng ${i.billingMonth}/${i.billingYear}</span></td>
-                            <td class="text-primary fw-bold">${i.totalAmount.toLocaleString('vi-VN')}đ</td>
-                            <td><span class="status-pill status-${i.invoiceStatus.toLowerCase() === 'unpaid' ? 'locked' : 'active'}">${i.invoiceStatus === 'Unpaid' ? 'Chưa thanh toán' : 'Đã thanh toán'}</span></td>
-                            <td class="text-muted small">${new Date(i.dueDate).toLocaleDateString('vi-VN')}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
-                            </td>
-                        </tr>
-                    `).join('');
+                }
+            } catch (e) {}
+
+            // Load Requests Summary
+            try {
+                const reqRes = await fetch('/api/TenantPortal/MyRequests');
+                const reqResult = await reqRes.json();
+                if (reqResult.success) {
+                    const container = document.getElementById('dashboard-request-summary');
+                    if (reqResult.data.length === 0) {
+                        container.innerHTML = '<div class="text-center py-4 opacity-50">Chưa có yêu cầu hỗ trợ nào.</div>';
+                    } else {
+                        container.innerHTML = reqResult.data.slice(0, 3).map(r => `
+                            <div class="p-3 mb-2 border-bottom border-light">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small fw-bold">${r.title}</span>
+                                    <span class="badge ${getStatusBadge(r.status)} rounded-pill">${r.status}</span>
+                                </div>
+                                <div class="x-small text-muted">${new Date(r.createdAt).toLocaleDateString('vi-VN')}</div>
+                            </div>
+                        `).join('');
+                    }
                 }
             } catch (e) {}
         }
 
-        async function loadRequests() {
-            const container = document.getElementById('request-history-list');
-            try {
-                const response = await fetch('/api/TenantPortal/MyRequests');
-                const result = await response.json();
-                if (result.success) {
-                    if (result.data.length === 0) {
-                        container.innerHTML = '<div class="text-center py-3 text-muted x-small">Bạn chưa có yêu cầu nào.</div>';
-                        return;
-                    }
-                    container.innerHTML = result.data.slice(0, 5).map(r => `
-                        <div class="p-3 bg-light rounded-4 mb-3">
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <div class="fw-bold small">${r.title}</div>
-                                <span class="status-pill status-${r.status.toLowerCase() === 'pending' ? 'locked' : 'active'}" style="font-size: 0.6rem;">${r.status}</span>
-                            </div>
-                            <div class="x-small text-muted">${new Date(r.createdAt).toLocaleString('vi-VN')}</div>
-                        </div>
-                    `).join('');
-                }
-            } catch (e) {}
-        }
-
-        async function submitRequest() {
-            const form = document.getElementById('requestForm');
-            const data = Object.fromEntries(new FormData(form).entries());
-            if (!data.Title || !data.Description) {
-                alert("Vui lòng nhập đầy đủ thông tin.");
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/TenantPortal/CreateRequest', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                if (result.success) {
-                    showPremiumToast("Thành công", "Yêu cầu của bạn đã được gửi tới quản lý.", "success");
-                    form.reset();
-                    loadRequests();
-                } else {
-                    alert(result.message);
-                }
-            } catch (e) {
-                alert("Lỗi khi gửi yêu cầu.");
+        function getStatusBadge(status) {
+            switch(status.toLowerCase()) {
+                case 'pending': return 'bg-warning text-dark';
+                case 'inprogress': return 'bg-primary';
+                case 'resolved': return 'bg-success';
+                default: return 'bg-secondary';
             }
         }
     </script>
-
-    <style>
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        @@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
 }
+
+<style>
+    .btn-white { background: white; color: var(--primary-color); border: none; }
+    .btn-white:hover { background: rgba(255,255,255,0.9); transform: translateY(-2px); }
+    .btn-outline-white { border: 2px solid white; color: white; background: transparent; }
+    .btn-outline-white:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    .quick-access-card {
+        display: block;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 24px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        text-align: center;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+    .quick-access-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+    }
+    .quick-access-card .icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+    }
+    .quick-access-card h6 { margin-bottom: 0.25rem; color: #1e293b; }
+</style>

@@ -25,7 +25,7 @@ namespace UserManagementSystem.Services
                 return new ApiResponse { Success = false, Message = "Không tìm thấy phòng hoặc bạn không có quyền." };
 
             if (room.Setting != null && room.Occupants.Count(o => o.Status == "Staying") >= room.Setting.MaxOccupants)
-                return new ApiResponse { Success = false, Message = "Phòng đã đạt số người ở tối đa." };
+                return new ApiResponse { Success = false, Message = $"Phòng đã đạt số người ở tối đa ({room.Setting.MaxOccupants} người theo hợp đồng)." };
 
             // KIỂM TRA HỢP ĐỒNG: Phải có hợp đồng hiệu lực mới được thêm người ở
             var hasContract = await _db.Contracts.AnyAsync(c => c.RoomId == request.RoomId && c.ContractStatus == "Active");
@@ -125,8 +125,10 @@ namespace UserManagementSystem.Services
             roomSetting.DepositAmount = request.DepositAmount;
             
             // Lưu thiết lập số người và phụ thu
-            roomSetting.StandardOccupants = request.StandardOccupants;
-            roomSetting.MaxOccupants = request.StandardOccupants + 5; // Cho phép thêm nhiều người hơn tiêu chuẩn
+            // Theo yêu cầu: Ngưỡng tính phụ thu luôn là 2 (StandardOccupants = 2)
+            // Giá trị nhập từ UI sẽ là Giới hạn tối đa (MaxOccupants)
+            roomSetting.StandardOccupants = 2; 
+            roomSetting.MaxOccupants = request.StandardOccupants; // Giá trị này từ ô "Số người tối đa" ở UI
             roomSetting.ExtraOccupantFee = request.ExtraOccupantFee;
             roomSetting.ApplyExtraOccupantFee = request.ExtraOccupantFee > 0;
             
@@ -228,20 +230,36 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Message = "Đã chấm dứt hợp đồng thành công. Dữ liệu cũ đã được lưu trữ vào lịch sử." };
         }
 
-        public async Task<ApiResponse> GetAllContractsAsync(int adminId)
+        public async Task<ApiResponse> GetAllContractsAsync(int adminId, int? motelId = null, int page = 1, int pageSize = 10)
         {
-            var contracts = await _db.Contracts
+            var isSuper = await _db.Users.AnyAsync(u => u.UserId == adminId && u.Role.RoleName == "superuser");
+
+            var query = _db.Contracts
                 .Include(c => c.Room)
                 .ThenInclude(r => r.Motel)
                 .Include(c => c.PrimaryTenant)
-                .Where(c => (c.Room.Motel.OwnerUserId == adminId || _db.Users.Any(u => u.UserId == adminId && u.Role.RoleName == "superuser")) 
+                .Where(c => (isSuper || c.Room.Motel.OwnerUserId == adminId) 
                             && (c.ContractStatus == "Active" || c.ContractStatus == "Waiting") 
-                            && c.ContractStatus != "Terminated")
+                            && c.ContractStatus != "Terminated");
+
+            if (motelId.HasValue && motelId.Value > 0)
+            {
+                query = query.Where(c => c.Room.MotelId == motelId.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var contracts = await query
+                .OrderByDescending(c => c.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(c => new
                 {
                     c.ContractId,
                     c.RoomId,
                     RoomCode = c.Room.RoomCode,
+                    MotelName = c.Room.Motel.MotelName,
                     TenantName = c.PrimaryTenant.FullName,
                     c.StartDate,
                     c.EndDate,
@@ -251,30 +269,42 @@ namespace UserManagementSystem.Services
                 })
                 .ToListAsync();
 
-            return new ApiResponse { Success = true, Data = contracts };
+            return new ApiResponse 
+            { 
+                Success = true, 
+                Data = new {
+                    Items = contracts,
+                    TotalCount = totalCount,
+                    TotalPages = totalPages,
+                    CurrentPage = page,
+                    PageSize = pageSize
+                }
+            };
         }
         public async Task<ApiResponse> GetActiveContractByRoomAsync(int roomId)
         {
-            var contract = await _db.Contracts
-                .Include(c => c.PrimaryTenant)
-                .Where(c => c.RoomId == roomId && c.ContractStatus == "Active")
-                .Select(c => new
-                {
-                    c.ContractId,
-                    c.RoomId,
-                    c.PrimaryTenantId,
-                    PrimaryTenantName = c.PrimaryTenant.FullName,
-                    c.StartDate,
-                    c.EndDate,
-                    c.MonthlyRent,
-                    c.DepositAmount,
-                    c.Terms,
-                    SelectedServiceIds = _db.RoomServiceSettings
-                        .Where(rss => rss.RoomId == roomId && rss.IsActive)
-                        .Select(rss => rss.ServiceId)
-                        .ToList()
-                })
-                .FirstOrDefaultAsync();
+            var contract = await (from c in _db.Contracts
+                                 join rs in _db.RoomSettings on c.RoomId equals rs.RoomId into rsGroup
+                                 from rs in rsGroup.DefaultIfEmpty()
+                                 where c.RoomId == roomId && c.ContractStatus == "Active"
+                                 select new
+                                 {
+                                     c.ContractId,
+                                     c.RoomId,
+                                     c.PrimaryTenantId,
+                                     PrimaryTenantName = c.PrimaryTenant.FullName,
+                                     c.StartDate,
+                                     c.EndDate,
+                                     c.MonthlyRent,
+                                     c.DepositAmount,
+                                     c.Terms,
+                                     StandardOccupants = rs != null ? rs.MaxOccupants : 2, // Lấy Max làm giá trị hiển thị ở UI
+                                     ExtraOccupantFee = rs != null ? rs.ExtraOccupantFee : 0,
+                                     SelectedServiceIds = _db.RoomServiceSettings
+                                         .Where(rss => rss.RoomId == roomId && rss.IsActive)
+                                         .Select(rss => rss.ServiceId)
+                                         .ToList()
+                                 }).FirstOrDefaultAsync();
 
             if (contract == null) return new ApiResponse { Success = false, Message = "Phòng chưa có hợp đồng hiệu lực." };
             return new ApiResponse { Success = true, Data = contract };
@@ -298,8 +328,8 @@ namespace UserManagementSystem.Services
             {
                 roomSetting.BaseRent = request.MonthlyRent;
                 roomSetting.DepositAmount = request.DepositAmount;
-                roomSetting.StandardOccupants = request.StandardOccupants;
-                roomSetting.MaxOccupants = request.StandardOccupants + 5;
+                roomSetting.StandardOccupants = 2; // Ngưỡng phụ thu cố định là 2
+                roomSetting.MaxOccupants = request.StandardOccupants; // Giới hạn tối đa nhập từ UI
                 roomSetting.ExtraOccupantFee = request.ExtraOccupantFee;
                 roomSetting.ApplyExtraOccupantFee = request.ExtraOccupantFee > 0;
                 roomSetting.UpdatedAt = DateTime.Now;

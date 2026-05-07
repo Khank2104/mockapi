@@ -1,14 +1,26 @@
-        async function loadTenantsData() {
+        let currentTenantPage = 1;
+        let totalTenantPages = 1;
+
+        async function loadTenantsData(page = 1) {
+            currentTenantPage = page;
             const container = document.getElementById('tenant-list-container');
+            const search = document.getElementById('tenant-search-input').value;
+            
             try {
-                const response = await fetch('/api/TenantManagement/GetAllTenants');
+                const response = await fetch(`/api/TenantManagement/GetAllTenants?searchTerm=${encodeURIComponent(search)}&page=${page}&pageSize=10`);
                 const result = await response.json();
+                
                 if (result.success) {
-                    if (result.data.length === 0) {
-                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Chưa có khách thuê nào.</td></tr>';
+                    const { items, totalCount, totalPages, currentPage } = result.data;
+                    totalTenantPages = totalPages;
+
+                    if (items.length === 0) {
+                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Không tìm thấy khách thuê phù hợp.</td></tr>';
+                        updateTenantPaginationUI(0, 0, 0, 1, 1);
                         return;
                     }
-                    container.innerHTML = result.data.map(t => `
+
+                    container.innerHTML = items.map(t => `
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
@@ -35,12 +47,34 @@
                             </td>
                         </tr>
                     `).join('');
+
+                    const start = (currentPage - 1) * 10 + 1;
+                    const end = start + items.length - 1;
+                    updateTenantPaginationUI(start, end, totalCount, currentPage, totalPages);
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error('loadTenantsData error:', e);
+            }
         }
 
+        function updateTenantPaginationUI(start, end, total, current, totalPages) {
+            document.getElementById('tenant-range').innerText = `${start}-${end}`;
+            document.getElementById('tenant-total').innerText = total;
+            document.getElementById('tenant-current-page').innerText = current;
+            
+            document.getElementById('tenant-prev-btn').classList.toggle('disabled', current <= 1);
+            document.getElementById('tenant-next-btn').classList.toggle('disabled', current >= totalPages);
+        }
+
+        function changeTenantPage(delta) {
+            const next = currentTenantPage + delta;
+            if (next >= 1 && next <= totalTenantPages) {
+                loadTenantsData(next);
+            }
+        }
 
 window.loadTenantsData = loadTenantsData;
+window.changeTenantPage = changeTenantPage;
         function viewTenantDetails(tenant) {
             document.getElementById('td-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tenant.fullName)}&background=6366f1&color=fff&size=128`;
             document.getElementById('td-fullname').innerText = tenant.fullName;

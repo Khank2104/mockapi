@@ -86,8 +86,6 @@ namespace UserManagementSystem.Services
             if (room == null || (room.Motel.OwnerUserId != adminId && !await _accessControl.IsSuperuserAsync(adminId)))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
-            if (request.StandardOccupants > request.MaxOccupants)
-                return new ApiResponse { Success = false, Message = "Số người tiêu chuẩn không được vượt quá số người tối đa." };
 
             if (request.ExtraOccupantFee < 0)
                 return new ApiResponse { Success = false, Message = "Phí phụ thu không hợp lệ." };
@@ -101,8 +99,8 @@ namespace UserManagementSystem.Services
 
             setting.BaseRent = request.BaseRent;
             setting.DepositAmount = request.DepositAmount;
-            setting.StandardOccupants = request.StandardOccupants;
-            setting.MaxOccupants = request.MaxOccupants;
+            setting.StandardOccupants = 2; // Cố định ngưỡng phụ thu là 2
+            setting.MaxOccupants = request.StandardOccupants; // Lấy giá trị nhập từ UI làm giới hạn tối đa
             setting.ExtraOccupantFee = request.ExtraOccupantFee;
             setting.ApplyExtraOccupantFee = request.ApplyExtraOccupantFee;
             setting.EffectiveFrom = request.EffectiveFrom;

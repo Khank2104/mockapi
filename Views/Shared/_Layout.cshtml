@@ -47,10 +47,17 @@
                             </a>
                         </li>
                         
-                        <li class="nav-item" id="navTenant" style="display:none;">
-                            <a class="nav-link px-3 fw-semibold text-success" href="/">
-                                <i class="bi bi-house-door me-1"></i>Phòng của tôi
+                        <li class="nav-item dropdown" id="navTenant" style="display:none;">
+                            <a class="nav-link dropdown-toggle px-3 fw-semibold text-success" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-house-door me-1"></i>Portal Khách thuê
                             </a>
+                            <ul class="dropdown-menu shadow-lg border-0 mt-2 animate-fade-in" style="border-radius: 12px;">
+                                <li><a class="dropdown-item py-2" href="/Home/MyRoom"><i class="bi bi-info-circle me-2"></i>Phòng của tôi</a></li>
+                                <li><a class="dropdown-item py-2" href="/Home/MyInvoices"><i class="bi bi-receipt me-2"></i>Hóa đơn</a></li>
+                                <li><a class="dropdown-item py-2" href="/Home/MySupport"><i class="bi bi-chat-left-dots me-2"></i>Yêu cầu hỗ trợ</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2" href="/Home/Profile"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a></li>
+                            </ul>
                         </li>
                         
                         <!-- Notification Bell -->
@@ -164,6 +171,33 @@
         });
 
         connection.start().catch(err => console.error(err.toString()));
+
+        // Global Toast System
+        function showPremiumToast(title, message, type = 'primary') {
+            const toastEl = document.getElementById('liveToast');
+            const titleEl = document.getElementById('toastTitle');
+            const msgEl = document.getElementById('toastMessage');
+            const iconEl = toastEl.querySelector('i');
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            
+            // Set Icon and Color based on type
+            iconEl.className = `bi me-2 `;
+            if (type === 'success') {
+                iconEl.classList.add('bi-check-circle-fill', 'text-success');
+            } else if (type === 'danger' || type === 'error') {
+                iconEl.classList.add('bi-exclamation-octagon-fill', 'text-danger');
+            } else if (type === 'warning') {
+                iconEl.classList.add('bi-exclamation-triangle-fill', 'text-warning');
+            } else {
+                iconEl.classList.add('bi-bell-fill', 'text-primary');
+            }
+
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+        window.showPremiumToast = showPremiumToast;
     </script>
     <script>
         // Hiển thị/ẩn menu dựa trên trạng thái đăng nhập và phân quyền

@@ -24,6 +24,8 @@
                 document.getElementById('e-startDate').value = c.startDate ? c.startDate.split('T')[0] : '';
                 document.getElementById('e-endDate').value = c.endDate ? c.endDate.split('T')[0] : '';
                 document.getElementById('e-terms').value = c.terms || '';
+                document.getElementById('e-standardOccupants').value = c.standardOccupants || 2;
+                document.getElementById('e-extraFee').value = c.extraOccupantFee || 0;
 
                 if (sResult.success) {
                     const container = document.getElementById('e-services-checkboxes');
@@ -79,7 +81,17 @@ window.openEditContractFromList = openEditContractFromList;
                 const response = await fetch(`/api/OccupancyManagement/UpdateContract/${contractId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ roomId, monthlyRent, depositAmount, startDate, endDate, terms, SelectedServiceIds: selectedServiceIds })
+                    body: JSON.stringify({ 
+                        roomId, 
+                        monthlyRent, 
+                        depositAmount, 
+                        startDate, 
+                        endDate, 
+                        terms, 
+                        SelectedServiceIds: selectedServiceIds,
+                        standardOccupants: parseInt(document.getElementById('e-standardOccupants').value) || 2,
+                        extraOccupantFee: parseFloat(document.getElementById('e-extraFee').value) || 0
+                    })
                 });
                 const result = await response.json();
                 if (result.success) {
@@ -281,7 +293,7 @@ window.removeOccupant = removeOccupant;
             data.StandardOccupants = parseInt(data.StandardOccupants);
             data.ExtraOccupantFee = parseFloat(data.ExtraOccupantFee);
             data.ApplyExtraOccupantFee = document.getElementById('applyExtraFee').checked;
-            data.MaxOccupants = data.StandardOccupants + 2; 
+            data.MaxOccupants = data.StandardOccupants; // Giới hạn tối đa chính là giá trị thỏa thuận nhập từ UI
 
             try {
                 const response = await fetch('/api/MotelManagement/UpdateRoomSetting', {

@@ -1,76 +1,75 @@
 @{
-    ViewData["Title"] = "Hồ sơ của tôi";
+    Layout = "_TenantLayout";
+    ViewData["Title"] = "Hồ sơ cá nhân";
 }
 
-<div class="row justify-content-center animate-fade-in">
-    <div class="col-lg-10">
-        <div class="glass-card p-0 overflow-hidden mb-4">
-            <!-- Header/Banner -->
-            <div style="height: 120px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);"></div>
-            
-            <div class="px-5 pb-5" style="margin-top: -60px;">
-                <div class="d-flex flex-column flex-md-row align-items-center align-items-md-end gap-4">
-                    <div class="position-relative">
-                        <img id="profileAvatar" src="" class="rounded-circle border border-4 border-white shadow-lg" 
-                             style="width: 150px; height: 150px; object-fit: cover; background: white;">
-                        <label for="avatarUpload" class="position-absolute bottom-0 end-0 bg-white rounded-circle shadow p-2" style="cursor: pointer;">
-                            <i class="bi bi-camera-fill text-primary"></i>
-                        </label>
-                        <input type="file" id="avatarUpload" hidden accept="image/*">
+<link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
+
+<div class="profile-container animate-fade-in">
+    <!-- Profile Header Card -->
+    <div class="glass-card p-0 overflow-hidden mb-5 border-0 shadow-premium">
+        <div class="profile-header-banner"></div>
+        <div class="px-4 px-md-5 pb-4">
+            <div class="d-flex flex-column flex-md-row align-items-center align-items-md-end gap-4">
+                <div class="profile-avatar-wrapper">
+                    <img id="main-avatar-img" src="" class="profile-avatar-img">
+                    <label for="avatar-input" class="avatar-edit-badge">
+                        <i class="bi bi-camera-fill"></i>
+                    </label>
+                    <input type="file" id="avatar-input" hidden accept="image/*" onchange="AccountInfo.uploadAvatar(this.files[0])">
+                </div>
+                <div class="flex-grow-1 text-center text-md-start pb-2">
+                    <h2 class="fw-bold mb-1" id="header-name">---</h2>
+                    <span class="status-pill status-active" id="header-role">---</span>
+                </div>
+                <div class="pb-2">
+                    <div class="d-flex gap-2">
+                        <div class="p-2 px-3 bg-light rounded-pill small fw-bold text-muted border">
+                            <i class="bi bi-calendar-check me-1"></i> Tham gia: <span id="header-join-date">01/2024</span>
+                        </div>
                     </div>
-                    <div class="flex-grow-1 text-center text-md-start pb-2">
-                        <h2 class="fw-bold mb-1" id="profileNameDisplay">Đang tải...</h2>
-                        <span class="status-pill status-active" id="profileRoleBadge">Role</span>
-                    </div>
-                    <div class="pb-2">
-                        <button class="btn btn-premium px-4" onclick="document.getElementById('profileForm').requestSubmit()">
-                            Lưu thay đổi
-                        </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3">
+            <div class="profile-nav-card shadow-premium border-0">
+                <h4 class="fs-6 fw-bold text-muted mb-4 px-3 text-uppercase letter-spacing-1">Danh mục</h4>
+                <nav class="nav flex-column">
+                    <a class="profile-nav-link active" href="#" data-tab="account">
+                        <i class="bi bi-person-bounding-box"></i> Thông tin tài khoản
+                    </a>
+                    <a class="profile-nav-link" href="#" data-tab="identity">
+                        <i class="bi bi-card-text"></i> Hồ sơ chi tiết
+                    </a>
+                    <a class="profile-nav-link" href="#" data-tab="security">
+                        <i class="bi bi-shield-lock"></i> Bảo mật & Mật khẩu
+                    </a>
+                </nav>
+                
+                <div class="mt-5 px-3">
+                    <div class="p-3 bg-primary bg-opacity-10 rounded-4 text-center">
+                        <p class="small text-primary mb-0 fw-bold">Hỗ trợ kỹ thuật?</p>
+                        <a href="/Home/Index" class="small text-decoration-none">Gửi yêu cầu ngay</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-md-8">
-                <div class="glass-card">
-                    <h3 class="fw-bold fs-5 mb-4">Thông tin cá nhân</h3>
-                    <form id="profileForm">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold opacity-75">HỌ VÀ TÊN</label>
-                                <input type="text" id="profileName" class="form-control" style="border-radius: 12px;">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold opacity-75">SỐ ĐIỆN THOẠI</label>
-                                <input type="text" id="profilePhone" class="form-control" style="border-radius: 12px;">
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold opacity-75">ĐỊA CHỈ</label>
-                                <input type="text" id="profileAddress" class="form-control" style="border-radius: 12px;">
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold opacity-75">GIỚI THIỆU</label>
-                                <textarea id="profileBio" class="form-control" rows="4" style="border-radius: 12px;"></textarea>
-                            </div>
-                        </div>
-                    </form>
+        <!-- Main Content Area -->
+        <div class="col-lg-9">
+            <div class="profile-content-card shadow-premium border-0 p-4 p-md-5">
+                <div id="tab-account" class="profile-tab-content">
+                    @await Html.PartialAsync("_ProfileAccount")
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="glass-card mb-4">
-                    <h3 class="fw-bold fs-5 mb-4">Tài khoản & Bảo mật</h3>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold opacity-75">EMAIL</label>
-                        <div class="p-2 px-3 bg-light rounded-3 text-muted small" id="profileEmail">email@example.com</div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold opacity-75">USERNAME</label>
-                        <div class="p-2 px-3 bg-light rounded-3 text-muted small" id="profileUsername">username</div>
-                    </div>
-                    <button class="btn btn-outline-danger w-100 rounded-pill btn-sm" onclick="showChangePasswordModal()">
-                        Đổi mật khẩu
-                    </button>
+                <div id="tab-identity" class="profile-tab-content d-none">
+                    @await Html.PartialAsync("_ProfileIdentity")
+                </div>
+                <div id="tab-security" class="profile-tab-content d-none">
+                    @await Html.PartialAsync("_ProfileSecurity")
                 </div>
             </div>
         </div>
@@ -78,78 +77,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Determine Layout
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            if (user.role === 'admin' || user.role === 'superuser') {
-                // Keep it in Admin Layout if we are there, but wait, 
-                // this view is shared. We need a way to wrap it.
-            }
-            loadProfile();
-        });
-
-        async function loadProfile() {
-            try {
-                const response = await fetch('/api/UserProxy/GetMyProfile');
-                const result = await response.json();
-                if (result.success) {
-                    const u = result.data;
-                    document.getElementById('profileName').value = u.name || '';
-                    document.getElementById('profilePhone').value = u.phoneNumber || '';
-                    document.getElementById('profileAddress').value = u.address || '';
-                    document.getElementById('profileBio').value = u.bio || '';
-                    document.getElementById('profileNameDisplay').innerText = u.name;
-                    document.getElementById('profileEmail').innerText = u.email;
-                    document.getElementById('profileUsername').innerText = u.username;
-                    document.getElementById('profileRoleBadge').innerText = u.role.toUpperCase();
-                    document.getElementById('profileAvatar').src = u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=random`;
-                }
-            } catch (e) {}
-        }
-
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            const payload = {
-                name: document.getElementById('profileName').value,
-                phoneNumber: document.getElementById('profilePhone').value,
-                address: document.getElementById('profileAddress').value,
-                bio: document.getElementById('profileBio').value
-            };
-
-            try {
-                const response = await fetch(`/api/UserProxy/Update/${user.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if (result.success) {
-                    showPremiumToast("Thành công", "Hồ sơ đã được cập nhật.", "success");
-                    user.name = payload.name;
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                    loadProfile();
-                }
-            } catch (e) {}
-        });
-
-        document.getElementById('avatarUpload').addEventListener('change', async function(e) {
-            if (!e.target.files.length) return;
-            const formData = new FormData();
-            formData.append('file', e.target.files[0]);
-
-            try {
-                const response = await fetch('/api/UserProxy/UploadAvatar', {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
-                if (result.success) {
-                    showPremiumToast("Thành công", "Ảnh đại diện đã được cập nhật.", "success");
-                    loadProfile();
-                }
-            } catch (e) {}
-        });
-    </script>
+    <script src="~/js/tenants/profile.js" asp-append-version="true"></script>
 }

@@ -35,6 +35,21 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult MyRoom()
+    {
+        return View();
+    }
+
+    public IActionResult MyInvoices()
+    {
+        return View();
+    }
+
+    public IActionResult MySupport()
+    {
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

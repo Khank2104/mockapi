@@ -31,6 +31,14 @@
                             <label class="form-label small fw-bold">NGÀY KẾT THÚC (DỰ KIẾN)</label>
                             <input type="date" id="e-endDate" class="form-control">
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-primary">SỐ NGƯỜI Ở TỐI ĐA</label>
+                            <input type="number" id="e-standardOccupants" class="form-control" min="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-primary">PHỤ THU NGƯỜI THÊM</label>
+                            <input type="number" id="e-extraFee" class="form-control">
+                        </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-primary"><i class="bi bi-gear-fill me-2"></i>DỊCH VỤ SỬ DỤNG</label>
                             <div id="e-services-checkboxes" class="row g-2 mt-1 p-3 bg-light rounded-4">
@@ -190,8 +198,9 @@
                             <input type="date" id="c-endDate" class="form-control rounded-4 py-3" value="@DateTime.Now.AddYears(1).ToString("yyyy-MM-dd")">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">SỐ NGƯỜI TIÊU CHUẨN</label>
+                            <label class="form-label small fw-bold text-primary"><i class="bi bi-people-fill me-1"></i>SỐ NGƯỜI Ở TỐI ĐA (Thỏa thuận)</label>
                             <input type="number" id="c-standardOccupants" class="form-control rounded-4 py-3" value="2" min="1" max="10">
+                            <div class="x-small text-muted mt-1">Hệ thống sẽ tính phụ thu nếu trên 2 người.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">PHỤ THU NGƯỜI THÊM (VNĐ/người)</label>

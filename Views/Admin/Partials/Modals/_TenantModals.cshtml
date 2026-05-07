@@ -116,8 +116,17 @@
                         <label class="form-label small fw-bold">EMAIL</label>
                         <input type="email" name="Email" class="form-control" required>
                     </div>
-                    <div class="mb-4 text-muted small">
-                        <i class="bi bi-info-circle me-1"></i> Mật khẩu mặc định sẽ được gửi qua email hoặc đặt là 123456 (theo cấu hình hệ thống).
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">SỐ ĐIỆN THOẠI</label>
+                        <input type="text" name="Phone" class="form-control" placeholder="09xxxxxxxx">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">MẬT KHẨU</label>
+                        <input type="password" name="Password" class="form-control" placeholder="Để trống nếu dùng mặc định 123456">
+                    </div>
+                    <div class="mb-4 text-muted small bg-light p-3 rounded-4 border">
+                        <i class="bi bi-info-circle-fill me-1 text-primary"></i> 
+                        Nếu không nhập mật khẩu, hệ thống sẽ mặc định là <b>123456</b>. Tài khoản Admin mới sẽ được yêu cầu đổi mật khẩu trong lần đăng nhập đầu tiên.
                     </div>
                     <button type="button" class="btn btn-premium w-100 py-3" onclick="submitAddAdmin()">
                         Tạo tài khoản Admin
@@ -128,7 +137,46 @@
     </div>
 </div>
 
-<!-- Modal: Add Occupant (Roommate) -->
+<!-- Modal: Edit Admin (Superuser Only) -->
+<div class="modal fade" id="editAdminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 p-3">
+            <div class="modal-header border-0">
+                <h5 class="fw-bold mb-0">Chỉnh sửa tài khoản Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAdminForm">
+                    <input type="hidden" id="edit-admin-id">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">HỌ VÀ TÊN</label>
+                        <input type="text" id="edit-admin-name" name="Name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">TÊN ĐĂNG NHẬP</label>
+                        <input type="text" id="edit-admin-username" class="form-control" readonly disabled>
+                        <p class="x-small text-muted mt-1">Tên đăng nhập không thể thay đổi.</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">EMAIL</label>
+                        <input type="email" id="edit-admin-email" name="Email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">SỐ ĐIỆN THOẠI</label>
+                        <input type="text" id="edit-admin-phone" name="Phone" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">MẬT KHẨU MỚI (Nếu muốn đổi)</label>
+                        <input type="password" id="edit-admin-password" name="NewPassword" class="form-control" placeholder="Bỏ trống nếu giữ nguyên">
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-3 mt-3" onclick="submitEditAdmin()">
+                        Lưu thay đổi
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="addOccupantModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content glass-card border-0 p-3">

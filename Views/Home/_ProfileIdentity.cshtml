@@ -1,0 +1,54 @@
+<div class="animate-fade-in">
+    <h3 class="profile-section-title"><i class="bi bi-card-checklist"></i> Hồ sơ chi tiết & Cư trú</h3>
+    <p class="text-muted small mb-4">Các thông tin này dùng để làm hợp đồng và quản lý cư trú theo quy định.</p>
+    
+    <div class="row g-4">
+        <div class="col-md-12">
+            <div class="profile-input-group">
+                <label class="profile-label">Họ và tên đầy đủ (Trên CCCD)</label>
+                <input type="text" id="id-fullname" class="form-control profile-input" placeholder="Họ tên khai sinh">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-input-group">
+                <label class="profile-label">Số CCCD / Hộ chiếu</label>
+                <input type="text" id="id-citizenId" class="form-control profile-input" placeholder="Số định danh cá nhân">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-input-group">
+                <label class="profile-label">Ngày sinh</label>
+                <input type="date" id="id-dob" class="form-control profile-input">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-input-group">
+                <label class="profile-label">Giới tính</label>
+                <select id="id-gender" class="form-select profile-input">
+                    <option value="">-- Chọn giới tính --</option>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-input-group">
+                <label class="profile-label">Liên hệ khẩn cấp (Người thân)</label>
+                <input type="text" id="id-emergency" class="form-control profile-input" placeholder="Tên và SĐT người thân">
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="profile-input-group">
+                <label class="profile-label">Địa chỉ thường trú (Hộ khẩu)</label>
+                <input type="text" id="id-address" class="form-control profile-input" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành">
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 pt-3 border-top">
+        <button class="btn btn-premium px-5 py-3 rounded-pill shadow-lg" onclick="IdentityInfo.save()">
+            <i class="bi bi-shield-check me-2"></i> Lưu hồ sơ chi tiết
+        </button>
+    </div>
+</div>
