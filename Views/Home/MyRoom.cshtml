@@ -1,0 +1,65 @@
+@{
+    Layout = "_TenantLayout";
+    ViewData["Title"] = "Thông tin phòng ở";
+}
+
+<link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
+
+<div class="profile-container animate-fade-in">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="glass-card p-4 p-md-5 border-0 shadow-premium mb-4">
+                <h3 class="profile-section-title"><i class="bi bi-house-door"></i> Chi tiết phòng thuê</h3>
+                
+                <div id="room-info-content">
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 border-0">
+                                <label class="profile-label">Mã phòng</label>
+                                <h2 class="fw-bold text-primary mb-0" id="room-code-display">---</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 border-0">
+                                <label class="profile-label">Khu trọ</label>
+                                <h4 class="fw-bold mb-0" id="motel-name-display">---</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-4 bg-white border rounded-4">
+                                <label class="profile-label">Giá thuê hàng tháng</label>
+                                <h4 class="fw-bold text-danger mb-0" id="room-rent-display">---</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-4 bg-white border rounded-4">
+                                <label class="profile-label">Ngày vào ở</label>
+                                <h4 class="fw-bold mb-0" id="checkin-date-display">---</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="fs-6 fw-bold text-muted mb-4 text-uppercase letter-spacing-1">Dịch vụ đang sử dụng</h4>
+                    <div class="glass-card bg-light bg-opacity-50 border-0 p-0 overflow-hidden mb-4">
+                        <div id="service-list">
+                            <!-- Services populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-card p-4 border-0 shadow-premium">
+                <h3 class="profile-section-title fs-5"><i class="bi bi-people"></i> Thành viên trong phòng</h3>
+                <div id="occupant-list">
+                    <!-- Occupants populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/tenants/room.js" asp-append-version="true"></script>
+}

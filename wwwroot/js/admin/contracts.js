@@ -1,16 +1,31 @@
-        async function loadContractsData() {
+        let currentContractPage = 1;
+        let totalContractPages = 1;
+
+        async function loadContractsData(page = 1) {
+            currentContractPage = page;
             const container = document.getElementById('contracts-list-container');
+            const motelId = document.getElementById('contract-motel-filter')?.value || 0;
+
             try {
-                const response = await fetch('/api/OccupancyManagement/GetAllContracts');
+                const response = await fetch(`/api/OccupancyManagement/GetAllContracts?motelId=${motelId}&page=${page}&pageSize=10`);
                 const result = await response.json();
+                
                 if (result.success) {
-                    if (result.data.length === 0) {
-                        container.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">Chưa có hợp đồng nào được ký kết.</td></tr>`;
+                    const { items, totalCount, totalPages, currentPage } = result.data;
+                    totalContractPages = totalPages;
+
+                    if (items.length === 0) {
+                        container.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">Chưa có hợp đồng nào phù hợp.</td></tr>`;
+                        updateContractPaginationUI(0, 0, 0, 1, 1);
                         return;
                     }
-                    container.innerHTML = result.data.map(c => `
+
+                    container.innerHTML = items.map(c => `
                         <tr>
-                            <td class="fw-bold text-primary">${c.roomCode || 'N/A'}</td>
+                            <td>
+                                <div class="fw-bold text-primary">Phòng ${c.roomCode || 'N/A'}</div>
+                                <div class="x-small text-muted">${c.motelName || ''}</div>
+                            </td>
                             <td>${c.tenantName || 'N/A'}</td>
                             <td class="fw-bold">${(c.monthlyRent || 0).toLocaleString()}đ</td>
                             <td>${(c.depositAmount || 0).toLocaleString()}đ</td>
@@ -30,9 +45,52 @@
                             </td>
                         </tr>
                     `).join('');
+
+                    const start = (currentPage - 1) * 10 + 1;
+                    const end = start + items.length - 1;
+                    updateContractPaginationUI(start, end, totalCount, currentPage, totalPages);
                 }
-            } catch (e) { console.error("Contracts load error", e); }
+            } catch (e) { 
+                console.error("Contracts load error", e); 
+            }
         }
+
+        function updateContractPaginationUI(start, end, total, current, totalPages) {
+            const rangeEl = document.getElementById('contract-range');
+            const totalEl = document.getElementById('contract-total');
+            const currentEl = document.getElementById('contract-current-page');
+            
+            if (rangeEl) rangeEl.innerText = `${start}-${end}`;
+            if (totalEl) totalEl.innerText = total;
+            if (currentEl) currentEl.innerText = current;
+            
+            document.getElementById('contract-prev-btn')?.classList.toggle('disabled', current <= 1);
+            document.getElementById('contract-next-btn')?.classList.toggle('disabled', current >= totalPages);
+        }
+
+        function changeContractPage(delta) {
+            const next = currentContractPage + delta;
+            if (next >= 1 && next <= totalContractPages) {
+                loadContractsData(next);
+            }
+        }
+
+        async function loadMotelsForContractFilter() {
+            try {
+                const response = await fetch('/api/MotelManagement/MyMotels');
+                const result = await response.json();
+                if (result.success) {
+                    const select = document.getElementById('contract-motel-filter');
+                    if (select) {
+                        select.innerHTML = '<option value="0">-- Tất cả khu trọ --</option>' + 
+                            result.data.map(m => `<option value="${m.motelId}">${m.motelName}</option>`).join('');
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // Initialize motels filter on module load
+        document.addEventListener('DOMContentLoaded', loadMotelsForContractFilter);
 
         // ---- Contract 3-Step State ----
         let _contractMotels = [];

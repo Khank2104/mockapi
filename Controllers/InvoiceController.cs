@@ -45,9 +45,9 @@ namespace UserManagementSystem.Controllers
         }
 
         [HttpGet("Summary")]
-        public async Task<IActionResult> GetSummary([FromQuery] int month, [FromQuery] int year)
+        public async Task<IActionResult> GetSummary([FromQuery] int month, [FromQuery] int year, [FromQuery] int? motelId = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _invoiceService.GetBillingSummaryAsync(month, year, GetRequesterId());
+            var result = await _invoiceService.GetBillingSummaryAsync(month, year, GetRequesterId(), motelId, page, pageSize);
             return Ok(result);
         }
 
@@ -69,6 +69,8 @@ namespace UserManagementSystem.Controllers
             
             // Delete invoice logic using DB context directly for quick admin action
             var db = HttpContext.RequestServices.GetService<UserManagementSystem.Data.ApplicationDbContext>();
+            if (db == null) return StatusCode(500, "Database connection error");
+
             var inv = await db.Invoices.FindAsync(id);
             if (inv != null) {
                 var details = db.InvoiceDetails.Where(d => d.InvoiceId == id).ToList();

@@ -1,0 +1,35 @@
+<div class="animate-fade-in">
+    <h3 class="profile-section-title"><i class="bi bi-person-circle"></i> Thông tin tài khoản</h3>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="profile-input-group">
+                <label class="profile-label">Họ và tên</label>
+                <input type="text" id="acc-name" class="form-control profile-input" placeholder="VD: Nguyễn Văn A">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-input-group">
+                <label class="profile-label">Số điện thoại</label>
+                <input type="text" id="acc-phone" class="form-control profile-input" placeholder="090x xxx xxx">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-input-group">
+                <label class="profile-label">Tên đăng nhập</label>
+                <div id="acc-username" class="p-3 bg-light rounded-4 text-muted border-0 fw-bold">---</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-input-group">
+                <label class="profile-label">Email liên hệ</label>
+                <div id="acc-email" class="p-3 bg-light rounded-4 text-muted border-0 fw-bold">---</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 pt-3 border-top">
+        <button class="btn btn-premium px-5 py-3 rounded-pill shadow-lg" onclick="AccountInfo.save()">
+            <i class="bi bi-check2-all me-2"></i> Cập nhật tài khoản
+        </button>
+    </div>
+</div>

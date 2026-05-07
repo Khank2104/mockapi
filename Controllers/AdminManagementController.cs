@@ -37,6 +37,27 @@ namespace UserManagementSystem.Controllers
             return result.Success ? Ok(result) : Forbid();
         }
 
+        [HttpGet("GetAdmin/{id}")]
+        public async Task<IActionResult> GetAdmin(int id)
+        {
+            var result = await _adminService.GetAdminByIdAsync(id, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPut("UpdateAdmin/{id}")]
+        public async Task<IActionResult> UpdateAdmin(int id, [FromBody] UpdateAdminRequest request)
+        {
+            var result = await _adminService.UpdateAdminAsync(id, request, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpDelete("DeleteAdmin/{id}")]
+        public async Task<IActionResult> DeleteAdmin(int id)
+        {
+            var result = await _adminService.DeleteAdminAsync(id, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         [HttpPost("ToggleStatus/{id}")]
         public async Task<IActionResult> ToggleStatus(int id, [FromQuery] bool active)
         {

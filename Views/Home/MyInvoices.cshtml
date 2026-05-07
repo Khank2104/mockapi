@@ -1,0 +1,45 @@
+@{
+    Layout = "_TenantLayout";
+    ViewData["Title"] = "Hóa đơn của tôi";
+}
+
+<link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
+
+<div class="profile-container animate-fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="profile-section-title mb-0"><i class="bi bi-receipt-cutoff"></i> Quản lý hóa đơn</h3>
+                <div class="text-muted small fw-bold">Tổng cộng: <span id="invoice-count">...</span> hóa đơn</div>
+            </div>
+
+            <div id="invoice-list-container">
+                <!-- Invoices populated by JS -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Detail Modal -->
+<div class="modal fade" id="invoiceDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 shadow-lg">
+            <div class="modal-body p-5" id="invoice-detail-content">
+                <!-- Content populated by JS -->
+            </div>
+            <div class="modal-footer border-0 p-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-premium rounded-pill px-4">Thanh toán ngay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/tenants/billing.js" asp-append-version="true"></script>
+}

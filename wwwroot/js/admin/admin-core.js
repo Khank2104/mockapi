@@ -28,12 +28,18 @@
 
             // Trigger data loading based on module
             if (moduleId === 'motels') loadMotelsData();
-            if (moduleId === 'tenants') loadTenantsData();
-            if (moduleId === 'billing') loadBillingData();
+            if (moduleId === 'tenants') loadTenantsData(1);
+            if (moduleId === 'billing') {
+                if (typeof loadMotelsForBillingFilter === 'function') loadMotelsForBillingFilter();
+                loadBillingData(1);
+            }
             if (moduleId === 'requests') loadAllRequestsData();
             if (moduleId === 'admin-mgmt') loadAdminsData();
             if (moduleId === 'global-services') loadGlobalServicesData();
-            if (moduleId === 'contracts') loadContractsData();
+            if (moduleId === 'contracts') {
+                if (typeof loadMotelsForContractFilter === 'function') loadMotelsForContractFilter();
+                loadContractsData(1);
+            }
             if (moduleId === 'overview') loadOverviewData();
         }
 

@@ -52,9 +52,9 @@ namespace UserManagementSystem.Controllers
         }
 
         [HttpGet("GetAllContracts")]
-        public async Task<IActionResult> GetAllContracts()
+        public async Task<IActionResult> GetAllContracts([FromQuery] int? motelId = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _occupancyService.GetAllContractsAsync(GetRequesterId());
+            var result = await _occupancyService.GetAllContractsAsync(GetRequesterId(), motelId, page, pageSize);
             return Ok(result);
         }
 

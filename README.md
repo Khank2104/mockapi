@@ -24,6 +24,7 @@
 ## 📁 Documentation
 
 For detailed technical logs and project evolution, please refer to:
+
 - [English Walkthrough](PROJECT_WALKTHROUGH.md)
 - [Nhật Ký Dự Án (Vietnamese)](NHAT_KY_DU_AN.md)
 
@@ -44,6 +45,7 @@ For detailed technical logs and project evolution, please refer to:
 ## 📂 Tài liệu Dự án
 
 Để xem chi tiết quá trình phát triển và các bước kỹ thuật:
+
 - [Nhật Ký Dự Án (Tiếng Việt)](NHAT_KY_DU_AN.md)
 - [English Walkthrough](PROJECT_WALKTHROUGH.md)
 

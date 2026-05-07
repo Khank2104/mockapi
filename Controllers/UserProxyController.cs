@@ -54,7 +54,9 @@ namespace UserManagementSystem.Controllers
 
         private int GetRequesterId()
         {
-            var idClaim = User.FindFirst("id")?.Value;
+            var idClaim = User.FindFirst("id")?.Value 
+                         ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
             return int.TryParse(idClaim, out int reqId) ? reqId : 0;
         }
 

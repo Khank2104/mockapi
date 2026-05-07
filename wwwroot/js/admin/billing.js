@@ -1,19 +1,29 @@
-        async function loadBillingData() {
+        let currentBillingPage = 1;
+        let totalBillingPages = 1;
+
+        async function loadBillingData(page = 1) {
+            currentBillingPage = page;
             const container = document.getElementById('billing-list-container');
             const month = document.getElementById('billing-month').value;
             const year = document.getElementById('billing-year').value;
+            const motelId = document.getElementById('billing-motel-filter').value;
             
             try {
-                const response = await fetch(`/api/Invoice/Summary?month=${month}&year=${year}`);
+                const response = await fetch(`/api/Invoice/Summary?month=${month}&year=${year}&motelId=${motelId}&page=${page}&pageSize=10`);
                 const result = await response.json();
+                
                 if (result.success) {
-                    if (result.data.length === 0) {
-                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Không có phòng nào đang ở để tính tiền.</td></tr>';
+                    const { items, totalCount, totalPages, currentPage } = result.data;
+                    totalBillingPages = totalPages;
+
+                    if (items.length === 0) {
+                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Không có dữ liệu hóa đơn phù hợp.</td></tr>';
+                        updatePaginationUI(0, 0, 0, 1, 1);
                         return;
                     }
 
-                    container.innerHTML = result.data.map(r => {
-                        // Hiển thị chỉ số điện - dùng cả previousReading
+                    container.innerHTML = items.map(r => {
+                        // Hiển thị chỉ số điện
                         const elecHtml = r.electricity 
                             ? `<div class="d-flex align-items-center gap-2 text-warning">
                                 <i class="bi bi-lightning-charge-fill"></i>
@@ -21,7 +31,7 @@
                                </div>` 
                             : `<div class="d-flex align-items-center gap-2 text-warning opacity-50"><i class="bi bi-lightning-charge"></i> <span class="small">Chưa ghi...</span></div>`;
                             
-                        // Hiển thị chỉ số nước - dùng cả previousReading
+                        // Hiển thị chỉ số nước
                         const waterHtml = r.water 
                             ? `<div class="d-flex align-items-center gap-2 text-info">
                                 <i class="bi bi-droplet-fill"></i>
@@ -47,7 +57,10 @@
 
                         return `
                             <tr>
-                                <td><div class="fw-bold fs-6 text-primary">Phòng ${r.roomCode}</div></td>
+                                <td>
+                                    <div class="fw-bold fs-6 text-primary">Phòng ${r.roomCode}</div>
+                                    <div class="x-small text-muted">${r.motelName}</div>
+                                </td>
                                 <td>${elecHtml}</td>
                                 <td>${waterHtml}</td>
                                 <td>${invoiceStatus}</td>
@@ -55,17 +68,49 @@
                             </tr>
                         `;
                     }).join('');
-                } else {
-                    container.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger">${result.message || 'Lỗi tải dữ liệu.'}</td></tr>`;
+
+                    const start = (currentPage - 1) * 10 + 1;
+                    const end = start + items.length - 1;
+                    updatePaginationUI(start, end, totalCount, currentPage, totalPages);
                 }
             } catch (e) {
                 console.error('loadBillingData error:', e);
-                container.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-danger">Lỗi khi tải dữ liệu hóa đơn.</td></tr>';
             }
         }
 
+        function updatePaginationUI(start, end, total, current, totalPages) {
+            document.getElementById('billing-range').innerText = `${start}-${end}`;
+            document.getElementById('billing-total').innerText = total;
+            document.getElementById('billing-current-page').innerText = current;
+            
+            document.getElementById('billing-prev-btn').classList.toggle('disabled', current <= 1);
+            document.getElementById('billing-next-btn').classList.toggle('disabled', current >= totalPages);
+        }
+
+        function changeBillingPage(delta) {
+            const next = currentBillingPage + delta;
+            if (next >= 1 && next <= totalBillingPages) {
+                loadBillingData(next);
+            }
+        }
+
+        async function loadMotelsForBillingFilter() {
+            try {
+                const response = await fetch('/api/MotelManagement/List');
+                const result = await response.json();
+                if (result.success) {
+                    const select = document.getElementById('billing-motel-filter');
+                    select.innerHTML = '<option value="0">-- Tất cả khu trọ --</option>' + 
+                        result.data.map(m => `<option value="${m.motelId}">${m.motelName}</option>`).join('');
+                }
+            } catch (e) {}
+        }
+
+        // Initialize motels filter on module load
+        document.addEventListener('DOMContentLoaded', loadMotelsForBillingFilter);
 
 window.loadBillingData = loadBillingData;
+window.changeBillingPage = changeBillingPage;
         async function showRecordMeterModal(roomId, roomCode) {
             document.getElementById('record-roomId').value = roomId;
             document.getElementById('record-room-code').innerText = roomCode;

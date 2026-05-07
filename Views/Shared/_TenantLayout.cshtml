@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - QuanTro Tenant</title>
+    <title>@ViewData["Title"] - Tenant Portal</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,34 +12,56 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
 </head>
-<body>
+<body class="tenant-body">
     <div class="dashboard-wrapper">
         <!-- Sidebar -->
-        <aside class="sidebar" style="background: rgba(30, 41, 59, 0.95);">
+        <aside class="sidebar">
             <div class="sidebar-logo">
-                <i class="bi bi-house-heart-fill"></i>
-                <span>Phòng Của Tôi</span>
+                <div class="logo-icon bg-primary bg-gradient">
+                    <i class="bi bi-house-heart-fill"></i>
+                </div>
+                <span>Tenant Portal</span>
             </div>
             
-            <nav style="flex: 1;">
-                <ul style="list-style: none;">
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
                     <li class="nav-item">
-                        <a href="/" class="nav-link active">
-                            <i class="bi bi-speedometer2"></i>
+                        <a href="/" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            <i class="bi bi-grid-1x2-fill"></i>
                             <span>Bảng điều khiển</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/Home/Profile" class="nav-link">
-                            <i class="bi bi-person-circle"></i>
+                        <a href="/Home/MyRoom" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "MyRoom" ? "active" : "")">
+                            <i class="bi bi-door-closed-fill"></i>
+                            <span>Phòng của tôi</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Home/MyInvoices" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "MyInvoices" ? "active" : "")">
+                            <i class="bi bi-receipt-cutoff"></i>
+                            <span>Hóa đơn</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Home/MySupport" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "MySupport" ? "active" : "")">
+                            <i class="bi bi-chat-dots-fill"></i>
+                            <span>Hỗ trợ & Yêu cầu</span>
+                        </a>
+                    </li>
+                    <li class="nav-divider">TÀI KHOẢN</li>
+                    <li class="nav-item">
+                        <a href="/Home/Profile" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
+                            <i class="bi bi-person-badge-fill"></i>
                             <span>Hồ sơ cá nhân</span>
                         </a>
                     </li>
                 </ul>
             </nav>
 
-            <div class="sidebar-footer" style="padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div class="sidebar-footer">
                 <a href="javascript:void(0)" onclick="logout()" class="nav-link text-danger">
                     <i class="bi bi-box-arrow-right"></i>
                     <span>Đăng xuất</span>
@@ -51,60 +73,66 @@
         <div class="main-content">
             <header class="top-header">
                 <div class="welcome-text">
-                    <h1 id="tenant-welcome">Chào bạn!</h1>
-                    <p class="text-muted small">Hôm nay bạn thế nào?</p>
+                    <h1 id="tenant-welcome" class="fw-bold">Chào mừng trở lại!</h1>
+                    <p class="text-muted small mb-0">Hệ thống quản lý phòng trọ thông minh</p>
                 </div>
 
-                <div class="header-actions d-flex align-items-center gap-3">
-                    <div class="user-profile-widget">
-                        <img id="navAvatar" src="" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
-                        <span id="navUserName" class="fw-bold small">Tenant</span>
+                <div class="header-actions">
+                    <div class="user-profile-badge">
+                        <img id="navAvatar" src="" class="avatar-sm">
+                        <div class="user-info">
+                            <span id="navUserName" class="name">Tenant</span>
+                            <span class="role">Khách thuê</span>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            @RenderBody()
+            <div class="content-body p-4 p-md-5">
+                @RenderBody()
+            </div>
         </div>
     </div>
 
     <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast glass-card" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header border-0 bg-transparent">
+                <i class="bi bi-bell-fill me-2 text-primary"></i>
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     
     <script>
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")
-            .build();
-
+        const connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").build();
         connection.on("NewNotification", (userId) => {
-            showPremiumToast("Thông báo", "Có tin mới cho bạn. Hãy tải lại trang để xem nhé!", "info");
+            showPremiumToast("Thông báo", "Bạn có thông báo mới trong hệ thống.", "info");
         });
-
         connection.start().catch(err => console.error(err.toString()));
 
-        function showPremiumToast(title, message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `premium-toast`;
-            toast.innerHTML = `
-                <i class="bi bi-bell-fill text-primary"></i>
-                <div>
-                    <div class="fw-bold small">${title}</div>
-                    <div class="x-small opacity-75">${message}</div>
-                </div>
-            `;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 500);
-            }, 5000);
-        }
+        function showPremiumToast(title, message, type = 'primary') {
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+            const iconEl = toastEl.querySelector('i');
+            iconEl.className = `bi me-2 `;
+            if (type === 'success') iconEl.classList.add('bi-check-circle-fill', 'text-success');
+            else if (type === 'danger' || type === 'error') iconEl.classList.add('bi-exclamation-octagon-fill', 'text-danger');
+            else iconEl.classList.add('bi-bell-fill', 'text-primary');
 
-        function logout() {
+            new bootstrap.Toast(toastEl).show();
+        }
+        window.showPremiumToast = showPremiumToast;
+
+        async function logout() {
+            try { await fetch('/api/UserProxy/Logout', { method: 'POST' }); } catch (e) {}
             localStorage.removeItem('currentUser');
             window.location.href = '/Account/Login';
         }
@@ -114,7 +142,7 @@
             if (userJson) {
                 const user = JSON.parse(userJson);
                 document.getElementById('navUserName').innerText = user.name;
-                document.getElementById('navAvatar').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+                document.getElementById('navAvatar').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`;
                 document.getElementById('tenant-welcome').innerText = `Chào ${user.name}!`;
             } else {
                 window.location.href = '/Account/Login';

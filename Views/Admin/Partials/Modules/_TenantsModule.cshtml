@@ -2,15 +2,18 @@
 <section id="module-tenants" class="module-section d-none">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold fs-4">Danh sách Khách thuê</h2>
-        <button class="btn btn-premium" onclick="showAddTenantModal()">
-            <i class="bi bi-person-plus-fill"></i>
-            <span>Thêm khách thuê</span>
-        </button>
+        <div class="d-flex gap-2">
+            <div class="search-box bg-white bg-opacity-50 rounded-pill px-3 py-2 border">
+                <i class="bi bi-search text-muted me-2"></i>
+                <input type="text" id="tenant-search-input" class="border-0 bg-transparent" placeholder="Tìm tên, SĐT, CCCD..." onkeyup="if(event.key==='Enter') loadTenantsData(1)">
+            </div>
+            <button class="btn btn-premium" onclick="showAddTenantModal()">
+                <i class="bi bi-person-plus-fill"></i>
+                <span>Thêm mới</span>
+            </button>
+        </div>
     </div>
     <div class="glass-card">
-        <div class="mb-4">
-            <input type="text" class="form-control" placeholder="Tìm kiếm theo tên, CCCD hoặc SĐT..." style="border-radius: 12px; padding: 0.75rem 1.25rem;">
-        </div>
         <div class="table-container">
             <table class="premium-table">
                 <thead>
@@ -26,6 +29,24 @@
                     <tr><td colspan="5" class="text-center py-5 text-muted">Đang tải...</td></tr>
                 </tbody>
             </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div class="d-flex justify-content-between align-items-center mt-4 px-3">
+            <div class="text-muted small">
+                Hiển thị <span id="tenant-range">0-0</span> trong <span id="tenant-total">0</span> khách thuê
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" id="tenant-prev-btn">
+                        <a class="page-item btn btn-outline-primary rounded-pill px-3 me-2" href="javascript:void(0)" onclick="changeTenantPage(-1)">Trước</a>
+                    </li>
+                    <li class="page-item active"><span class="page-link rounded-circle mx-1" id="tenant-current-page">1</span></li>
+                    <li class="page-item" id="tenant-next-btn">
+                        <a class="page-item btn btn-outline-primary rounded-pill px-3 ms-2" href="javascript:void(0)" onclick="changeTenantPage(1)">Sau</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 </section>

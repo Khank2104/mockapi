@@ -2,20 +2,23 @@
 <section id="module-billing" class="module-section d-none">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold fs-4">Điện nước & Hóa đơn</h2>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
             <button class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" onclick="initializeDefaultServices()">
-                <i class="bi bi-magic me-1"></i> Khởi tạo nhanh dịch vụ
+                <i class="bi bi-magic me-1"></i> Khởi tạo nhanh
             </button>
-            <select class="form-select" id="billing-month" style="width: 120px; border-radius: 10px;">
+            <select class="form-select" id="billing-motel-filter" style="width: 180px; border-radius: 10px;" onchange="loadBillingData(1)">
+                <option value="0">-- Tất cả khu trọ --</option>
+            </select>
+            <select class="form-select" id="billing-month" style="width: 110px; border-radius: 10px;" onchange="loadBillingData(1)">
                 @for (int i = 1; i <= 12; i++) {
                     <option value="@i" selected="@(DateTime.Now.Month == i)">Tháng @i</option>
                 }
             </select>
-            <select class="form-select" id="billing-year" style="width: 100px; border-radius: 10px;">
+            <select class="form-select" id="billing-year" style="width: 90px; border-radius: 10px;" onchange="loadBillingData(1)">
                 <option value="@DateTime.Now.Year">@DateTime.Now.Year</option>
             </select>
-            <button class="btn btn-premium" onclick="loadBillingData()">
-                <i class="bi bi-arrow-clockwise"></i>
+            <button class="btn btn-premium" onclick="loadBillingData(1)">
+                <i class="bi bi-search"></i>
             </button>
         </div>
     </div>
@@ -33,9 +36,26 @@
                 </thead>
                 <tbody id="billing-list-container">
                     <tr><td colspan="5"><div class="skeleton" style="height: 60px; margin-bottom: 8px;"></div></td></tr>
-                    <tr><td colspan="5"><div class="skeleton" style="height: 60px;"></div></td></tr>
                 </tbody>
             </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div class="d-flex justify-content-between align-items-center mt-4 px-3">
+            <div class="text-muted small">
+                Hiển thị <span id="billing-range">0-0</span> trong <span id="billing-total">0</span> phòng
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" id="billing-prev-btn">
+                        <a class="page-item btn btn-outline-primary rounded-pill px-3 me-2" href="javascript:void(0)" onclick="changeBillingPage(-1)">Trước</a>
+                    </li>
+                    <li class="page-item active"><span class="page-link rounded-circle mx-1" id="billing-current-page">1</span></li>
+                    <li class="page-item" id="billing-next-btn">
+                        <a class="page-item btn btn-outline-primary rounded-pill px-3 ms-2" href="javascript:void(0)" onclick="changeBillingPage(1)">Sau</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 </section>
