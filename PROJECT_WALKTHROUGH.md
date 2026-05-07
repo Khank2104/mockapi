@@ -356,4 +356,23 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 - `Views/Home/` (Profile.cshtml, MyRoom.cshtml, MyInvoices.cshtml, MySupport.cshtml)
 - `Views/Shared/_Layout.cshtml`
 
+### Session 16: Tenant Dashboard & System Hardening (2026-05-07)
+**Objective**: Finalize the tenant portal experience and eliminate technical debt.
+
+1. **Unified Tenant Dashboard**:
+    - Created a new central hub for tenants with data summary widgets and a sticky sidebar for seamless navigation.
+2. **API Logic Resolution**:
+    - Fixed critical routing errors in frontend modules where endpoint names didn't match backend actions.
+    - Updated `GetRequesterId` logic to ensure robust user identification across all portal controllers.
+3. **Authorized Tenant Access**:
+    - Implemented secure `GetInvoiceDetail` endpoints specifically for tenants to bypass admin-only policy restrictions.
+4. **Zero-Warning Stability**:
+    - Resolved all remaining build warnings related to null reference exceptions (CS8602).
+
+**Files Created/Modified**:
+- `Controllers/TenantPortalController.cs`, `UserProxyController.cs`
+- `wwwroot/js/tenants/` (room.js, billing.js, profile.js)
+- `Views/Home/Index.cshtml`, `_TenantLayout.cshtml`
+- `NHAT_KY_DU_AN.md`, `PROJECT_WALKTHROUGH.md`
+
 *This walkthrough is a living document and will be updated as the project evolves.*
