@@ -54,13 +54,15 @@ namespace UserManagementSystem.Services
             if (user == null || (user.Role.RoleName != "admin" && user.Role.RoleName != "superuser"))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
+            var userRole = user.Role.RoleName.ToLower();
+
             var query = _db.Requests
                 .Include(r => r.Tenant)
                 .Include(r => r.Room)
                 .ThenInclude(room => room.Motel)
                 .AsQueryable();
 
-            if (user.Role.RoleName == "admin")
+            if (userRole == "admin")
             {
                 query = query.Where(r => r.Room.Motel.OwnerUserId == adminId);
             }
@@ -80,7 +82,13 @@ namespace UserManagementSystem.Services
                     MotelName = r.Room.Motel.MotelName
                 }).ToListAsync();
 
-            return new ApiResponse { Success = true, Data = requests };
+            return new ApiResponse { 
+                Success = true, 
+                Data = new { 
+                    Requests = requests, 
+                    Role = userRole 
+                } 
+            };
         }
 
         public async Task<ApiResponse> GetTenantRequestsAsync(int tenantUserId)
@@ -113,7 +121,11 @@ namespace UserManagementSystem.Services
             if (user == null || (user.Role.RoleName != "admin" && user.Role.RoleName != "superuser"))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
-            var req = await _db.Requests.Include(r => r.Room).ThenInclude(room => room.Motel).FirstOrDefaultAsync(r => r.RequestId == requestId);
+            var req = await _db.Requests
+                .Include(r => r.Tenant)
+                .Include(r => r.Room)
+                .ThenInclude(room => room.Motel)
+                .FirstOrDefaultAsync(r => r.RequestId == requestId);
             if (req == null) return new ApiResponse { Success = false, Message = "Yêu cầu không tồn tại." };
 
             if (user.Role.RoleName == "admin" && req.Room.Motel.OwnerUserId != adminId)

@@ -136,7 +136,8 @@ window.loadContractsData = loadContractsData;
 
                 if (tResult.success) {
                     // Lọc những người CHƯA CÓ CHỖ Ở (tức là không phải trạng thái Staying)
-                    const availableTenants = tResult.data.filter(t => t.status !== 'Staying' && t.tenantStatus !== 'Staying');
+                    const items = tResult.data.items || tResult.data;
+                    const availableTenants = items.filter(t => t.status !== 'Staying' && t.tenantStatus !== 'Staying');
                     
                     const opts = '<option value="">-- Chọn khách từ hệ thống --</option>' +
                         availableTenants.map(t => `<option value="${t.tenantId}" data-name="${t.fullName}" data-phone="${t.phone || ''}">${t.fullName} - ${t.phone || ''}</option>`).join('');

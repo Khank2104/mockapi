@@ -1,0 +1,56 @@
+<!-- Handle Request Modal -->
+<div class="modal fade" id="handleRequestModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="fw-bold fs-4">Xử lý yêu cầu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="handle-request-id">
+                
+                <div class="mb-4">
+                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Tiêu đề yêu cầu</label>
+                    <div id="handle-request-title" class="fw-bold fs-5"></div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Nội dung chi tiết</label>
+                    <div id="handle-request-desc" class="p-3 bg-light rounded-3 text-muted small" style="min-height: 80px;"></div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-12">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Trạng thái xử lý</label>
+                        <select class="form-select border-0 bg-light rounded-pill px-4 py-3" id="handle-request-status">
+                            <option value="Pending">Chờ xử lý</option>
+                            <option value="InProgress">Đang xử lý</option>
+                            <option value="Resolved">Đã hoàn thành</option>
+                            <option value="Rejected">Từ chối</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Ghi chú phản hồi</label>
+                        <textarea class="form-control border-0 bg-light rounded-4 px-4 py-3" id="handle-request-note" rows="3" placeholder="Nhập ghi chú cho khách thuê..."></textarea>
+                    </div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-8">
+                        <button type="button" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm w-100" onclick="submitHandleRequest()">
+                            Lưu cập nhật
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-outline-danger rounded-pill py-3 fw-bold w-100" onclick="rejectRequest()">
+                            Từ chối
+                        </button>
+                    </div>
+                    <div class="col-12">
+                        <button type="button" class="btn btn-light rounded-pill py-3 fw-bold w-100" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

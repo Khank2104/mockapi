@@ -375,4 +375,47 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 - `Views/Home/Index.cshtml`, `_TenantLayout.cshtml`
 - `NHAT_KY_DU_AN.md`, `PROJECT_WALKTHROUGH.md`
 
+### Session 17: JWT Security Audit & Roadmap (2026-05-08)
+**Objective**: Perform a comprehensive audit of the JWT authentication layer and define the security hardening path.
+
+1. **JWT Deep Integration**:
+    - Verified that JWT is thoroughly used across **API** endpoints, **MVC** controllers, and **SignalR** hubs.
+    - Confirmed the use of `HttpOnly` Cookies for secure token transmission, solving cross-request synchronization issues.
+2. **Policy-Based Authorization**:
+    - Validated the implementation of robust policies (`SuperuserOnly`, `Management`, `TenantOnly`) that leverage JWT claims for clean access control.
+3. **Security Gap Identification (Roadmap)**:
+    - **Refresh Tokens**: Identified the need for auto-renewal of sessions to improve UX (currently 6-hour hard limit).
+    - **Revocation Mechanism**: Planning for a token blacklist/revocation system to handle account locking in real-time.
+    - **CSRF Defense**: Flagged the requirement for Antiforgery protection when using Cookie-based JWT in a web context.
+
+### Session 29: QR Payment Integration & Stabilization (2026-05-09)
+**Objective**: Stabilize core administrative modules and launch the professional QR Payment portal for tenants.
+
+1. **QR Payment Portal**: 
+    - Integrated dynamic VietQR generation with automatic amount and note injection.
+    - Implemented a secure payment proof upload workflow with automatic status transition to `Pending`.
+2. **Personalized Notifications**:
+    - Added a notification bell and list to both Admin and Tenant layouts.
+    - Secured notification data using JWT identity claims, ensuring users only see their own alerts.
+    - Integrated SignalR for real-time "toast" feedback for all billing and payment actions.
+3. **System Hardening**:
+    - Enforced camelCase standards across all APIs to resolve 404/Undefined errors in frontend modules.
+    - Refined action button visibility (Pay/Approve/Reject) based on the live invoice lifecycle.
+4. **Role-Based UX**: Synchronized UI state across Superuser, Admin, and Tenant roles to provide a consistent "One Truth" view of financial data.
+
+---
+
+## 3. Summary of Antigravity's (AI) Role in the Project
+
+- **Architectural Backbone**: Designed and implemented the core DTO pattern and Service-Oriented Architecture (SOA) to ensure a scalable and secure backend.
+- **Premium UX/UI**: Created the modern Glassmorphism dashboard and the intuitive Tenant Portal from scratch, prioritizing aesthetics and usability.
+- **Security Engineering**: Audited and hardened the JWT-based authentication system, ensuring zero-trust principles and robust role-based access control.
+- **Real-time Synchronization**: Integrated SignalR for instant system-wide updates, from contract expirations to payment notifications.
+- **Operational Automation**: Automated the complex billing, contract lifecycle, and QR payment verification workflows to minimize manual administrative overhead.
+
+---
+
+## 4. Current System Status
+- `PROJECT_WALKTHROUGH.md`
+
 *This walkthrough is a living document and will be updated as the project evolves.*

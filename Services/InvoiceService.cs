@@ -139,6 +139,7 @@ namespace UserManagementSystem.Services
                 TotalAmount = i.TotalAmount,
                 PaidAmount = i.Payments.Sum(p => p.PaidAmount),
                 Status = i.InvoiceStatus,
+                PaymentProofPath = i.PaymentProofPath,
                 DueDate = i.DueDate,
                 Details = i.Details.Select(d => new InvoiceDetailResponse
                 {
@@ -349,11 +350,11 @@ namespace UserManagementSystem.Services
             { 
                 Success = true, 
                 Data = new {
-                    Items = summary,
-                    TotalCount = totalCount,
-                    TotalPages = totalPages,
-                    CurrentPage = page,
-                    PageSize = pageSize
+                    items = summary,
+                    totalCount = totalCount,
+                    totalPages = totalPages,
+                    currentPage = page,
+                    pageSize = pageSize
                 }
             };
         }
@@ -438,6 +439,88 @@ namespace UserManagementSystem.Services
                     return stream.ToArray();
                 }
             }
+        }
+
+        public async Task<ApiResponse> SubmitPaymentProofAsync(int invoiceId, string proofPath, int tenantUserId)
+        {
+            var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == tenantUserId);
+            if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy khách thuê." };
+
+            var invoice = await _db.Invoices.FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+            if (invoice == null) return new ApiResponse { Success = false, Message = "Hóa đơn không tồn tại." };
+
+            // Kiểm tra xem khách có ở trong phòng của hóa đơn này không
+            var isOccupant = await _db.RoomOccupants.AnyAsync(o => o.RoomId == invoice.RoomId && o.TenantId == tenant.TenantId && o.Status == "Staying");
+            if (!isOccupant && invoice.PrimaryTenantId != tenant.TenantId)
+                return new ApiResponse { Success = false, Message = "Bạn không có quyền gửi minh chứng cho hóa đơn này." };
+
+            invoice.PaymentProofPath = proofPath;
+            invoice.InvoiceStatus = "Pending";
+            invoice.UpdatedAt = DateTime.Now;
+
+            await _db.SaveChangesAsync();
+
+            // Notify Admin/Owner
+            var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == invoice.RoomId);
+            if (room != null)
+            {
+                await _notificationService.CreateNotificationAsync(room.Motel.OwnerUserId, "Xác nhận thanh toán mới", $"Phòng {room.RoomCode} đã gửi minh chứng thanh toán. Vui lòng kiểm tra đối soát.", "info");
+            }
+
+            return new ApiResponse { Success = true, Message = "Đã gửi minh chứng thanh toán thành công. Vui lòng chờ Admin xác nhận." };
+        }
+
+        public async Task<ApiResponse> VerifyPaymentAsync(int invoiceId, bool approved, int adminId)
+        {
+            var invoice = await _db.Invoices.Include(i => i.Payments).FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+            if (invoice == null) return new ApiResponse { Success = false, Message = "Hóa đơn không tồn tại." };
+
+            if (!await _accessControl.CanAccessInvoiceAsync(invoiceId, adminId))
+                return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+
+            if (invoice.InvoiceStatus != "Pending")
+                return new ApiResponse { Success = false, Message = "Hóa đơn không ở trạng thái chờ duyệt." };
+
+            if (approved)
+            {
+                // Tạo bản ghi thanh toán
+                var payment = new Payment
+                {
+                    InvoiceId = invoice.InvoiceId,
+                    PaidAmount = invoice.TotalAmount - invoice.Payments.Sum(p => p.PaidAmount),
+                    PaymentMethod = "Transfer",
+                    PaymentDate = DateTime.Now,
+                    Note = "Thanh toán qua QR (Hệ thống duyệt)",
+                    ReceivedBy = adminId,
+                    CreatedAt = DateTime.Now
+                };
+                _db.Payments.Add(payment);
+                invoice.InvoiceStatus = "Paid";
+                
+                // Notify Tenant
+                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.TenantId == invoice.PrimaryTenantId);
+                if (tenant != null && tenant.UserId.HasValue)
+                {
+                    await _notificationService.CreateNotificationAsync(tenant.UserId.Value, "Thanh toán thành công", $"Hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear} đã được phê duyệt thanh toán.", "success");
+                }
+            }
+            else
+            {
+                invoice.InvoiceStatus = "Unpaid";
+                invoice.PaymentProofPath = null; // Xóa minh chứng cũ để khách gửi lại
+                
+                // Notify Tenant
+                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.TenantId == invoice.PrimaryTenantId);
+                if (tenant != null && tenant.UserId.HasValue)
+                {
+                    await _notificationService.CreateNotificationAsync(tenant.UserId.Value, "Từ chối thanh toán", $"Minh chứng thanh toán cho hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear} không hợp lệ. Vui lòng kiểm tra lại.", "warning");
+                }
+            }
+
+            invoice.UpdatedAt = DateTime.Now;
+            await _db.SaveChangesAsync();
+
+            return new ApiResponse { Success = true, Message = approved ? "Đã phê duyệt thanh toán." : "Đã từ chối minh chứng thanh toán." };
         }
     }
 }

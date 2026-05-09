@@ -36,9 +36,10 @@
 
         let occupancyChartInstance;
 
-window.loadOverviewData = loadOverviewData;
         function renderChart(occupied, vacant) {
-            const ctx = document.getElementById('occupancyChart').getContext('2d');
+            const chartEl = document.getElementById('occupancyChart');
+            if (!chartEl) return;
+            const ctx = chartEl.getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
             
             occupancyChartInstance = new Chart(ctx, {
@@ -71,44 +72,57 @@ window.loadOverviewData = loadOverviewData;
             });
         }
 
-
-window.renderChart = renderChart;
         async function loadRecentRequests() {
             try {
                 const response = await fetch('/api/Request/GetAllRequests');
                 const result = await response.json();
                 const list = document.getElementById('recent-requests-list');
-                
+                if (!list) return;
+
                 if (result.success) {
-                    const pending = result.data.filter(r => r.status === 'Pending').length;
-                    document.getElementById('stat-requests').innerText = pending;
+                    const requests = result.data.requests || [];
+                    const role = result.data.role;
+                    const isSuper = role === 'superuser';
+
+                    const pendingCount = requests.filter(r => r.status === 'Pending').length;
+                    const statRequestsEl = document.getElementById('stat-requests');
+                    if (statRequestsEl) statRequestsEl.innerText = pendingCount;
                     
-                    const recent = result.data.slice(0, 5);
+                    const recent = requests.slice(0, 5);
                     if (recent.length === 0) {
-                        list.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-muted">Không có yêu cầu nào mới.</td></tr>';
+                        list.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">Không có yêu cầu nào mới.</td></tr>';
                         return;
                     }
 
                     list.innerHTML = recent.map(r => `
                         <tr>
-                            <td><span class="fw-bold text-primary">Phòng ${r.roomId}</span></td>
-                            <td>${r.title}</td>
                             <td>
-                                <span class="status-pill ${r.status === 'Pending' ? 'status-locked' : 'status-active'}">
-                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.4rem;"></i> ${r.status}
+                                <div class="fw-bold text-primary small">Phòng ${r.roomCode || 'N/A'}</div>
+                                ${isSuper ? `<div class="x-small text-muted">${r.motelName || ''}</div>` : ''}
+                            </td>
+                            <td>
+                                <div class="small fw-bold">${r.title}</div>
+                                <div class="x-small text-muted text-truncate" style="max-width: 150px;">${r.tenantName || ''}</div>
+                            </td>
+                            <td>
+                                <span class="status-pill ${r.status === 'Pending' ? 'status-locked' : 'status-active'} x-small">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.3rem;"></i> ${r.status}
                                 </span>
                             </td>
-                            <td class="text-muted small">${new Date(r.createdAt).toLocaleDateString('vi-VN')}</td>
+                            <td class="text-muted x-small">${new Date(r.createdAt).toLocaleDateString('vi-VN')}</td>
                         </tr>
                     `).join('');
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error("Error loading recent requests", e);
+            }
         }
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
             loadOverviewData();
-            switchModule('overview');
         });
 
+window.loadOverviewData = loadOverviewData;
+window.renderChart = renderChart;
 window.loadRecentRequests = loadRecentRequests;

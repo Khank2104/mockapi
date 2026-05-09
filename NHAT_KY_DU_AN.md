@@ -70,18 +70,42 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 - **Hệ thống Toast**: Triển khai `showPremiumToast` cho phản hồi thời gian thực trên toàn ứng dụng.
 - **Fix Build**: Đồng bộ hóa tên trường dữ liệu (`DefaultPrice`, `UnitPrice`) và xử lý cảnh báo Null Reference.
 
-### [2026-05-07] - Session 27: Hoàn thiện Dashboard Tenant & Xử lý lỗi Logic (Mới nhất)
+### [2026-05-07] - Session 27: Hoàn thiện Dashboard Tenant & Xử lý lỗi Logic
 - **Tenant Dashboard UX**: Chuyển đổi trang chủ Tenant thành bảng điều khiển hiện đại với SideBar và Widget tóm tắt dữ liệu.
 - **Fix Logic API**: Sửa lỗi sai Route và lỗi phân quyền (403) khi khách thuê xem chi tiết hóa đơn.
 - **Hardening**: Nâng cấp cơ chế lấy ID người dùng từ Token và xóa bỏ hoàn toàn các cảnh báo Build (Null Reference).
+
+### [2026-05-08] - Session 28: Đánh giá chuyên sâu Hệ thống Bảo mật JWT (Security Audit)
+**Tiếng Việt:**
+- **Phân tích hiện trạng**: Đánh giá mức độ áp dụng JWT trong toàn bộ project (API, MVC, SignalR).
+- **Kết quả**: JWT đã được triển khai chuyên nghiệp thông qua HttpOnly Cookies, kết hợp với Policy-based Authorization (`SuperuserOnly`, `TenantOnly`).
+- **Lộ trình nâng cấp**: Xác định các điểm cần hoàn thiện sau khi dự án chạy ổn định bao gồm: Refresh Token, cơ chế thu hồi Token (Blacklist), và bảo mật chống CSRF.
+
+**English:**
+- **Current State Analysis**: Audited JWT implementation across API, MVC, and SignalR components.
+- **Key Findings**: JWT is successfully implemented using HttpOnly Cookies combined with robust Policy-based Authorization.
+- **Security Roadmap**: Identified post-release security enhancements: Refresh Token logic, Token Revocation (Blacklisting), and CSRF protection measures.
+
+### [2026-05-09] - Session 29: QR Payment Integration & Stabilization
+**Vietnamese:**
+- **Cổng thanh toán QR**: Tích hợp luồng tạo mã VietQR động và upload minh chứng thanh toán an toàn.
+- **Đồng bộ hóa dữ liệu**: Chuẩn hóa chuẩn API camelCase và khắc phục triệt để các lỗi 404/Undefined trong module Hợp đồng và Hóa đơn.
+- **Thông báo cá nhân hóa**: Bổ sung chuông thông báo và danh sách thông báo cho cả Admin và Tenant, bảo mật dựa trên định danh JWT.
+- **Tinh chỉnh UX**: Triển khai cơ chế chuyển đổi trạng thái tự động (Pending) và ẩn hiện nút thao tác thông minh theo vòng đời hóa đơn.
+
+**English:**
+- **QR Payment Portal**: Integrated VietQR dynamic generation and secure payment proof upload flow.
+- **Data Synchronization**: Enforced camelCase API standards and fixed 404/Undefined errors across Contract and Billing modules.
+- **Personalized Notifications**: Added notification bell and list to both Admin and Tenant layouts, secured by JWT identity.
+- **UX Refinements**: Implemented automatic state transitions (Pending status) and refined action button visibility based on invoice lifecycle.
 
 ---
 
 ## 3. Trạng Thái Dự Án Hiện Tại
 
-**Ngày cập nhật**: 2026-05-07
+**Ngày cập nhật**: 2026-05-09
 **Thực hiện bởi**: Antigravity (AI)
-**Trạng thái**: ✅ **Ổn định & Chuyên nghiệp** — Hệ thống đã hoàn thiện cả mặt Quản trị (Admin) và Khách thuê (Tenant).
+**Trạng thái**: ✅ **Hoàn thiện Logic & Audit Bảo mật** — Hệ thống đã sẵn sàng cho giai đoạn tối ưu hóa chuyên sâu.
 
 **Tính năng ĐÃ HOÀN THÀNH:**
 - [x] Xác thực & Phân quyền (JWT Cookie, Role-based)
@@ -100,3 +124,21 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 *(Chi tiết các bước Refactor từ DRY Principle, Tách Module JS, Tách DTO, đến Audit Database Constraints đã được thực hiện và lưu trữ trong lịch sử phiên bản)*
 
 *Tài liệu này sẽ liên tục được cập nhật theo tiến trình của dự án.*
+
+---
+
+## 5. Tóm tắt vai trò của Antigravity (AI) trong dự án / Summary of Antigravity's Role
+
+**Vietnamese:**
+- **Kiến trúc cốt lõi**: Thiết kế và triển khai mô hình DTO kết hợp với Kiến trúc hướng dịch vụ (SOA), đảm bảo hệ thống có thể mở rộng và bảo mật tốt từ phía Backend.
+- **Trải nghiệm Người dùng (UX/UI)**: Xây dựng toàn bộ giao diện Dashboard phong cách Glassmorphism và Cổng thông tin Tenant từ con số 0, ưu tiên tính thẩm mỹ và sự tiện dụng.
+- **Kỹ thuật Bảo mật**: Thực hiện Audit và thắt chặt hệ thống xác thực JWT, đảm bảo nguyên tắc Zero-trust và phân quyền Role-based mạnh mẽ.
+- **Đồng bộ thời gian thực**: Tích hợp SignalR để cập nhật tức thì mọi thay đổi trong hệ thống, từ thông báo hết hạn hợp đồng đến các cập nhật thanh toán.
+- **Tự động hóa vận hành**: Tự động hóa các quy trình phức tạp như tính toán hóa đơn, vòng đời hợp đồng và quy trình xác thực thanh toán QR, giúp giảm thiểu tối đa sai sót thủ công.
+
+**English:**
+- **Architectural Backbone**: Designed and implemented the core DTO pattern and Service-Oriented Architecture (SOA) to ensure a scalable and secure backend.
+- **Premium UX/UI**: Created the modern Glassmorphism dashboard and the intuitive Tenant Portal from scratch, prioritizing aesthetics and usability.
+- **Security Engineering**: Audited and hardened the JWT-based authentication system, ensuring zero-trust principles and robust role-based access control.
+- **Real-time Synchronization**: Integrated SignalR for instant system-wide updates, from contract expirations to payment notifications.
+- **Operational Automation**: Automated the complex billing, contract lifecycle, and QR payment verification workflows to minimize manual administrative overhead.
