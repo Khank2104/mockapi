@@ -32,6 +32,7 @@ namespace UserManagementSystem.Models
         [Required]
         [MaxLength(20)]
         public string InvoiceStatus { get; set; } = "Unpaid";
+        public string? PaymentProofPath { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;

@@ -42,7 +42,9 @@
                         const invoiceStatus = r.invoice 
                             ? (r.invoice.invoiceStatus === 'Paid' 
                                 ? `<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i> Đã thanh toán</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>` 
-                                : `<span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill"><i class="bi bi-exclamation-circle me-1"></i> Chưa thu</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>`)
+                                : (r.invoice.invoiceStatus === 'Pending' 
+                                    ? `<span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill"><i class="bi bi-clock-history me-1"></i> Chờ duyệt</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>`
+                                    : `<span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill"><i class="bi bi-exclamation-circle me-1"></i> Chưa thu</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>`))
                             : `<span class="badge bg-secondary bg-opacity-10 text-muted px-3 py-2 rounded-pill">Chưa chốt</span>`;
 
                         const actionBtn = r.invoice
@@ -96,7 +98,7 @@
 
         async function loadMotelsForBillingFilter() {
             try {
-                const response = await fetch('/api/MotelManagement/List');
+                const response = await fetch('/api/MotelManagement/MyMotels');
                 const result = await response.json();
                 if (result.success) {
                     const select = document.getElementById('billing-motel-filter');
@@ -370,6 +372,9 @@ window.generateInvoice = generateInvoice;
             modal.show();
 
             document.getElementById('btnExportExcel').onclick = () => downloadInvoiceExcel(invoiceId);
+            // Track current invoice for QR button
+            const idField = document.getElementById('current-invoice-id');
+            if (idField) idField.value = invoiceId;
 
             // Reset content
             container.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Đang tải chi tiết hóa đơn...</p></div>`;
@@ -417,6 +422,28 @@ window.generateInvoice = generateInvoice;
                         </div>
                     `;
                     container.innerHTML = html;
+
+                    // Handle Payment Proof display
+                    const proofContainer = document.getElementById('payment-proof-container');
+                    const proofImg = document.getElementById('payment-proof-img');
+                    if (inv.paymentProofPath) {
+                        proofContainer.classList.remove('d-none');
+                        proofImg.src = inv.paymentProofPath;
+                        
+                        // Chỉ hiện nút Phê duyệt/Từ chối nếu trạng thái là Pending
+                        const actionButtons = proofContainer.querySelector('.d-flex.gap-2');
+                        if (actionButtons) {
+                            actionButtons.style.display = inv.status === 'Pending' ? 'flex' : 'none';
+                        }
+                    } else {
+                        proofContainer.classList.add('d-none');
+                    }
+
+                    // Ẩn nút QR Thanh toán nếu đã thanh toán
+                    const qrBtn = document.querySelector('#invoiceDetailsModal .btn-outline-success');
+                    if (qrBtn) {
+                        qrBtn.style.display = inv.status === 'Paid' ? 'none' : 'block';
+                    }
                 } else {
                     container.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
                 }
@@ -465,3 +492,42 @@ window.generateInvoice = generateInvoice;
 window.viewInvoiceDetails = viewInvoiceDetails;
 window.downloadInvoiceExcel = downloadInvoiceExcel;
 window.deleteInvoice = deleteInvoice;
+
+        function openQRPaymentPage() {
+            const id = document.getElementById('current-invoice-id')?.value;
+            if (!id || id === '0') {
+                showPremiumToast('Lỗi', 'Không tìm thấy mã hóa đơn.', 'danger');
+                return;
+            }
+            window.open(`/QRPayment/${id}`, '_blank');
+        }
+
+window.openQRPaymentPage = openQRPaymentPage;
+
+        async function verifyInvoicePayment(approved) {
+            const id = document.getElementById('current-invoice-id')?.value;
+            if (!id || id === '0') return;
+
+            const action = approved ? 'phê duyệt' : 'từ chối';
+            if (!confirm(`Bạn có chắc chắn muốn ${action} minh chứng thanh toán này?`)) return;
+
+            try {
+                const response = await fetch('/api/QRPayment/Verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ invoiceId: parseInt(id), approved: approved })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", result.message, "success");
+                    bootstrap.Modal.getInstance(document.getElementById('invoiceDetailsModal')).hide();
+                    loadBillingData();
+                } else {
+                    showPremiumToast("Lỗi", result.message, "danger");
+                }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể kết nối máy chủ.", "danger");
+            }
+        }
+
+window.verifyInvoicePayment = verifyInvoicePayment;

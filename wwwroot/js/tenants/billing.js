@@ -37,8 +37,8 @@ const BillingMgmt = (() => {
                         </div>
                         <div>
                             <h5 class="fw-bold mb-0">Tháng ${i.billingMonth}/${i.billingYear}</h5>
-                            <span class="status-pill status-${i.invoiceStatus.toLowerCase() === 'paid' ? 'active' : 'locked'} mt-1">
-                                ${i.invoiceStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                            <span class="status-pill ${i.invoiceStatus === 'Paid' ? 'status-active' : (i.invoiceStatus === 'Pending' ? 'status-warning' : 'status-locked')} mt-1">
+                                ${i.invoiceStatus === 'Paid' ? 'Đã thanh toán' : (i.invoiceStatus === 'Pending' ? 'Chờ duyệt' : 'Chưa thanh toán')}
                             </span>
                         </div>
                     </div>
@@ -98,14 +98,31 @@ const BillingMgmt = (() => {
                 `;
                 
                 detailContent.innerHTML = html;
-                new bootstrap.Modal(document.getElementById('invoiceDetailModal')).show();
+                const modal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
+                
+                // Add click handler to Pay Now button in modal footer
+                const payBtn = document.querySelector('#invoiceDetailModal .btn-premium');
+                if (payBtn) {
+                    payBtn.onclick = () => {
+                        window.location.href = `/QRPayment/${id}`;
+                    };
+                    // Hide if already paid
+                    // Hide if already paid or pending
+                    payBtn.style.display = (i.invoiceStatus === 'Paid' || i.invoiceStatus === 'Pending') ? 'none' : 'block';
+                }
+                
+                modal.show();
             }
         } catch (e) {
             showPremiumToast("Lỗi", "Không thể lấy thông tin hóa đơn.", "danger");
         }
     };
 
-    return { init, viewDetail };
+    const payNow = (id) => {
+        window.location.href = `/QRPayment/${id}`;
+    };
+
+    return { init, viewDetail, payNow };
 })();
 
 document.addEventListener('DOMContentLoaded', BillingMgmt.init);

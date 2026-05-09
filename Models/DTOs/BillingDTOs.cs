@@ -49,6 +49,7 @@ namespace UserManagementSystem.Models
         public decimal PaidAmount { get; set; }
         public decimal RemainingAmount => TotalAmount - PaidAmount;
         public string Status { get; set; } = "Unpaid";
+        public string? PaymentProofPath { get; set; }
         public DateTime DueDate { get; set; }
         public List<InvoiceDetailResponse> Details { get; set; } = new();
     }

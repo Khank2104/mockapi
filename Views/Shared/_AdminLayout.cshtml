@@ -101,9 +101,14 @@
         <!-- Main Content -->
         <div class="main-content">
             <header class="top-header">
-                <div class="welcome-text">
-                    <h1 id="page-title" class="mb-1">Xin chào!</h1>
-                    <p class="text-muted small" id="dynamic-greeting">Chúc bạn một ngày làm việc hiệu quả.</p>
+                <div class="welcome-text d-flex align-items-center gap-3">
+                    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <div>
+                        <h1 id="page-title" class="mb-1 fs-4">Xin chào!</h1>
+                        <p class="text-muted x-small mb-0 d-none d-sm-block" id="dynamic-greeting">Chúc bạn một ngày làm việc hiệu quả.</p>
+                    </div>
                 </div>
 
                 <div class="header-actions d-flex align-items-center gap-4">
@@ -116,18 +121,16 @@
                         <i id="theme-icon" class="bi bi-moon-stars fs-5 text-muted"></i>
                     </div>
 
-                    <div class="position-relative cursor-pointer">
+                    <div class="position-relative cursor-pointer" onclick="toggleNotificationModal()">
                         <i class="bi bi-bell fs-5 text-muted"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-primary border border-light rounded-circle"></span>
+                        <span id="notification-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.5rem; padding: 0.25em 0.4em;">
+                            0
+                        </span>
                     </div>
 
-                    <div class="user-profile-widget px-2 py-1 pe-3">
-                        <div class="avatar-container position-relative">
-                            <img id="navAvatar" src="" class="rounded-circle border border-2 border-white" style="width: 40px; height: 40px; object-fit: cover;">
-                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle"></span>
-                        </div>
-                        <div class="d-none d-md-block ms-1">
-                            <div id="navUserName" class="fw-bold x-small lh-1 mb-1">Admin</div>
+                    <div class="user-profile-widget px-3 py-2">
+                        <div>
+                            <div id="navUserName" class="fw-bold small lh-1 mb-1">Admin</div>
                             <div class="text-muted" style="font-size: 0.65rem;">Quản trị viên</div>
                         </div>
                     </div>
@@ -135,6 +138,26 @@
             </header>
 
             @RenderBody()
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="modal fade" id="notificationListModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm-fixed-right" style="max-width: 400px;">
+            <div class="modal-content glass-card border-0 rounded-4 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold mb-0">Thông báo hệ thống</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="notification-list" class="overflow-auto" style="max-height: 450px;">
+                        <div class="text-center py-4 opacity-50">Đang tải...</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button class="btn btn-link text-decoration-none small text-primary" onclick="markAllNotificationsAsRead()">Đánh dấu đã đọc hết</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -172,6 +195,22 @@
     </script>
     
     <script>
+        function toggleMobileMenu() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+
+        // Intercept switchModule to close sidebar on mobile
+        const baseSwitchModule = window.switchModule;
+        window.switchModule = function(id, el) {
+            if (typeof baseSwitchModule === 'function') baseSwitchModule(id, el);
+            if (window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar) sidebar.classList.remove('active');
+            }
+        }
+    </script>
+    
+    <script>
         // SignalR Initialization
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/notificationHub")
@@ -183,6 +222,83 @@
         });
 
         connection.start().catch(err => console.error(err.toString()));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNotificationsCount();
+        });
+
+        async function loadNotificationsCount() {
+            try {
+                const res = await fetch('/api/NotificationProxy/GetMyNotifications');
+                const result = await res.json();
+                if (result.success) {
+                    const count = result.unreadCount;
+                    const badge = document.getElementById('notification-count');
+                    if (count > 0) {
+                        badge.innerText = count > 99 ? '99+' : count;
+                        badge.classList.remove('d-none');
+                    } else {
+                        badge.classList.add('d-none');
+                    }
+                }
+            } catch (e) {}
+        }
+
+        async function toggleNotificationModal() {
+            const modal = new bootstrap.Modal(document.getElementById('notificationListModal'));
+            modal.show();
+            
+            const list = document.getElementById('notification-list');
+            try {
+                const res = await fetch('/api/NotificationProxy/GetMyNotifications');
+                const result = await res.json();
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        list.innerHTML = '<div class="text-center py-4 opacity-50">Không có thông báo nào.</div>';
+                    } else {
+                        list.innerHTML = result.data.map(n => `
+                            <div class="p-3 mb-2 rounded-3 ${n.isRead ? 'bg-light opacity-75' : 'bg-primary bg-opacity-10 border-start border-primary border-4'}" 
+                                 onclick="markNotificationAsRead(${n.id}, this)" style="cursor: pointer;">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <span class="fw-bold small">${n.title}</span>
+                                    <span class="x-small text-muted">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</span>
+                                </div>
+                                <div class="small text-muted">${n.message}</div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (e) {
+                list.innerHTML = '<div class="alert alert-danger">Lỗi tải thông báo.</div>';
+            }
+        }
+
+        async function markNotificationAsRead(id, element) {
+            try {
+                const res = await fetch(`/api/NotificationProxy/MarkAsRead/${id}`, { method: 'POST' });
+                const result = await res.json();
+                if (result.success) {
+                    element.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
+                    element.classList.add('bg-light', 'opacity-75');
+                    loadNotificationsCount();
+                }
+            } catch (e) {}
+        }
+
+        async function markAllNotificationsAsRead() {
+            try {
+                const res = await fetch('/api/NotificationProxy/MarkAllAsRead', { method: 'POST' });
+                const result = await res.json();
+                if (result.success) {
+                    const items = document.querySelectorAll('#notification-list > div');
+                    items.forEach(el => {
+                        el.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
+                        el.classList.add('bg-light', 'opacity-75');
+                    });
+                    loadNotificationsCount();
+                }
+            } catch (e) {}
+        }
 
         function showPremiumToast(title, message, type = 'info') {
             const container = document.getElementById('toast-container');

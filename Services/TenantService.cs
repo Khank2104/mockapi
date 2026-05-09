@@ -125,11 +125,11 @@ namespace UserManagementSystem.Services
             { 
                 Success = true, 
                 Data = new {
-                    Items = tenants,
-                    TotalCount = totalCount,
-                    TotalPages = totalPages,
-                    CurrentPage = page,
-                    PageSize = pageSize
+                    items = tenants,
+                    totalCount = totalCount,
+                    totalPages = totalPages,
+                    currentPage = page,
+                    pageSize = pageSize
                 }
             };
         }

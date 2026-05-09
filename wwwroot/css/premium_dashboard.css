@@ -298,6 +298,7 @@ body {
 }
 
 .status-active { background: #dcfce7; color: #166534; }
+.status-warning { background: #fef3c7; color: #92400e; }
 .status-locked { background: #fee2e2; color: #991b1b; }
 
 /* Real-time Toasts */
@@ -379,17 +380,84 @@ body {
     transform: scale(1.002);
 }
 
-/* Responsive */
+/* Responsive Adjustments */
 @media (max-width: 1024px) {
     .sidebar {
         width: 80px;
-        padding: 2rem 1rem;
+        padding: 2rem 0.5rem;
     }
     .sidebar-logo span, .nav-link span {
         display: none;
     }
+    .sidebar-logo {
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+    .nav-link {
+        justify-content: center;
+        padding: 1rem;
+    }
     .main-content {
         margin-left: 80px;
         max-width: calc(100vw - 80px);
+        padding: 1.5rem;
     }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px;
+        box-shadow: 20px 0 50px rgba(0,0,0,0.2);
+    }
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    .sidebar-logo span, .nav-link span {
+        display: block;
+    }
+    .sidebar-logo {
+        justify-content: flex-start;
+    }
+    .nav-link {
+        justify-content: flex-start;
+    }
+    .main-content {
+        margin-left: 0;
+        max-width: 100vw;
+        padding: 1rem;
+        padding-top: 5rem;
+    }
+    .top-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        padding: 1rem;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--glass-border);
+    }
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mobile-menu-btn {
+    display: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--primary-gradient);
+    color: white;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
 }

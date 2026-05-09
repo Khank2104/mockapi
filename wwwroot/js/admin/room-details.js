@@ -140,7 +140,8 @@ window.removeOccupantFromFmp = removeOccupantFromFmp;
                 const result = await response.json();
                 if (result.success) {
                     const sel = document.getElementById('ao-tenantSelect');
-                    const availableTenants = result.data.filter(t => t.status !== 'Staying');
+                    const items = result.data.items || result.data;
+                    const availableTenants = items.filter(t => t.status !== 'Staying');
                     
                     if (availableTenants.length === 0) {
                         sel.innerHTML = '<option value="">(Không có khách thuê nào đang trống)</option>';

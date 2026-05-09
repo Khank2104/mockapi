@@ -273,11 +273,11 @@ namespace UserManagementSystem.Services
             { 
                 Success = true, 
                 Data = new {
-                    Items = contracts,
-                    TotalCount = totalCount,
-                    TotalPages = totalPages,
-                    CurrentPage = page,
-                    PageSize = pageSize
+                    items = contracts,
+                    totalCount = totalCount,
+                    totalPages = totalPages,
+                    currentPage = page,
+                    pageSize = pageSize
                 }
             };
         }
@@ -289,18 +289,18 @@ namespace UserManagementSystem.Services
                                  where c.RoomId == roomId && c.ContractStatus == "Active"
                                  select new
                                  {
-                                     c.ContractId,
-                                     c.RoomId,
-                                     c.PrimaryTenantId,
-                                     PrimaryTenantName = c.PrimaryTenant.FullName,
-                                     c.StartDate,
-                                     c.EndDate,
-                                     c.MonthlyRent,
-                                     c.DepositAmount,
-                                     c.Terms,
-                                     StandardOccupants = rs != null ? rs.MaxOccupants : 2, // Lấy Max làm giá trị hiển thị ở UI
-                                     ExtraOccupantFee = rs != null ? rs.ExtraOccupantFee : 0,
-                                     SelectedServiceIds = _db.RoomServiceSettings
+                                     contractId = c.ContractId,
+                                     roomId = c.RoomId,
+                                     primaryTenantId = c.PrimaryTenantId,
+                                     primaryTenantName = c.PrimaryTenant.FullName,
+                                     startDate = c.StartDate,
+                                     endDate = c.EndDate,
+                                     monthlyRent = c.MonthlyRent,
+                                     depositAmount = c.DepositAmount,
+                                     terms = c.Terms,
+                                     standardOccupants = rs != null ? rs.MaxOccupants : 2, 
+                                     extraOccupantFee = rs != null ? rs.ExtraOccupantFee : 0,
+                                     selectedServiceIds = _db.RoomServiceSettings
                                          .Where(rss => rss.RoomId == roomId && rss.IsActive)
                                          .Select(rss => rss.ServiceId)
                                          .ToList()
