@@ -89,7 +89,7 @@ namespace UserManagementSystem.Controllers
             if (string.IsNullOrEmpty(adminIdStr)) return Unauthorized(new { success = false, message = "Vui lòng đăng nhập lại." });
             
             var adminId = int.Parse(adminIdStr);
-            var result = await _invoiceService.VerifyPaymentAsync(request.InvoiceId, request.Approved, adminId);
+            var result = await _invoiceService.VerifyPaymentAsync(request.InvoiceId, request.Approved, adminId, request.ActualAmount);
             return Ok(result);
         }
 
@@ -97,6 +97,7 @@ namespace UserManagementSystem.Controllers
         {
             public int InvoiceId { get; set; }
             public bool Approved { get; set; }
+            public decimal? ActualAmount { get; set; }
         }
     }
 }

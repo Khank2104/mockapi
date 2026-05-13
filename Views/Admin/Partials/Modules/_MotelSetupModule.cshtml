@@ -4,70 +4,299 @@
         <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="switchModule('motels')">
             <i class="bi bi-arrow-left"></i>
         </button>
-        <h2 class="fw-bold fs-4 mb-0">Thiết lập Khu trọ: <span id="setup-motel-name" class="text-primary">---</span></h2>
+        <h2 class="fw-bold fs-4 mb-0">
+            Thiết lập Khu trọ: <span id="setup-motel-name" class="text-primary">---</span>
+            <button class="btn btn-sm btn-outline-primary ms-2 rounded-circle" onclick="openEditMotel()" title="Chỉnh sửa thông tin khu trọ">
+                <i class="bi bi-pencil-fill"></i>
+            </button>
+        </h2>
     </div>
 
-    <div class="row g-4">
-        <div class="col-lg-4" id="setup-floor-card">
-            <div class="glass-card h-100">
-                <h3 class="fw-bold fs-5 mb-3"><i class="bi bi-layers-fill me-2"></i>Khai báo Tầng</h3>
-                <form id="setupFloorForm">
-                    <input type="hidden" id="setup-motelId" name="MotelId">
-                    <div class="mb-3">
-                        <label class="form-label">Tên tầng (VD: Tầng 1)</label>
-                        <input type="text" class="form-control" name="FloorName" required>
+    <div class="glass-card">
+        <style>
+            #setupTabs .nav-link {
+                background-color: rgba(255, 255, 255, 0.5);
+                color: #495057;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+            #setupTabs .nav-link:hover {
+                background-color: rgba(255, 255, 255, 0.9);
+                color: var(--bs-primary);
+            }
+            #setupTabs .nav-link.active {
+                background-color: var(--bs-primary);
+                color: white;
+                border-color: var(--bs-primary);
+                box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.3);
+            }
+        </style>
+        <!-- Tabs Nav -->
+        <ul class="nav nav-pills mb-4 gap-3" id="setupTabs" role="tablist">
+            <li class="nav-item" role="presentation" id="tab-floor-container">
+                <button class="nav-link active rounded-pill px-4 fw-bold shadow-sm" id="floor-tab" data-bs-toggle="pill" data-bs-target="#floor-pane" type="button" role="tab">
+                    <i class="bi bi-layers-fill me-2"></i> Quản lý Tầng
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" id="tab-room-container">
+                <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="room-tab" data-bs-toggle="pill" data-bs-target="#room-pane" type="button" role="tab">
+                    <i class="bi bi-door-open-fill me-2"></i> Quản lý Phòng
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content" id="setupTabsContent">
+            <!-- Floor Pane -->
+            <div class="tab-pane fade show active" id="floor-pane" role="tabpanel" tabindex="0">
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <h4 class="fw-bold fs-6 mb-3">Thêm Tầng Mới</h4>
+                        <form id="setupFloorForm">
+                            <input type="hidden" id="setup-motelId" name="MotelId">
+                            <div class="mb-3">
+                                <label class="form-label">Tên tầng (VD: Tầng 1)</label>
+                                <input type="text" class="form-control" name="FloorName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Số thứ tự tầng (1, 2...)</label>
+                                <input type="number" class="form-control" name="FloorNumber" required>
+                            </div>
+                            <button type="button" class="btn btn-premium w-100" onclick="submitSetupFloor()">Thêm Tầng</button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Số thứ tự tầng (1, 2...)</label>
-                        <input type="number" class="form-control" name="FloorNumber" required>
+                    <div class="col-lg-8">
+                        <h4 class="fw-bold fs-6 mb-3">Danh sách tầng</h4>
+                        <div class="table-container">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>TÊN TẦNG</th>
+                                        <th class="text-end">THAO TÁC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="setup-floors-list">
+                                    <tr><td colspan="2" class="text-center py-3 text-muted">Chưa có tầng nào.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <button type="button" class="btn btn-premium w-100" onclick="submitSetupFloor()">Thêm Tầng</button>
-                </form>
+                </div>
             </div>
-        </div>
-        
-        <div class="col-lg-8" id="setup-room-card">
-            <div class="glass-card h-100">
-                <h3 class="fw-bold fs-5 mb-3"><i class="bi bi-door-open-fill me-2"></i>Khai báo Phòng</h3>
-                <form id="setupRoomForm" class="row g-3">
-                    <input type="hidden" id="setup-room-motelId" name="MotelId">
-                    <div class="col-md-6" id="setup-floor-select-container">
-                        <label class="form-label">Thuộc Tầng</label>
-                        <select class="form-select" name="FloorId" id="setup-floor-select">
-                            <option value="">Đang tải...</option>
-                        </select>
+
+            <!-- Room Pane -->
+            <div class="tab-pane fade" id="room-pane" role="tabpanel" tabindex="0">
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <h4 class="fw-bold fs-6 mb-3">Thêm Phòng Mới</h4>
+                        
+                        <!-- Toggle Single / Bulk -->
+                        <div class="btn-group w-100 mb-3" role="group">
+                            <input type="radio" class="btn-check" name="roomAddType" id="addSingleRoom" value="single" checked onchange="toggleRoomAddType()">
+                            <label class="btn btn-outline-primary" for="addSingleRoom">Thêm 1 Phòng</label>
+
+                            <input type="radio" class="btn-check" name="roomAddType" id="addBulkRoom" value="bulk" onchange="toggleRoomAddType()">
+                            <label class="btn btn-outline-primary" for="addBulkRoom">Thêm Nhiều</label>
+                        </div>
+
+                        <!-- Single Room Form -->
+                        <form id="setupRoomForm" class="row g-3">
+                            <input type="hidden" id="setup-room-motelId" name="MotelId">
+                            <div class="col-12" id="setup-floor-select-container">
+                                <label class="form-label">Thuộc Tầng</label>
+                                <select class="form-select" name="FloorId" id="setup-floor-select">
+                                    <option value="">Đang tải...</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Mã phòng</label>
+                                <input type="text" class="form-control" name="RoomCode" placeholder="VD: 101" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Diện tích (m2)</label>
+                                <input type="number" class="form-control" name="Area" required>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="button" class="btn btn-premium w-100" onclick="submitSetupRoom()">Thêm Phòng</button>
+                            </div>
+                        </form>
+
+                        <!-- Bulk Room Form (Hidden by default) -->
+                        <form id="setupBulkRoomForm" class="row g-3 d-none">
+                            <input type="hidden" id="setup-bulk-motelId" name="MotelId">
+                            <div class="col-12" id="setup-bulk-floor-select-container">
+                                <label class="form-label">Thuộc Tầng</label>
+                                <select class="form-select" name="FloorId" id="setup-bulk-floor-select">
+                                    <option value="">Đang tải...</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Số lượng</label>
+                                <input type="number" class="form-control" name="Quantity" min="1" max="50" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Diện tích</label>
+                                <input type="number" class="form-control" name="Area" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Mã phòng bắt đầu</label>
+                                <input type="text" class="form-control" name="StartCode" placeholder="VD: 101 (Sẽ tạo 101, 102...)" required>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="button" class="btn btn-premium w-100" onclick="submitSetupBulkRoom()" id="btn-bulk-add">
+                                    <i class="bi bi-magic me-1"></i> Tạo Hàng Loạt
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Mã phòng (VD: 101)</label>
-                        <input type="text" class="form-control" name="RoomCode" required>
+
+                    <div class="col-lg-8">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h4 class="fw-bold fs-6 mb-0">Danh sách phòng</h4>
+                            <!-- Filter options -->
+                            <div class="d-flex gap-2">
+                                <select class="form-select form-select-sm" id="filter-room-floor" onchange="renderRoomTable(1)" style="max-width: 150px;">
+                                    <option value="all">Tất cả tầng</option>
+                                </select>
+                                <input type="text" class="form-control form-control-sm" id="filter-room-search" placeholder="Tìm mã phòng..." onkeyup="renderRoomTable(1)" style="max-width: 150px;">
+                            </div>
+                        </div>
+
+                        <div class="table-container position-relative">
+                            <!-- Overlay loading -->
+                            <div id="room-table-loading" class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center d-none" style="z-index: 10;">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
+
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>TẦNG</th>
+                                        <th>MÃ PHÒNG</th>
+                                        <th>DIỆN TÍCH</th>
+                                        <th class="text-end">THAO TÁC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="setup-rooms-list">
+                                    <tr><td colspan="4" class="text-center py-3 text-muted">Chưa có phòng nào.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination Controls -->
+                        <div class="d-flex justify-content-between align-items-center mt-3" id="room-pagination-container">
+                            <span class="small text-muted" id="room-pagination-info">Hiển thị 0 phòng</span>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0" id="room-pagination-nav">
+                                    <!-- Populated by JS -->
+                                </ul>
+                            </nav>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Diện tích (m2)</label>
-                        <input type="number" class="form-control" name="Area" required>
-                    </div>
-                    <div class="col-12 mt-3">
-                        <button type="button" class="btn btn-premium" onclick="submitSetupRoom()">Thêm Phòng</button>
-                    </div>
-                </form>
-                
-                <hr class="my-4">
-                <h4 class="fw-bold fs-6 mb-3">Danh sách phòng</h4>
-                <div class="table-container">
-                    <table class="premium-table">
-                        <thead>
-                            <tr>
-                                <th>TẦNG</th>
-                                <th>MÃ PHÒNG</th>
-                                <th>DIỆN TÍCH</th>
-                                <th>THAO TÁC</th>
-                            </tr>
-                        </thead>
-                        <tbody id="setup-rooms-list">
-                            <tr><td colspan="4" class="text-center py-3 text-muted">Chưa có phòng nào.</td></tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- Modals for Editing -->
+
+<!-- Modal Edit Motel -->
+<div class="modal fade" id="editMotelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-light border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-building-gear text-primary me-2"></i>Chỉnh sửa Khu trọ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editMotelForm">
+                    <input type="hidden" name="MotelId" id="edit-motel-id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên khu trọ</label>
+                        <input type="text" class="form-control" name="MotelName" id="edit-motel-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Địa chỉ</label>
+                        <input type="text" class="form-control" name="Address" id="edit-motel-address" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả thêm</label>
+                        <textarea class="form-control" name="Description" id="edit-motel-description" rows="2"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="UseFloorManagement" id="edit-motel-useFloors" value="true">
+                            <label class="form-check-label fw-bold" for="edit-motel-useFloors">Quản lý theo tầng</label>
+                        </div>
+                        <small class="text-muted d-block mt-1">Lưu ý: Nếu tắt quản lý tầng, tất cả các phòng sẽ hiển thị chung.</small>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-2" onclick="submitEditMotel()">Lưu Thay Đổi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Floor -->
+<div class="modal fade" id="editFloorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-light border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-layers-fill text-primary me-2"></i>Chỉnh sửa Tầng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editFloorForm">
+                    <input type="hidden" name="FloorId" id="edit-floor-id">
+                    <input type="hidden" name="MotelId" id="edit-floor-motelId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên tầng (VD: Tầng 1)</label>
+                        <input type="text" class="form-control" name="FloorName" id="edit-floor-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số thứ tự tầng (1, 2...)</label>
+                        <input type="number" class="form-control" name="FloorNumber" id="edit-floor-number" required>
+                    </div>
+                    <input type="hidden" name="Status" value="Active">
+                    <button type="button" class="btn btn-premium w-100 py-2" onclick="submitEditFloor()">Lưu Tầng</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Room -->
+<div class="modal fade" id="editRoomModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-light border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-door-open-fill text-primary me-2"></i>Chỉnh sửa Phòng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editRoomForm">
+                    <input type="hidden" name="RoomId" id="edit-room-id">
+                    <input type="hidden" name="MotelId" id="edit-room-motelId">
+                    <input type="hidden" name="Status" id="edit-room-status">
+                    
+                    <div class="mb-3" id="edit-room-floor-select-container">
+                        <label class="form-label fw-bold">Thuộc Tầng</label>
+                        <select class="form-select" name="FloorId" id="edit-room-floor-select">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mã phòng (VD: 101)</label>
+                        <input type="text" class="form-control" name="RoomCode" id="edit-room-code" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Diện tích (m2)</label>
+                        <input type="number" class="form-control" name="Area" id="edit-room-area" required>
+                    </div>
+                    <button type="button" class="btn btn-premium w-100 py-2" onclick="submitEditRoom()">Lưu Phòng</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -13,6 +13,6 @@ namespace UserManagementSystem.Services
         Task<ApiResponse> TerminateContractAsync(int contractId, int adminId);
         Task<ApiResponse> GetAllContractsAsync(int adminId, int? motelId = null, int page = 1, int pageSize = 10);
         Task<ApiResponse> GetActiveContractByRoomAsync(int roomId);
-        Task<ApiResponse> UpdateContractAsync(int contractId, ContractRequest request);
+        Task<ApiResponse> UpdateContractAsync(int contractId, ContractRequest request, int adminId);
     }
 }

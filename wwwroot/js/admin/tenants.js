@@ -1,13 +1,26 @@
         let currentTenantPage = 1;
         let totalTenantPages = 1;
 
-        async function loadTenantsData(page = 1) {
+        async function loadTenantsData(page = 1, motelId = window._globalSelectedMotelId) {
             currentTenantPage = page;
             const container = document.getElementById('tenant-list-container');
             const search = document.getElementById('tenant-search-input').value;
             
+            // UI indicator for selected motel
+            const badge = document.getElementById('tenant-motel-badge');
+            const nameSpan = document.getElementById('tenant-selected-motel-name');
+            if (motelId && window._allMotelsCache.length > 0) {
+                const motel = window._allMotelsCache.find(m => m.motelId == motelId);
+                if (motel) {
+                    nameSpan.innerText = motel.motelName;
+                    badge.classList.remove('d-none');
+                }
+            } else {
+                badge.classList.add('d-none');
+            }
+
             try {
-                const response = await fetch(`/api/TenantManagement/GetAllTenants?searchTerm=${encodeURIComponent(search)}&page=${page}&pageSize=10`);
+                const response = await fetch(`/api/TenantManagement/GetAllTenants?searchTerm=${encodeURIComponent(search)}&page=${page}&pageSize=12${motelId ? `&motelId=${motelId}` : ''}`);
                 const result = await response.json();
                 
                 if (result.success) {
@@ -15,38 +28,51 @@
                     totalTenantPages = totalPages;
 
                     if (items.length === 0) {
-                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Không tìm thấy khách thuê phù hợp.</td></tr>';
+                        container.innerHTML = '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-person-x fs-1 d-block mb-3 opacity-25"></i><p>Không tìm thấy khách thuê phù hợp.</p></div>';
                         updateTenantPaginationUI(0, 0, 0, 1, 1);
                         return;
                     }
 
-                    container.innerHTML = items.map(t => `
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(t.fullName)}&background=6366f1&color=fff" class="rounded-circle" style="width: 38px; height: 38px;">
-                                    <div>
-                                        <div class="fw-bold">${t.fullName}</div>
-                                        <div class="x-small text-muted">CCCD: ${t.idCard || 'Chưa cập nhật'}</div>
+                    container.innerHTML = items.map(t => {
+                        const statusLabel = t.status === 'Staying' ? 'Đang ở' : t.status === 'Prospective' ? 'Chưa vào ở' : t.status;
+                        const statusClass = (t.status === 'Staying' || t.status === 'Active') ? 'bg-success' : (t.status === 'Prospective' ? 'bg-warning' : 'bg-secondary');
+                        
+                        return `
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <div class="glass-card h-100 p-4 d-flex flex-column align-items-center text-center tenant-card position-relative">
+                                <span class="badge ${statusClass} bg-opacity-10 ${statusClass.replace('bg-', 'text-')} rounded-pill px-3 py-1 position-absolute top-0 end-0 m-3 x-small fw-bold">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.4rem;"></i>${statusLabel}
+                                </span>
+                                
+                                <div class="mb-3 position-relative">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(t.fullName)}&background=6366f1&color=fff&size=100" 
+                                         class="rounded-circle shadow-sm border border-2 border-white" style="width: 80px; height: 80px; object-fit: cover;">
+                                    ${t.currentRoomCode !== 'N/A' ? '<div class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width:24px; height:24px; border: 2px solid white;"><i class="bi bi-house-door-fill" style="font-size: 0.7rem;"></i></div>' : ''}
+                                </div>
+                                
+                                <h5 class="fw-bold mb-1">${t.fullName}</h5>
+                                <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 mb-3 small">
+                                    ${t.currentRoomCode !== 'N/A' ? 'Phòng ' + t.currentRoomCode : 'Chưa có phòng'}
+                                </div>
+                                
+                                <div class="vstack gap-2 w-100 mb-4">
+                                    <div class="d-flex align-items-center justify-content-center gap-2 small text-muted">
+                                        <i class="bi bi-phone-fill text-primary"></i>
+                                        <span>${t.phone || 'N/A'}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-center gap-2 small text-muted text-truncate">
+                                        <i class="bi bi-envelope-at-fill text-primary"></i>
+                                        <span class="text-truncate" title="${t.email || 'N/A'}">${t.email || 'N/A'}</span>
                                     </div>
                                 </div>
-                            </td>
-                            <td><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">${t.currentRoomCode !== 'N/A' ? 'Phòng ' + t.currentRoomCode : 'Chưa có phòng'}</span></td>
-                            <td>
-                                <div class="small"><i class="bi bi-phone text-primary me-1"></i>${t.phone || 'N/A'}</div>
-                                <div class="x-small text-muted"><i class="bi bi-envelope me-1"></i>${t.email || 'N/A'}</div>
-                            </td>
-                            <td>
-                                <span class="status-pill ${t.status === 'Active' || t.status === 'Staying' ? 'status-active' : 'status-locked'}">
-                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.4rem;"></i>
-                                    ${t.status === 'Staying' ? 'Đang ở' : t.status === 'Prospective' ? 'Chưa vào ở' : t.status}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-premium px-3 rounded-pill" onclick='viewTenantDetails(${JSON.stringify(t).replace(/'/g, "&apos;")})'>Chi tiết</button>
-                            </td>
-                        </tr>
-                    `).join('');
+                                
+                                <button class="btn btn-premium w-100 rounded-pill mt-auto" onclick='viewTenantDetails(${JSON.stringify(t).replace(/'/g, "&apos;")})'>
+                                    <i class="bi bi-info-circle me-1"></i>Xem chi tiết
+                                </button>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
 
                     const start = (currentPage - 1) * 10 + 1;
                     const end = start + items.length - 1;
@@ -69,7 +95,7 @@
         function changeTenantPage(delta) {
             const next = currentTenantPage + delta;
             if (next >= 1 && next <= totalTenantPages) {
-                loadTenantsData(next);
+                loadTenantsData(next, window._globalSelectedMotelId);
             }
         }
 

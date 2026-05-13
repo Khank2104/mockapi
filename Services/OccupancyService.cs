@@ -7,10 +7,12 @@ namespace UserManagementSystem.Services
     public class OccupancyService : IOccupancyService
     {
         private readonly ApplicationDbContext _db;
+        private readonly IAccessControlService _accessControl;
 
-        public OccupancyService(ApplicationDbContext db)
+        public OccupancyService(ApplicationDbContext db, IAccessControlService accessControl)
         {
             _db = db;
+            _accessControl = accessControl;
         }
 
         public async Task<ApiResponse> AddOccupantAsync(RoomOccupantRequest request, int adminId)
@@ -21,7 +23,7 @@ namespace UserManagementSystem.Services
                 .Include(r => r.Occupants)
                 .FirstOrDefaultAsync(r => r.RoomId == request.RoomId);
 
-            if (room == null || room.Motel.OwnerUserId != adminId)
+            if (room == null || !await _accessControl.IsAdminOfMotelAsync(adminId, room.MotelId))
                 return new ApiResponse { Success = false, Message = "Không tìm thấy phòng hoặc bạn không có quyền." };
 
             if (room.Setting != null && room.Occupants.Count(o => o.Status == "Staying") >= room.Setting.MaxOccupants)
@@ -57,7 +59,7 @@ namespace UserManagementSystem.Services
                 .ThenInclude(r => r.Motel)
                 .FirstOrDefaultAsync(o => o.RoomOccupantId == roomOccupantId);
 
-            if (occupant == null || occupant.Room.Motel.OwnerUserId != adminId)
+            if (occupant == null || !await _accessControl.IsAdminOfMotelAsync(adminId, occupant.Room.MotelId))
                 return new ApiResponse { Success = false, Message = "Không tìm thấy thông tin người ở hoặc bạn không có quyền." };
 
             occupant.Status = "MovedOut";
@@ -75,7 +77,7 @@ namespace UserManagementSystem.Services
                 .Include(r => r.Floor)
                 .FirstOrDefaultAsync(r => r.RoomId == request.RoomId);
 
-            if (room == null || room.Motel.OwnerUserId != adminId)
+            if (room == null || !await _accessControl.IsAdminOfMotelAsync(adminId, room.MotelId))
                 return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
             if (room.Floor != null && (room.Floor.Status == "Inactive" || room.Floor.Status == "Maintenance"))
@@ -182,7 +184,7 @@ namespace UserManagementSystem.Services
                 .ThenInclude(r => r.Motel)
                 .FirstOrDefaultAsync(c => c.ContractId == contractId);
 
-            if (contract == null || contract.Room.Motel.OwnerUserId != adminId)
+            if (contract == null || !await _accessControl.IsAdminOfMotelAsync(adminId, contract.Room.MotelId))
                 return new ApiResponse { Success = false, Message = "Không tìm thấy hợp đồng hoặc quyền hạn không đủ." };
 
             int roomId = contract.RoomId;
@@ -201,7 +203,7 @@ namespace UserManagementSystem.Services
                 occupant.UpdatedAt = DateTime.Now;
             }
 
-            // 3. Vô hiệu hóa tài khoản của các khách thuê (nếu có)
+            // 3. Xóa tài khoản của các khách thuê (xóa User record)
             var tenantIds = occupants.Select(o => o.TenantId).ToList();
             var tenants = await _db.Tenants.Where(t => tenantIds.Contains(t.TenantId)).ToListAsync();
             foreach (var tenant in tenants)
@@ -212,9 +214,11 @@ namespace UserManagementSystem.Services
                     var user = await _db.Users.FindAsync(tenant.UserId.Value);
                     if (user != null)
                     {
-                        user.Status = "Inactive";
+                        _db.Users.Remove(user);
                     }
+                    tenant.UserId = null; // Đảm bảo null hóa UserId để giữ lại hồ sơ Tenant
                 }
+                tenant.UpdatedAt = DateTime.Now;
             }
 
             // 4. Đặt phòng lại trạng thái Trống (Vacant)
@@ -227,7 +231,7 @@ namespace UserManagementSystem.Services
 
             await _db.SaveChangesAsync();
 
-            return new ApiResponse { Success = true, Message = "Đã chấm dứt hợp đồng thành công. Dữ liệu cũ đã được lưu trữ vào lịch sử." };
+            return new ApiResponse { Success = true, Message = "Đã thanh lý hợp đồng và xóa tài khoản khách thuê thành công. Dữ liệu tài chính đã được lưu trữ an toàn." };
         }
 
         public async Task<ApiResponse> GetAllContractsAsync(int adminId, int? motelId = null, int page = 1, int pageSize = 10)
@@ -310,10 +314,15 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Data = contract };
         }
 
-        public async Task<ApiResponse> UpdateContractAsync(int contractId, ContractRequest request)
+        public async Task<ApiResponse> UpdateContractAsync(int contractId, ContractRequest request, int adminId)
         {
-            var contract = await _db.Contracts.FindAsync(contractId);
-            if (contract == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hợp đồng." };
+            var contract = await _db.Contracts
+                .Include(c => c.Room)
+                .ThenInclude(r => r.Motel)
+                .FirstOrDefaultAsync(c => c.ContractId == contractId);
+
+            if (contract == null || !await _accessControl.IsAdminOfMotelAsync(adminId, contract.Room.MotelId))
+                return new ApiResponse { Success = false, Message = "Không tìm thấy hợp đồng hoặc bạn không có quyền." };
 
             contract.MonthlyRent = request.MonthlyRent;
             contract.DepositAmount = request.DepositAmount;

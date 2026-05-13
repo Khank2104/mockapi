@@ -12,6 +12,7 @@ namespace UserManagementSystem.Services
         // Floor
         Task<ApiResponse> CreateFloorAsync(FloorRequest request, int adminId);
         Task<ApiResponse> UpdateFloorAsync(int floorId, FloorRequest request, int adminId);
+        Task<ApiResponse> DeleteFloorAsync(int floorId, int adminId);
         
     }
 }

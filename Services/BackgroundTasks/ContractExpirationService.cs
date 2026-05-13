@@ -98,10 +98,31 @@ namespace UserManagementSystem.Services.BackgroundTasks
                     contract.UpdatedAt = now;
 
                     // Đảm bảo phòng ở trạng thái Trống (Vacant)
-                    var room = await db.Rooms.FindAsync(contract.RoomId);
-                    if (room != null && room.Status != "Vacant")
+                    var room = await db.Rooms
+                        .Include(r => r.Occupants)
+                            .ThenInclude(o => o.Tenant)
+                        .FirstOrDefaultAsync(r => r.RoomId == contract.RoomId);
+
+                    if (room != null)
                     {
                         room.Status = "Vacant";
+                        // Xóa tài khoản User của những người ở (nếu chưa bị xóa)
+                        foreach (var occ in room.Occupants)
+                        {
+                            if (occ.Tenant != null)
+                            {
+                                occ.Tenant.TenantStatus = "MovedOut";
+                                if (occ.Tenant.UserId.HasValue)
+                                {
+                                    var user = await db.Users.FindAsync(occ.Tenant.UserId.Value);
+                                    if (user != null)
+                                    {
+                                        db.Users.Remove(user);
+                                    }
+                                    occ.Tenant.UserId = null;
+                                }
+                            }
+                        }
                     }
                 }
                 await db.SaveChangesAsync();

@@ -68,7 +68,7 @@ namespace UserManagementSystem.Controllers
         [HttpPut("UpdateContract/{id}")]
         public async Task<IActionResult> UpdateContract(int id, [FromBody] ContractRequest request)
         {
-            var result = await _occupancyService.UpdateContractAsync(id, request);
+            var result = await _occupancyService.UpdateContractAsync(id, request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
     }

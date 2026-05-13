@@ -1,5 +1,6 @@
 @{
-    Layout = "_TenantLayout";
+    var role = User.FindFirst("role")?.Value?.ToLower();
+    Layout = (role == "superuser" || role == "admin") ? "_AdminLayout" : "_TenantLayout";
     ViewData["Title"] = "Hồ sơ cá nhân";
 }
 

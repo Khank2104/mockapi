@@ -1,19 +1,26 @@
 <!-- Floor Map Module -->
 <section id="module-motels" class="module-section d-none">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold fs-4 mb-1">Sơ đồ Phòng & Tầng</h2>
-            <p class="text-muted small mb-0">Click vào phòng để xem chi tiết và cấu hình dịch vụ</p>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <h2 class="fw-bold fs-4 mb-0">Sơ đồ Phòng & Tầng</h2>
+            <div id="floormap-motel-badge" class="badge bg-primary bg-opacity-10 text-primary rounded-pill d-none">
+                <i class="bi bi-building me-1"></i> <span id="floormap-selected-motel-name">--</span>
+            </div>
         </div>
         <div class="d-flex gap-2">
-            <select id="floormap-motel-select" class="form-select rounded-4" onchange="loadFloormapForMotel()" style="min-width:200px">
-                <option value="">-- Chọn khu trọ --</option>
-            </select>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 d-none" id="btn-open-setup" onclick="openCurrentMotelSetup()">
+                <i class="bi bi-gear-fill me-1"></i> Thiết lập
+            </button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="changeGlobalMotel('motels')">
+                <i class="bi bi-arrow-left-right me-1"></i> Đổi khu trọ
+            </button>
             <button class="btn btn-premium" onclick="showAddMotelModal()">
                 <i class="bi bi-plus-lg"></i> <span class="d-none d-md-inline">Thêm khu trọ</span>
             </button>
         </div>
     </div>
+    <!-- Hidden input for compatibility -->
+    <input type="hidden" id="floormap-motel-select" value="">
     <!-- Floor Tabs + Room Grid -->
     <div id="floormap-container">
         <div class="text-center py-5 text-muted">
@@ -38,9 +45,6 @@
                 <div class="col-lg-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold text-muted small mb-0"><i class="bi bi-cash-stack me-2"></i>TÀI CHÍNH</h6>
-                        <button class="btn btn-sm btn-link text-primary p-0 x-small fw-bold" onclick="showEditContractModal()" id="fmp-edit-contract-btn">
-                            <i class="bi bi-pencil-square me-1"></i>Sửa HĐ
-                        </button>
                     </div>
                     <div class="vstack gap-3" id="fmp-finance-info">
                         <div class="d-flex justify-content-between align-items-center p-3 rounded-4 bg-light border">

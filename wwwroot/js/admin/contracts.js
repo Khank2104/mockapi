@@ -1,57 +1,106 @@
-        let currentContractPage = 1;
+let currentContractPage = 1;
         let totalContractPages = 1;
 
-        async function loadContractsData(page = 1) {
+        async function loadContractsData(page = 1, motelId = window._globalSelectedMotelId) {
             currentContractPage = page;
             const container = document.getElementById('contracts-list-container');
-            const motelId = document.getElementById('contract-motel-filter')?.value || 0;
+            
+            // UI indicator for selected motel
+            const badge = document.getElementById('contract-motel-badge');
+            const nameSpan = document.getElementById('contract-selected-motel-name');
+            const filterEl = document.getElementById('contract-motel-filter');
+            const motelIdVal = motelId || (filterEl ? filterEl.value : 0);
+
+            // Show loading spinner while fetching
+            container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Đang tải danh sách hợp đồng...</p></div>';
+
+            if (motelIdVal && motelIdVal != "0" && window._allMotelsCache && window._allMotelsCache.length > 0) {
+                const motel = window._allMotelsCache.find(m => m.motelId == motelIdVal);
+                if (motel) {
+                    if (nameSpan) nameSpan.innerText = motel.motelName;
+                    if (badge) badge.classList.remove('d-none');
+                }
+            } else {
+                if (badge) badge.classList.add('d-none');
+            }
 
             try {
-                const response = await fetch(`/api/OccupancyManagement/GetAllContracts?motelId=${motelId}&page=${page}&pageSize=10`);
+                const response = await fetch(`/api/OccupancyManagement/GetAllContracts?motelId=${motelIdVal}&page=${page}&pageSize=10`);
                 const result = await response.json();
                 
-                if (result.success) {
+                if (result.success && result.data) {
                     const { items, totalCount, totalPages, currentPage } = result.data;
                     totalContractPages = totalPages;
 
-                    if (items.length === 0) {
-                        container.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">Chưa có hợp đồng nào phù hợp.</td></tr>`;
+                    if (!items || items.length === 0) {
+                        container.innerHTML = `
+                            <div class="col-12 text-center py-5">
+                                <div class="empty-state border-0 bg-transparent">
+                                    <i class="bi bi-file-earmark-x fs-1 opacity-25"></i>
+                                    <h4 class="text-muted mt-3">Chưa có hợp đồng nào</h4>
+                                    <p class="text-muted small">Khu trọ này hiện chưa có dữ liệu hợp đồng nào được tạo.</p>
+                                </div>
+                            </div>`;
                         updateContractPaginationUI(0, 0, 0, 1, 1);
                         return;
                     }
 
                     container.innerHTML = items.map(c => `
-                        <tr>
-                            <td>
-                                <div class="fw-bold text-primary">Phòng ${c.roomCode || 'N/A'}</div>
-                                <div class="x-small text-muted">${c.motelName || ''}</div>
-                            </td>
-                            <td>${c.tenantName || 'N/A'}</td>
-                            <td class="fw-bold">${(c.monthlyRent || 0).toLocaleString()}đ</td>
-                            <td>${(c.depositAmount || 0).toLocaleString()}đ</td>
-                            <td class="small">${c.startDate ? new Date(c.startDate).toLocaleDateString('vi-VN') : 'N/A'} - ${c.endDate ? new Date(c.endDate).toLocaleDateString('vi-VN') : 'Không xác định'}</td>
-                            <td>
-                                <span class="status-pill ${c.contractStatus === 'Active' ? 'status-active' : c.contractStatus === 'Waiting' ? 'status-waiting' : 'status-locked'}">
-                                    ${c.contractStatus === 'Active' ? 'Hiệu lực' : c.contractStatus === 'Waiting' ? 'Chờ dời đi' : c.contractStatus}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="openEditContractFromList(${c.roomId}, '${c.roomCode}')">
-                                        <i class="bi bi-pencil-square"></i> Sửa
-                                    </button>
-                                    ${c.contractStatus === 'Active' ? `<button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="terminateContract(${c.contractId})">Chấm dứt</button>` : '<span class="text-muted small">Đã kết thúc</span>'}
+                        <div class="col-md-6 col-lg-4 col-xl-3 animate-fade-in">
+                            <div class="glass-card contract-card p-4 h-100 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill mb-2 px-3">Phòng ${c.roomCode || 'N/A'}</div>
+                                        <h5 class="fw-bold mb-0">${c.tenantName || 'N/A'}</h5>
+                                    </div>
+                                    <span class="status-pill ${c.contractStatus === 'Active' ? 'status-active' : c.contractStatus === 'Waiting' ? 'status-waiting' : 'status-locked'}">
+                                        ${c.contractStatus === 'Active' ? 'Hiệu lực' : c.contractStatus === 'Waiting' ? 'Sắp đi' : 'Kết thúc'}
+                                    </span>
                                 </div>
-                            </td>
-                        </tr>
+                                
+                                <div class="flex-grow-1 p-3 bg-light rounded-4 mb-3">
+                                    <div class="card-info-row d-flex justify-content-between mb-2">
+                                        <span class="text-muted small">Giá thuê:</span>
+                                        <span class="fw-bold text-primary">${(c.monthlyRent || 0).toLocaleString()}đ</span>
+                                    </div>
+                                    <div class="card-info-row d-flex justify-content-between mb-2">
+                                        <span class="text-muted small">Tiền cọc:</span>
+                                        <span class="fw-bold text-dark">${(c.depositAmount || 0).toLocaleString()}đ</span>
+                                    </div>
+                                    <div class="card-info-row d-flex justify-content-between border-0">
+                                        <span class="text-muted small">Thời hạn:</span>
+                                        <span class="small fw-bold">${c.startDate ? new Date(c.startDate).toLocaleDateString('vi-VN') : 'N/A'} - ${c.endDate ? new Date(c.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex gap-2 mt-auto">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill flex-grow-1" onclick="openEditContractFromList(${c.roomId}, '${c.roomCode}')">
+                                        <i class="bi bi-pencil-square me-1"></i> Sửa
+                                    </button>
+                                    ${c.contractStatus === 'Active' ? `
+                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="terminateContract(${c.contractId})" title="Chấm dứt">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>` : ''}
+                                </div>
+                            </div>
+                        </div>
                     `).join('');
 
                     const start = (currentPage - 1) * 10 + 1;
                     const end = start + items.length - 1;
                     updateContractPaginationUI(start, end, totalCount, currentPage, totalPages);
+                } else {
+                    throw new Error("Invalid API response");
                 }
             } catch (e) { 
                 console.error("Contracts load error", e); 
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <div class="alert alert-soft-danger d-inline-block px-5 rounded-4">
+                            <i class="bi bi-exclamation-triangle fs-4 d-block mb-2"></i>
+                            Lỗi khi tải danh sách hợp đồng. Vui lòng thử lại.
+                        </div>
+                    </div>`;
             }
         }
 
@@ -71,7 +120,7 @@
         function changeContractPage(delta) {
             const next = currentContractPage + delta;
             if (next >= 1 && next <= totalContractPages) {
-                loadContractsData(next);
+                loadContractsData(next, window._globalSelectedMotelId);
             }
         }
 
@@ -84,6 +133,11 @@
                     if (select) {
                         select.innerHTML = '<option value="0">-- Tất cả khu trọ --</option>' + 
                             result.data.map(m => `<option value="${m.motelId}">${m.motelName}</option>`).join('');
+                        
+                        // Sync with global selection if applicable
+                        if (window._globalSelectedMotelId) {
+                            select.value = window._globalSelectedMotelId;
+                        }
                     }
                 }
             } catch (e) {}
@@ -407,15 +461,19 @@ window.renderOccupantsList = renderOccupantsList;
 
 window.submitFullContract = submitFullContract;
         async function terminateContract(id) {
-            if (!confirm("Bạn có chắc chắn muốn chấm dứt hợp đồng này?")) return;
+            if (!confirm("CẢNH BÁO: Bạn có chắc chắn muốn CHẤM DỨT hợp đồng này?\n\n- Tài khoản đăng nhập của khách thuê sẽ bị XÓA.\n- Hồ sơ khách và lịch sử hóa đơn sẽ được LƯU TRỮ để đối soát.\n- Phòng sẽ trở thành trạng thái TRỐNG.")) return;
             try {
                 const response = await fetch(`/api/OccupancyManagement/TerminateContract/${id}`, { method: 'POST' });
                 const result = await response.json();
                 if (result.success) {
-                    showPremiumToast("Đã cập nhật", "Hợp đồng đã được chấm dứt.", "info");
+                    showPremiumToast("Thành công", result.message, "success");
                     loadContractsData();
+                } else {
+                    showPremiumToast("Lỗi", result.message, "danger");
                 }
-            } catch (e) { }
+            } catch (e) { 
+                showPremiumToast("Lỗi", "Không thể kết nối máy chủ.", "danger");
+            }
         }
 
         // --- Data Loading Logic ---

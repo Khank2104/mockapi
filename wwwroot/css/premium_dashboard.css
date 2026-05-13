@@ -461,3 +461,87 @@ body {
     border: none;
     box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
 }
+
+/* Motel Selection Grid Styles */
+.motel-selection-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.motel-selection-card:hover {
+    transform: translateY(-12px) scale(1.02) !important;
+    background: white !important;
+    box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.15), 0 18px 36px -18px rgba(0, 0, 0, 0.1) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+[data-theme='dark'] .motel-selection-card:hover {
+    background: rgba(30, 41, 59, 0.9) !important;
+}
+
+.motel-selection-card .selection-card-icon {
+    transition: all 0.5s ease;
+}
+
+.motel-selection-card:hover .selection-card-icon {
+    transform: rotate(10deg) scale(1.1);
+    background: var(--primary-gradient) !important;
+    color: white !important;
+}
+
+.motel-selection-card h5 {
+    transition: color 0.3s ease;
+}
+
+.motel-selection-card:hover h5 {
+    color: #6366f1;
+}
+
+
+/* Contract & Billing Card Grid Styles */
+.contract-card, .billing-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    border: 1px solid var(--glass-border) !important;
+    background: var(--glass-bg);
+}
+
+.contract-card:hover, .billing-card:hover {
+    transform: translateY(-8px) !important;
+    background: white !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1) !important;
+    border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+[data-theme='dark'] .contract-card, [data-theme='dark'] .billing-card {
+    background: rgba(30, 41, 59, 0.7);
+}
+
+[data-theme='dark'] .contract-card:hover, [data-theme='dark'] .billing-card:hover {
+    background: rgba(30, 41, 59, 0.95) !important;
+}
+
+.card-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+[data-theme='dark'] .card-info-row {
+    border-bottom-color: rgba(255,255,255,0.05);
+}
+
+.card-info-row:last-child {
+    border-bottom: none;
+}
+
+.billing-usage-box {
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 12px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.billing-status-Paid { color: #166534; background: #dcfce7; }
+.billing-status-Pending { color: #92400e; background: #fef3c7; }
+.billing-status-Unpaid { color: #991b1b; background: #fee2e2; }

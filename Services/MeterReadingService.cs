@@ -131,5 +131,23 @@ namespace UserManagementSystem.Services
 
             return new ApiResponse { Success = true, Data = latestReadings };
         }
+        public async Task<ApiResponse> DeleteReadingAsync(int readingId, int adminId)
+        {
+            var reading = await _db.MeterReadings.Include(r => r.Service).FirstOrDefaultAsync(r => r.ReadingId == readingId);
+            if (reading == null) return new ApiResponse { Success = false, Message = "Chỉ số không tồn tại." };
+
+            if (!await _accessControl.CanAccessRoomAsync(reading.RoomId, adminId))
+                return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+
+            // Kiểm tra xem đã có hóa đơn cho kỳ này chưa
+            var hasInvoice = await _db.Invoices.AnyAsync(i => i.RoomId == reading.RoomId && i.BillingMonth == reading.BillingMonth && i.BillingYear == reading.BillingYear);
+            if (hasInvoice)
+                return new ApiResponse { Success = false, Message = "Không thể xóa chỉ số vì hóa đơn của kỳ này đã được phát hành. Vui lòng hủy hóa đơn trước." };
+
+            _db.MeterReadings.Remove(reading);
+            await _db.SaveChangesAsync();
+
+            return new ApiResponse { Success = true, Message = "Đã xóa chỉ số thành công." };
+        }
     }
 }

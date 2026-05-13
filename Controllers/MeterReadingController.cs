@@ -42,5 +42,12 @@ namespace UserManagementSystem.Controllers
             var result = await _readingService.GetLatestReadingsAsync(roomId, GetRequesterId());
             return Ok(result);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _readingService.DeleteReadingAsync(id, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
     }
 }

@@ -25,8 +25,11 @@ const ProfileMain = (() => {
         document.querySelectorAll('.profile-tab-content').forEach(c => c.classList.add('d-none'));
         document.getElementById(`tab-${tabId}`)?.classList.remove('d-none');
 
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const isTenant = user.role && user.role.toLowerCase() === 'tenant';
+
         if (tabId === 'account') AccountInfo.load();
-        if (tabId === 'identity') IdentityInfo.load();
+        if (tabId === 'identity' && isTenant) IdentityInfo.load();
     };
 
     return { init };

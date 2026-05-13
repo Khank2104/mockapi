@@ -78,7 +78,7 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Data = response };
         }
 
-        public async Task<ApiResponse> GetAllProfilesAsync(int adminId, string? searchTerm = null, int page = 1, int pageSize = 10)
+        public async Task<ApiResponse> GetAllProfilesAsync(int adminId, string? searchTerm = null, int page = 1, int pageSize = 10, int? motelId = null)
         {
             if (!await _accessControl.IsAdminOrSuperAsync(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
@@ -86,6 +86,11 @@ namespace UserManagementSystem.Services
                 .Include(t => t.User)
                 .Include(t => t.RoomOccupancies).ThenInclude(ro => ro.Room)
                 .AsQueryable();
+
+            if (motelId.HasValue)
+            {
+                query = query.Where(t => t.RoomOccupancies.Any(ro => ro.Room.MotelId == motelId.Value));
+            }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {

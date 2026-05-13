@@ -1,6 +1,7 @@
 console.log("motels-floormap.js execution started");
 let _allMotels = [];
 let _currentFmpRoomId = null;
+let _currentSetupRooms = [];
 const MANDATORY_CODES = ['ELECTRIC', 'WATER', 'WIFI', 'TRASH', 'CLEAN', 'ELECTRICITY'];
 
 function showAddMotelModal() {
@@ -63,13 +64,14 @@ async function loadMotelsData() {
             sel.innerHTML = '<option value="">-- Chọn khu trọ --</option>' +
                 _allMotels.map(m => `<option value="${m.motelId}">${m.motelName}</option>`).join('');
 
-            // Auto-select if only 1, otherwise reset container state
-            if (_allMotels && _allMotels.length === 1) {
+            // Auto-select if global ID is set or if only 1
+            if (window._globalSelectedMotelId) {
+                sel.value = window._globalSelectedMotelId;
+            } else if (_allMotels && _allMotels.length === 1) {
                 sel.value = _allMotels[0].motelId;
-                loadFloormapForMotel();
-            } else {
-                loadFloormapForMotel(); // This will clear the spinner and show "Select Motel" message
+                window._globalSelectedMotelId = sel.value;
             }
+            loadFloormapForMotel();
         } else {
             console.error("Failed to load motels:", result.message);
             const container = document.getElementById('floormap-container');
@@ -91,12 +93,17 @@ function loadFloormapForMotel() {
 
     if (!motelId) {
         container.innerHTML = '<div class="text-center py-5 text-muted"><i class="bi bi-houses fs-1 d-block mb-3 opacity-25"></i><p>Chọn khu trọ để xem sơ đồ</p></div>';
+        const setupBtn = document.getElementById('btn-open-setup');
+        if (setupBtn) setupBtn.classList.add('d-none');
         return;
     }
 
     if (!_allMotels || _allMotels.length === 0) return;
     const motel = _allMotels.find(m => m.motelId === motelId);
     if (!motel) return;
+
+    const setupBtn = document.getElementById('btn-open-setup');
+    if (setupBtn) setupBtn.classList.remove('d-none');
 
     if (!motel.useFloorManagement) {
         if (!motel.rooms || motel.rooms.length === 0) {
@@ -110,7 +117,7 @@ function loadFloormapForMotel() {
             </button>
         </div>`;
         } else {
-            let html = '<div class="row g-3">';
+            let html = '<div class="row g-3 justify-content-center">';
             motel.rooms.forEach(r => {
                 const statusColor = r.status === 'Occupied' ? '#22c55e' : r.status === 'Maintenance' ? '#f59e0b' : '#6366f1';
                 const statusLabel = r.status === 'Occupied' ? 'Đang ở' : r.status === 'Maintenance' ? 'Bảo trì' : 'Trống';
@@ -236,15 +243,6 @@ async function openFmpRoom(roomId, roomCode, statusLabel) {
             document.getElementById('fmp-rent').innerText = s.baseRent ? s.baseRent.toLocaleString() + 'đ' : 'Chưa thiết lập';
             document.getElementById('fmp-deposit').innerText = s.depositAmount ? s.depositAmount.toLocaleString() + 'đ' : 'Chưa thiết lập';
 
-            const editBtn = document.getElementById('fmp-edit-contract-btn');
-            if (editBtn) {
-                if (statusLabel.includes('Đang ở')) {
-                    editBtn.classList.remove('d-none');
-                } else {
-                    editBtn.classList.add('d-none');
-                }
-            }
-
             // Services
             if (serviceResult.success && serviceResult.data) {
                 const services = serviceResult.data;
@@ -318,24 +316,34 @@ function openMotelSetup(motelId, motelName, useFloorManagement) {
     document.getElementById('setup-motelId').value = motelId;
     document.getElementById('setup-room-motelId').value = motelId;
 
-    const floorCard = document.getElementById('setup-floor-card');
-    const roomCard = document.getElementById('setup-room-card');
-    const floorSelectContainer = document.getElementById('setup-floor-select-container');
+    document.getElementById('setup-bulk-motelId').value = motelId;
 
     if (!useFloorManagement) {
-        if (floorCard) floorCard.classList.add('d-none');
-        if (roomCard) {
-            roomCard.classList.remove('col-lg-8');
-            roomCard.classList.add('col-lg-12');
-        }
-        if (floorSelectContainer) floorSelectContainer.classList.add('d-none');
+        const floorTabC = document.getElementById('tab-floor-container');
+        if (floorTabC) floorTabC.classList.add('d-none');
+        const floorSelC = document.getElementById('setup-floor-select-container');
+        if (floorSelC) floorSelC.classList.add('d-none');
+        const bulkFloorSelC = document.getElementById('setup-bulk-floor-select-container');
+        if (bulkFloorSelC) bulkFloorSelC.classList.add('d-none');
+        const fFilter = document.getElementById('filter-room-floor');
+        if (fFilter) fFilter.classList.add('d-none');
+        
+        // Auto switch to room tab
+        const roomTab = document.getElementById('room-tab');
+        if (roomTab) roomTab.click();
     } else {
-        if (floorCard) floorCard.classList.remove('d-none');
-        if (roomCard) {
-            roomCard.classList.remove('col-lg-12');
-            roomCard.classList.add('col-lg-8');
-        }
-        if (floorSelectContainer) floorSelectContainer.classList.remove('d-none');
+        const floorTabC = document.getElementById('tab-floor-container');
+        if (floorTabC) floorTabC.classList.remove('d-none');
+        const floorSelC = document.getElementById('setup-floor-select-container');
+        if (floorSelC) floorSelC.classList.remove('d-none');
+        const bulkFloorSelC = document.getElementById('setup-bulk-floor-select-container');
+        if (bulkFloorSelC) bulkFloorSelC.classList.remove('d-none');
+        const fFilter = document.getElementById('filter-room-floor');
+        if (fFilter) fFilter.classList.remove('d-none');
+        
+        const floorTab = document.getElementById('floor-tab');
+        if (floorTab) floorTab.click();
+
         loadSetupFloors(motelId);
     }
 
@@ -345,6 +353,17 @@ function openMotelSetup(motelId, motelName, useFloorManagement) {
 
 
 window.openMotelSetup = openMotelSetup;
+
+function openCurrentMotelSetup() {
+    const motelId = parseInt(document.getElementById('floormap-motel-select').value);
+    if (!motelId) return;
+    const motel = _allMotels.find(m => m.motelId === motelId);
+    if (motel) {
+        openMotelSetup(motel.motelId, motel.motelName, motel.useFloorManagement);
+    }
+}
+window.openCurrentMotelSetup = openCurrentMotelSetup;
+
 async function submitSetupFloor() {
     const form = document.getElementById('setupFloorForm');
     if (!form.reportValidity()) return;
@@ -411,11 +430,44 @@ async function loadSetupFloors(motelId) {
         if (result.success) {
             const motel = result.data.find(m => m.motelId == motelId);
             if (motel) {
+                // Populate select
                 const select = document.getElementById('setup-floor-select');
+                const bulkSelect = document.getElementById('setup-bulk-floor-select');
+                const editSelect = document.getElementById('edit-room-floor-select');
+                const filterSelect = document.getElementById('filter-room-floor');
+                
                 if (motel.floors.length === 0) {
                     select.innerHTML = '<option value="">Chưa có tầng nào</option>';
+                    if(bulkSelect) bulkSelect.innerHTML = '<option value="">Chưa có tầng nào</option>';
+                    if(editSelect) editSelect.innerHTML = '<option value="">Chưa có tầng nào</option>';
+                    if(filterSelect) filterSelect.innerHTML = '<option value="all">Tất cả tầng</option>';
                 } else {
-                    select.innerHTML = motel.floors.map(f => `<option value="${f.floorId}">${f.floorName}</option>`).join('');
+                    const options = motel.floors.map(f => `<option value="${f.floorId}">${f.floorName}</option>`).join('');
+                    select.innerHTML = options;
+                    if(bulkSelect) bulkSelect.innerHTML = options;
+                    if(editSelect) editSelect.innerHTML = options;
+                    if(filterSelect) filterSelect.innerHTML = '<option value="all">Tất cả tầng</option>' + options;
+                }
+
+                // Populate table
+                const tbody = document.getElementById('setup-floors-list');
+                if (tbody) {
+                    let rows = '';
+                    motel.floors.forEach(f => {
+                        rows += `
+<tr>
+    <td class="fw-bold">${f.floorName}</td>
+    <td>
+        <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="openEditFloor(${f.floorId}, '${f.floorName}', ${f.floorNumber})" title="Sửa tầng">
+            <i class="bi bi-pencil-fill"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteFloor(${f.floorId})" title="Xóa tầng">
+            <i class="bi bi-trash-fill"></i>
+        </button>
+    </td>
+</tr>`;
+                    });
+                    tbody.innerHTML = rows || '<tr><td colspan="2" class="text-center py-3 text-muted">Chưa có tầng nào.</td></tr>';
                 }
             }
         }
@@ -433,29 +485,364 @@ async function loadSetupRooms(motelId) {
             if (motel) {
                 const tbody = document.getElementById('setup-rooms-list');
                 let rows = '';
-                motel.floors.forEach(f => {
-                    f.rooms.forEach(r => {
-                        rows += `
-<tr>
-<td>${f.floorName || 'N/A'}</td>
-<td class="fw-bold">${r.roomCode}</td>
-<td>${r.area} m2</td>
-<td>
-<button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openRoomDetails(${r.roomId}, '${r.roomCode}')">
-<i class="bi bi-gear-fill me-1"></i> Thiết lập phí dịch vụ
-</button>
-</td>
-</tr>
-`;
+                
+                // Combine rooms from floors and unassigned rooms (if floor management is off)
+                const allRooms = [];
+                if (motel.floors) {
+                    motel.floors.forEach(f => {
+                        if(f.rooms) f.rooms.forEach(r => allRooms.push({...r, floorName: f.floorName, floorId: f.floorId}));
                     });
-                });
-                if (!rows) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Chưa có phòng nào.</td></tr>';
-                else tbody.innerHTML = rows;
+                }
+                if (motel.rooms) {
+                    motel.rooms.forEach(r => allRooms.push({...r, floorName: 'Không', floorId: null}));
+                }
+
+                _currentSetupRooms = allRooms;
+                renderRoomTable(1);
             }
         }
     } catch (e) { }
 }
 
-
 window.loadSetupRooms = loadSetupRooms;
+
+function toggleRoomAddType() {
+    const isSingle = document.getElementById('addSingleRoom').checked;
+    if (isSingle) {
+        document.getElementById('setupRoomForm').classList.remove('d-none');
+        document.getElementById('setupBulkRoomForm').classList.add('d-none');
+    } else {
+        document.getElementById('setupRoomForm').classList.add('d-none');
+        document.getElementById('setupBulkRoomForm').classList.remove('d-none');
+    }
+}
+window.toggleRoomAddType = toggleRoomAddType;
+
+function renderRoomTable(page = 1) {
+    const tbody = document.getElementById('setup-rooms-list');
+    if (!tbody) return;
+
+    const floorFilter = document.getElementById('filter-room-floor') ? document.getElementById('filter-room-floor').value : 'all';
+    const searchQuery = document.getElementById('filter-room-search') ? document.getElementById('filter-room-search').value.toLowerCase() : '';
+
+    let filtered = _currentSetupRooms.filter(r => {
+        const matchFloor = floorFilter === 'all' || r.floorId == floorFilter;
+        const matchSearch = r.roomCode.toLowerCase().includes(searchQuery);
+        return matchFloor && matchSearch;
+    });
+
+    // Sort by floorId, then naturally by roomCode
+    filtered.sort((a, b) => {
+        if(a.floorId !== b.floorId) return (a.floorId || 0) - (b.floorId || 0);
+        return a.roomCode.localeCompare(b.roomCode, undefined, {numeric: true, sensitivity: 'base'});
+    });
+
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+    if (page > totalPages) page = totalPages;
+    if (page < 1) page = 1;
+
+    const startIdx = (page - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const currentItems = filtered.slice(startIdx, endIdx);
+
+    const infoEl = document.getElementById('room-pagination-info');
+    if (infoEl) infoEl.innerText = `Hiển thị ${currentItems.length > 0 ? startIdx + 1 : 0} - ${Math.min(endIdx, filtered.length)} / ${filtered.length} phòng`;
+
+    let rows = '';
+    currentItems.forEach(r => {
+        rows += `
+<tr>
+<td>${r.floorName || 'N/A'}</td>
+<td class="fw-bold">${r.roomCode}</td>
+<td>${r.area} m2</td>
+<td class="text-end">
+<button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="openEditRoom(${r.roomId}, '${r.roomCode}', ${r.area}, ${r.floorId})" title="Sửa phòng">
+    <i class="bi bi-pencil-fill"></i>
+</button>
+<button class="btn btn-sm btn-outline-secondary rounded-pill me-1" onclick="openRoomDetails(${r.roomId}, '${r.roomCode}')">
+    <i class="bi bi-gear-fill me-1"></i> Phí dịch vụ
+</button>
+<button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteRoom(${r.roomId})" title="Xóa phòng">
+    <i class="bi bi-trash-fill"></i>
+</button>
+</td>
+</tr>`;
+    });
+
+    if (!rows) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Không tìm thấy phòng nào.</td></tr>';
+    else tbody.innerHTML = rows;
+
+    // Render pagination nav
+    let navHtml = '';
+    navHtml += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="event.preventDefault(); renderRoomTable(${page - 1})">Trước</a></li>`;
+    for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - page) > 1) {
+            if (i === 3 || i === totalPages - 2) navHtml += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            continue;
+        }
+        navHtml += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" onclick="event.preventDefault(); renderRoomTable(${i})">${i}</a></li>`;
+    }
+    navHtml += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="event.preventDefault(); renderRoomTable(${page + 1})">Sau</a></li>`;
+    
+    const navEl = document.getElementById('room-pagination-nav');
+    if (navEl) navEl.innerHTML = navHtml;
+}
+window.renderRoomTable = renderRoomTable;
+
+async function submitSetupBulkRoom() {
+    const form = document.getElementById('setupBulkRoomForm');
+    if (!form.reportValidity()) return;
+    
+    const btn = document.getElementById('btn-bulk-add');
+    const loading = document.getElementById('room-table-loading');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang tạo...';
+    if(loading) loading.classList.remove('d-none');
+    
+    const data = Object.fromEntries(new FormData(form).entries());
+    const motelId = parseInt(data.MotelId);
+    const floorId = data.FloorId ? parseInt(data.FloorId) : null;
+    const quantity = parseInt(data.Quantity);
+    const area = parseFloat(data.Area);
+    let startCode = data.StartCode.trim();
+
+    // extract numeric suffix if any
+    let prefix = startCode;
+    let startNum = 1;
+    const match = startCode.match(/^(.*?)(\d+)$/);
+    if(match) {
+        prefix = match[1];
+        startNum = parseInt(match[2]);
+    } else {
+        startNum = 1;
+    }
+
+    try {
+        let successCount = 0;
+        for (let i = 0; i < quantity; i++) {
+            let roomCode = '';
+            if (match) {
+                const len = match[2].length;
+                roomCode = prefix + String(startNum + i).padStart(len, '0');
+            } else {
+                roomCode = prefix + (startNum + i);
+            }
+            
+            const payload = {
+                MotelId: motelId,
+                FloorId: floorId,
+                RoomCode: roomCode,
+                Area: area,
+                Status: 'Vacant'
+            };
+
+            const response = await fetch('/api/MotelManagement/CreateRoom', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (result.success) successCount++;
+        }
+        
+        showPremiumToast("Hoàn tất", `Đã tạo thành công ${successCount}/${quantity} phòng.`, "success");
+        form.reset();
+        loadSetupRooms(motelId);
+        loadMotelsData();
+    } catch (e) { 
+        alert("Lỗi kết nối Server trong quá trình tạo phòng."); 
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-magic me-1"></i> Tạo Hàng Loạt';
+        if(loading) loading.classList.add('d-none');
+    }
+}
+window.submitSetupBulkRoom = submitSetupBulkRoom;
+
+// === Edit/Delete Motel ===
+function openEditMotel() {
+    const motelId = parseInt(document.getElementById('setup-motelId').value);
+    if(!motelId || !_allMotels) return;
+    const motel = _allMotels.find(m => m.motelId === motelId);
+    if(!motel) return;
+
+    document.getElementById('edit-motel-id').value = motel.motelId;
+    document.getElementById('edit-motel-name').value = motel.motelName;
+    document.getElementById('edit-motel-address').value = motel.address;
+    document.getElementById('edit-motel-description').value = motel.description || '';
+    document.getElementById('edit-motel-useFloors').checked = motel.useFloorManagement;
+
+    new bootstrap.Modal(document.getElementById('editMotelModal')).show();
+}
+
+window.openEditMotel = openEditMotel;
+
+async function submitEditMotel() {
+    const form = document.getElementById('editMotelForm');
+    if (!form.reportValidity()) return;
+    
+    const motelId = document.getElementById('edit-motel-id').value;
+    const data = {
+        MotelName: document.getElementById('edit-motel-name').value,
+        Address: document.getElementById('edit-motel-address').value,
+        Description: document.getElementById('edit-motel-description').value,
+        UseFloorManagement: document.getElementById('edit-motel-useFloors').checked
+    };
+
+    try {
+        const response = await fetch(`/api/MotelManagement/UpdateMotel/${motelId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+            showPremiumToast("Thành công", "Đã cập nhật thông tin khu trọ.", "success");
+            bootstrap.Modal.getInstance(document.getElementById('editMotelModal')).hide();
+            loadMotelsData();
+            document.getElementById('setup-motel-name').innerText = data.MotelName;
+            
+            // Re-evaluate floor UI based on toggle
+            openMotelSetup(motelId, data.MotelName, data.UseFloorManagement);
+        } else {
+            alert(result.message);
+        }
+    } catch (e) { alert("Lỗi kết nối Server"); }
+}
+
+window.submitEditMotel = submitEditMotel;
+
+// === Edit/Delete Floor ===
+function openEditFloor(floorId, floorName, floorNumber) {
+    document.getElementById('edit-floor-id').value = floorId;
+    document.getElementById('edit-floor-motelId').value = document.getElementById('setup-motelId').value;
+    document.getElementById('edit-floor-name').value = floorName;
+    document.getElementById('edit-floor-number').value = floorNumber;
+    new bootstrap.Modal(document.getElementById('editFloorModal')).show();
+}
+
+window.openEditFloor = openEditFloor;
+
+async function submitEditFloor() {
+    const form = document.getElementById('editFloorForm');
+    if (!form.reportValidity()) return;
+    const data = Object.fromEntries(new FormData(form).entries());
+    const floorId = data.FloorId;
+
+    try {
+        const response = await fetch(`/api/MotelManagement/UpdateFloor/${floorId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+            showPremiumToast("Thành công", "Đã cập nhật tầng.", "success");
+            bootstrap.Modal.getInstance(document.getElementById('editFloorModal')).hide();
+            loadSetupFloors(data.MotelId);
+            loadMotelsData();
+        } else {
+            alert(result.message);
+        }
+    } catch (e) { alert("Lỗi kết nối Server"); }
+}
+
+window.submitEditFloor = submitEditFloor;
+
+async function deleteFloor(floorId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa tầng này không? Các phòng thuộc tầng cũng sẽ bị ảnh hưởng.")) return;
+    try {
+        const response = await fetch(`/api/MotelManagement/DeleteFloor/${floorId}`, { method: 'DELETE' });
+        const result = await response.json();
+        if (result.success) {
+            showPremiumToast("Thành công", "Đã xóa tầng.", "success");
+            const motelId = document.getElementById('setup-motelId').value;
+            loadSetupFloors(motelId);
+            loadSetupRooms(motelId);
+            loadMotelsData();
+        } else {
+            showPremiumToast("Lỗi", result.message, "danger");
+        }
+    } catch (e) { alert("Lỗi kết nối Server"); }
+}
+
+window.deleteFloor = deleteFloor;
+
+// === Edit/Delete Room ===
+function openEditRoom(roomId, roomCode, area, floorId) {
+    document.getElementById('edit-room-id').value = roomId;
+    document.getElementById('edit-room-motelId').value = document.getElementById('setup-motelId').value;
+    document.getElementById('edit-room-code').value = roomCode;
+    document.getElementById('edit-room-area').value = area;
+    
+    // Set floor select
+    const motelId = document.getElementById('setup-motelId').value;
+    const motel = _allMotels.find(m => m.motelId == motelId);
+    const container = document.getElementById('edit-room-floor-select-container');
+    const select = document.getElementById('edit-room-floor-select');
+    
+    if (motel && motel.useFloorManagement) {
+        container.classList.remove('d-none');
+        if (floorId) select.value = floorId;
+    } else {
+        container.classList.add('d-none');
+        select.value = "";
+    }
+    
+    new bootstrap.Modal(document.getElementById('editRoomModal')).show();
+}
+
+window.openEditRoom = openEditRoom;
+
+async function submitEditRoom() {
+    const form = document.getElementById('editRoomForm');
+    if (!form.reportValidity()) return;
+    const data = Object.fromEntries(new FormData(form).entries());
+    const roomId = data.RoomId;
+    
+    if(!data.FloorId || data.FloorId === "") {
+        data.FloorId = null;
+    } else {
+        data.FloorId = parseInt(data.FloorId);
+    }
+    data.Area = parseFloat(data.Area);
+
+    try {
+        const response = await fetch(`/api/MotelManagement/UpdateRoom/${roomId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+            showPremiumToast("Thành công", "Đã cập nhật phòng.", "success");
+            bootstrap.Modal.getInstance(document.getElementById('editRoomModal')).hide();
+            loadSetupRooms(data.MotelId);
+            loadMotelsData();
+        } else {
+            alert(result.message);
+        }
+    } catch (e) { alert("Lỗi kết nối Server"); }
+}
+
+window.submitEditRoom = submitEditRoom;
+
+async function deleteRoom(roomId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa phòng này không?")) return;
+    try {
+        const response = await fetch(`/api/MotelManagement/DeleteRoom/${roomId}`, { method: 'DELETE' });
+        const result = await response.json();
+        if (result.success) {
+            showPremiumToast("Thành công", "Đã xóa phòng.", "success");
+            const motelId = document.getElementById('setup-motelId').value;
+            loadSetupRooms(motelId);
+            loadMotelsData();
+        } else {
+            showPremiumToast("Lỗi", result.message, "danger");
+        }
+    } catch (e) { alert("Lỗi kết nối Server"); }
+}
+
+window.deleteRoom = deleteRoom;
 console.log("motels-floormap.js execution finished");
