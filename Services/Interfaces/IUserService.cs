@@ -7,6 +7,7 @@ namespace UserManagementSystem.Services
         Task<User?> GetByUsernameAsync(string username);
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByIdAsync(int id);
+        Task<User?> GetByRefreshTokenAsync(string refreshToken);
         Task<bool> UsernameExistsAsync(string username);
         Task<bool> EmailExistsAsync(string email);
         Task<User> CreateUserAsync(User newUser);
@@ -15,5 +16,7 @@ namespace UserManagementSystem.Services
         Task<ApiResponse> ToggleOtpAsync(int userId, bool otpEnabled);
         Task<ApiResponse> ChangePasswordAsync(int userId, ChangePasswordRequest request);
         Task UpdatePasswordOnlyAsync(User user, string hashedPassword);
+        Task UpdateRefreshTokenAsync(User user, string refreshToken, DateTime expiryTime);
+        Task RevokeRefreshTokenAsync(int userId);
     }
 }

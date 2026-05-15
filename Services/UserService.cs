@@ -44,6 +44,11 @@ namespace UserManagementSystem.Services
             return await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == id);
         }
 
+        public async Task<User?> GetByRefreshTokenAsync(string refreshToken)
+        {
+            return await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+        }
+
         public async Task<bool> UsernameExistsAsync(string username)
         {
             return await _db.Users.AnyAsync(u => u.Username == username);
@@ -161,5 +166,22 @@ namespace UserManagementSystem.Services
             await _db.SaveChangesAsync();
         }
 
+        public async Task UpdateRefreshTokenAsync(User user, string refreshToken, DateTime expiryTime)
+        {
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = expiryTime;
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task RevokeRefreshTokenAsync(int userId)
+        {
+            var user = await _db.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.RefreshToken = null;
+                user.RefreshTokenExpiryTime = null;
+                await _db.SaveChangesAsync();
+            }
+        }
     }
 }

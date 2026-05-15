@@ -28,8 +28,8 @@
                              style="max-height: 300px; object-fit: contain;" onclick="window.open(this.src, '_blank')">
                         <p class="small text-muted mt-2"><i class="bi bi-info-circle me-1"></i> Nhấn vào ảnh để xem kích thước lớn</p>
                     </div>
-                    <div id="verify-payment-form" class="bg-white rounded-3 p-3 mb-3 border d-none">
-                        <label class="form-label small fw-bold text-muted">Số tiền thực nhận (VNĐ):</label>
+                    <div id="verify-payment-form" class="bg-secondary bg-opacity-10 rounded-3 p-3 mb-3 border border-secondary border-opacity-10 d-none">
+                        <label class="form-label small fw-bold text-main opacity-75">Số tiền thực nhận (VNĐ):</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">₫</span>
                             <input type="number" id="verify-actual-amount" class="form-control border-start-0 fw-bold text-primary" placeholder="Nhập số tiền...">
@@ -79,17 +79,17 @@
                     <div class="row g-4 mb-4">
                         <!-- Điện -->
                         <div class="col-md-6">
-                            <div class="p-4 bg-light rounded-4 h-100 border">
+                            <div class="p-4 bg-secondary bg-opacity-10 rounded-4 h-100 border border-secondary border-opacity-10">
                                 <h6 class="fw-bold text-warning mb-4 d-flex align-items-center">
                                     <span class="bg-warning bg-opacity-10 p-2 rounded-3 me-2"><i class="bi bi-lightning-charge-fill"></i></span>
                                     Chỉ số Điện
                                 </h6>
                                 <input type="hidden" id="record-elec-serviceId">
                                 <div class="mb-4">
-                                    <label class="form-label x-small fw-bold text-muted text-uppercase ls-1">Số cũ (kWh)</label>
+                                    <label class="form-label x-small fw-bold text-main opacity-50 text-uppercase ls-1">Số cũ (kWh)</label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-clock-history"></i></span>
-                                        <input type="number" id="record-elec-prev" class="form-control rounded-end-3 py-2 bg-white border-start-0" readonly>
+                                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-clock-history"></i></span>
+                                        <input type="number" id="record-elec-prev" class="form-control rounded-end-3 py-2 bg-transparent border-start-0 text-main" readonly>
                                     </div>
                                 </div>
                                 <div class="mb-2">
@@ -107,17 +107,17 @@
                         
                         <!-- Nước -->
                         <div class="col-md-6">
-                            <div class="p-4 bg-light rounded-4 h-100 border">
+                            <div class="p-4 bg-secondary bg-opacity-10 rounded-4 h-100 border border-secondary border-opacity-10">
                                 <h6 class="fw-bold text-info mb-4 d-flex align-items-center">
                                     <span class="bg-info bg-opacity-10 p-2 rounded-3 me-2"><i class="bi bi-droplet-fill"></i></span>
                                     Chỉ số Nước
                                 </h6>
                                 <input type="hidden" id="record-water-serviceId">
                                 <div class="mb-4">
-                                    <label class="form-label x-small fw-bold text-muted text-uppercase ls-1">Số cũ (m³)</label>
+                                    <label class="form-label x-small fw-bold text-main opacity-50 text-uppercase ls-1">Số cũ (m³)</label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-clock-history"></i></span>
-                                        <input type="number" id="record-water-prev" class="form-control rounded-end-3 py-2 bg-white border-start-0" readonly>
+                                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-clock-history"></i></span>
+                                        <input type="number" id="record-water-prev" class="form-control rounded-end-3 py-2 bg-transparent border-start-0 text-main" readonly>
                                     </div>
                                 </div>
                                 <div class="mb-2">

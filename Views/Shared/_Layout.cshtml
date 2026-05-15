@@ -312,7 +312,7 @@
 
                     result.data.forEach(n => {
                         const date = new Date(n.createdAt).toLocaleString('vi-VN');
-                        const bg = n.isRead ? '' : 'bg-light';
+                        const bg = n.isRead ? '' : 'bg-secondary bg-opacity-10';
                         const dot = n.isRead ? '' : '<span class="p-1 bg-primary border border-light rounded-circle ms-2 d-inline-block"></span>';
                         const opacity = n.isRead ? 'opacity-75' : '';
                         
@@ -340,8 +340,8 @@
                 event.stopPropagation(); // Giữ menu mở
                 const li = event.currentTarget;
                 const item = li.querySelector('.dropdown-item');
-                if (item.classList.contains('bg-light')) {
-                    item.classList.remove('bg-light');
+                if (item.classList.contains('bg-secondary bg-opacity-10')) {
+                    item.classList.remove('bg-secondary bg-opacity-10');
                     item.classList.add('opacity-75');
                     const dot = li.querySelector('.rounded-circle');
                     if (dot) dot.remove();

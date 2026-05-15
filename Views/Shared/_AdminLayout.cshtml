@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
@@ -26,7 +26,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-logo">
-                <div class="stat-icon bg-white bg-opacity-20 text-white mb-0" style="width: 40px; height: 40px;">
+                <div class="stat-icon bg-secondary bg-opacity-20 text-white mb-0" style="width: 40px; height: 40px;">
                     <i class="bi bi-shield-lock-fill"></i>
                 </div>
                 <span>QuanTro<span class="fw-light">Admin</span></span>
@@ -112,7 +112,7 @@
                 </div>
 
                 <div class="header-actions">
-                    <div class="search-box d-none d-lg-flex align-items-center px-3 py-2 bg-white bg-opacity-50 rounded-pill border border-white shadow-sm">
+                    <div class="search-box d-none d-lg-flex align-items-center px-3 py-2 bg-secondary bg-opacity-10 rounded-pill border border-secondary border-opacity-10 shadow-sm">
                         <i class="bi bi-search text-muted me-2"></i>
                         <input type="text" class="border-0 bg-transparent small" placeholder="Tìm kiếm nhanh..." style="outline: none;">
                     </div>
@@ -167,204 +167,13 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/lib/chartjs/chart.min.js"></script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
     <script src="~/js/admin/admin-core.js" asp-append-version="true"></script>
+    <script src="~/js/admin/admin-ui.js" asp-append-version="true"></script>
+    <script src="~/js/admin/admin-notifications.js" asp-append-version="true"></script>
     <script src="~/js/dashboard-charts.js" asp-append-version="true"></script>
-    
-    <script>
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
 
-        function updateThemeIcon(theme) {
-            const icon = document.getElementById('theme-icon');
-            if (icon) {
-                icon.className = theme === 'dark' ? 'bi bi-sun-fill text-warning' : 'bi bi-moon-stars';
-            }
-        }
-
-        // Initialize icon on load
-        document.addEventListener('DOMContentLoaded', () => {
-            updateThemeIcon(document.documentElement.getAttribute('data-theme'));
-        });
-    </script>
-    
-    <script>
-        function toggleMobileMenu() {
-            document.querySelector('.sidebar').classList.toggle('active');
-        }
-
-        // Intercept switchModule to close sidebar on mobile
-        const baseSwitchModule = window.switchModule;
-        window.switchModule = function(id, el) {
-            if (typeof baseSwitchModule === 'function') baseSwitchModule(id, el);
-            if (window.innerWidth <= 768) {
-                const sidebar = document.querySelector('.sidebar');
-                if (sidebar) sidebar.classList.remove('active');
-            }
-        }
-    </script>
-    
-    <script>
-        // SignalR Initialization
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")
-            .build();
-
-        connection.on("NewNotification", (userId) => {
-            showPremiumToast("Thông báo mới", "Bạn có một thông báo mới trong hệ thống.", "info");
-            if (typeof loadRecentRequests === 'function') loadRecentRequests();
-        });
-
-        connection.start().catch(err => console.error(err.toString()));
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadNotificationsCount();
-        });
-
-        async function loadNotificationsCount() {
-            try {
-                const res = await fetch('/api/NotificationProxy/GetMyNotifications');
-                const result = await res.json();
-                if (result.success) {
-                    const count = result.unreadCount;
-                    const badge = document.getElementById('notification-count');
-                    if (count > 0) {
-                        badge.innerText = count > 99 ? '99+' : count;
-                        badge.classList.remove('d-none');
-                    } else {
-                        badge.classList.add('d-none');
-                    }
-                }
-            } catch (e) {}
-        }
-
-        async function toggleNotificationModal() {
-            const modal = new bootstrap.Modal(document.getElementById('notificationListModal'));
-            modal.show();
-            
-            const list = document.getElementById('notification-list');
-            try {
-                const res = await fetch('/api/NotificationProxy/GetMyNotifications');
-                const result = await res.json();
-                if (result.success) {
-                    if (result.data.length === 0) {
-                        list.innerHTML = '<div class="text-center py-4 opacity-50">Không có thông báo nào.</div>';
-                    } else {
-                        list.innerHTML = result.data.map(n => `
-                            <div class="p-3 mb-2 rounded-3 ${n.isRead ? 'bg-light opacity-75' : 'bg-primary bg-opacity-10 border-start border-primary border-4'}" 
-                                 onclick="markNotificationAsRead(${n.id}, this)" style="cursor: pointer;">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <span class="fw-bold small">${n.title}</span>
-                                    <span class="x-small text-muted">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</span>
-                                </div>
-                                <div class="small text-muted">${n.message}</div>
-                            </div>
-                        `).join('');
-                    }
-                }
-            } catch (e) {
-                list.innerHTML = '<div class="alert alert-danger">Lỗi tải thông báo.</div>';
-            }
-        }
-
-        async function markNotificationAsRead(id, element) {
-            try {
-                const res = await fetch(`/api/NotificationProxy/MarkAsRead/${id}`, { method: 'POST' });
-                const result = await res.json();
-                if (result.success) {
-                    element.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
-                    element.classList.add('bg-light', 'opacity-75');
-                    loadNotificationsCount();
-                }
-            } catch (e) {}
-        }
-
-        async function markAllNotificationsAsRead() {
-            try {
-                const res = await fetch('/api/NotificationProxy/MarkAllAsRead', { method: 'POST' });
-                const result = await res.json();
-                if (result.success) {
-                    const items = document.querySelectorAll('#notification-list > div');
-                    items.forEach(el => {
-                        el.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
-                        el.classList.add('bg-light', 'opacity-75');
-                    });
-                    loadNotificationsCount();
-                }
-            } catch (e) {}
-        }
-
-        function showPremiumToast(title, message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `premium-toast`;
-            
-            let iconClass = 'bi-info-circle-fill text-primary';
-            if (type === 'success') iconClass = 'bi-check-circle-fill text-success';
-            else if (type === 'error' || type === 'danger') iconClass = 'bi-exclamation-octagon-fill text-danger';
-            else if (type === 'warning') iconClass = 'bi-exclamation-triangle-fill text-warning';
-
-            toast.innerHTML = `
-                <i class="bi ${iconClass} fs-5"></i>
-                <div>
-                    <div class="fw-bold small">${title}</div>
-                    <div class="x-small opacity-75">${message}</div>
-                </div>
-            `;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 500);
-            }, 5000);
-        }
-
-        async function logout() {
-            try {
-                await fetch('/api/UserProxy/Logout', { method: 'POST' });
-            } catch (e) {
-                console.error("Logout API failed", e);
-            }
-            localStorage.removeItem('currentUser');
-            window.location.href = '/Account/Login';
-        }
-
-        // Auth Check & Greeting Logic
-        (function() {
-            const hour = new Date().getHours();
-            const greetingEl = document.getElementById('dynamic-greeting');
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateStr = now.toLocaleDateString('vi-VN', options);
-            
-            let message = "Chào buổi sáng";
-            if (hour >= 12 && hour < 18) message = "Chào buổi chiều";
-            if (hour >= 18) message = "Chào buổi tối";
-            
-            greetingEl.innerText = `${message}, hôm nay là ${dateStr}`;
-
-            const userJson = localStorage.getItem('currentUser');
-            if (userJson) {
-                const user = JSON.parse(userJson);
-                document.getElementById('navUserName').innerText = user.name;
-                document.getElementById('navAvatar').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`;
-                
-                if (user.role && user.role.toLowerCase() === 'superuser') {
-                    document.querySelectorAll('.superuser-only').forEach(el => el.classList.remove('d-none'));
-                }
-            } else {
-                window.location.href = '/Account/Login';
-            }
-        })();
-    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -67,6 +67,7 @@ try
     
     // Add Background Services
     builder.Services.AddHostedService<UserManagementSystem.Services.BackgroundTasks.ContractExpirationService>();
+    builder.Services.AddHostedService<UserManagementSystem.Services.BackgroundTasks.InvoiceReminderWorker>();
 
     // Add Swagger/OpenAPI Documentation
     builder.Services.AddSwaggerGen(options =>
@@ -164,12 +165,24 @@ try
                 Log.Warning("JWT Authentication failed: {Message}", context.Exception.Message);
                 return Task.CompletedTask;
             },
-            OnTokenValidated = context =>
+            OnTokenValidated = async context =>
             {
+                var userIdClaim = context.Principal?.FindFirst("id")?.Value;
+                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int userId))
+                {
+                    var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+                    var user = await userService.GetByIdAsync(userId);
+                    if (user == null || user.Status != "Active")
+                    {
+                        context.Fail("Tài khoản của bạn đã bị khóa hoặc không tồn tại.");
+                        Log.Warning("JWT Token rejected for user ID {UserId}: Account not active.", userId);
+                        return;
+                    }
+                }
+
                 var claims = context.Principal?.Claims.Select(c => $"{c.Type}: {c.Value}");
                 Log.Information("JWT Token validated for user: {User}. Claims: {Claims}", 
                     context.Principal?.Identity?.Name, string.Join(", ", claims ?? Array.Empty<string>()));
-                return Task.CompletedTask;
             }
         };
     });

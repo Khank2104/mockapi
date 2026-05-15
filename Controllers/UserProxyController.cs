@@ -27,17 +27,27 @@ namespace UserManagementSystem.Controllers
             _env = env;
         }
 
-        private void SetTokenCookie(string token)
+        private void SetTokensAndCookies(string accessToken, string refreshToken)
         {
-            var cookieOptions = new CookieOptions
+            var accessCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = false, // Phải để false khi chạy http://localhost
-                Expires = DateTime.UtcNow.AddHours(6),
+                Expires = DateTime.UtcNow.AddMinutes(15),
                 SameSite = SameSiteMode.Lax,
                 Path = "/"
             };
-            Response.Cookies.Append("X-Access-Token", token, cookieOptions);
+            Response.Cookies.Append("X-Access-Token", accessToken, accessCookieOptions);
+
+            var refreshCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                Expires = DateTime.UtcNow.AddDays(7),
+                SameSite = SameSiteMode.Strict, // Tăng cường CSRF bảo mật cho refresh token
+                Path = "/api/UserProxy/RefreshToken"
+            };
+            Response.Cookies.Append("X-Refresh-Token", refreshToken, refreshCookieOptions);
         }
 
         private UserResponse ToResponse(User u) => new UserResponse
@@ -86,8 +96,10 @@ namespace UserManagementSystem.Controllers
 
             if (user != null && _authService.VerifyPassword(request.Password, user))
             {
-                string token = _authService.GenerateJwtToken(user);
-                SetTokenCookie(token);
+                string accessToken = _authService.GenerateJwtToken(user);
+                string refreshToken = _authService.GenerateRefreshToken();
+                await _userService.UpdateRefreshTokenAsync(user, refreshToken, DateTime.UtcNow.AddDays(7));
+                SetTokensAndCookies(accessToken, refreshToken);
                 return Ok(new ApiResponse { Success = true, Data = new { User = ToResponse(user) } });
             }
 
@@ -95,10 +107,37 @@ namespace UserManagementSystem.Controllers
         }
 
         [HttpPost("Logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            var reqId = GetRequesterId();
+            if (reqId > 0)
+            {
+                await _userService.RevokeRefreshTokenAsync(reqId);
+            }
             Response.Cookies.Delete("X-Access-Token");
+            Response.Cookies.Delete("X-Refresh-Token", new CookieOptions { Path = "/api/UserProxy/RefreshToken" });
             return Ok(new ApiResponse { Success = true, Message = "Đã đăng xuất." });
+        }
+
+        [HttpPost("RefreshToken")]
+        public async Task<IActionResult> RefreshToken()
+        {
+            var refreshToken = Request.Cookies["X-Refresh-Token"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized(new ApiResponse { Success = false, Message = "Không tìm thấy Refresh Token." });
+
+            var user = await _userService.GetByRefreshTokenAsync(refreshToken);
+            if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow || user.Status != "Active")
+                return Unauthorized(new ApiResponse { Success = false, Message = "Refresh Token không hợp lệ hoặc đã hết hạn." });
+
+            // Cấp lại cặp Token mới
+            string newAccessToken = _authService.GenerateJwtToken(user);
+            string newRefreshToken = _authService.GenerateRefreshToken();
+            
+            await _userService.UpdateRefreshTokenAsync(user, newRefreshToken, DateTime.UtcNow.AddDays(7));
+            SetTokensAndCookies(newAccessToken, newRefreshToken);
+
+            return Ok(new ApiResponse { Success = true, Message = "Làm mới token thành công." });
         }
 
         [Authorize]

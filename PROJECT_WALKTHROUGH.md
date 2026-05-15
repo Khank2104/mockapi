@@ -33,6 +33,7 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 ## 2. Development History & Milestone Logs
 
 ### Phases 1-13: Core Infrastructure, APIs & Dashboard UX
+
 - Implemented the full Database Schema with EF Core.
 - Built automated billing logic and robust RBAC security (JWT, BCrypt, HttpOnly Cookies).
 - Developed a Premium Glassmorphism Single Page Application (SPA) dashboard.
@@ -40,26 +41,37 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 - Added Serilog for structured logging and Swagger/OpenAPI for documentation.
 
 ### Session 14-16: Core Business Flow & Visual Mapping
+
 - **Floor Map Generation**: Redesigned the motel management module into a visual floor map grid. Dynamic room status syncing based on active Contracts.
 - **Contract Lifecycle Management**: Added manual termination workflow and room clearing.
 - **Automated Grace Period Expiring**: Implemented `ContractExpirationService` background worker running hourly.
 
 ### Session 17-20: UI/UX Optimization & Logic Refinement
+
 - **Dual Meter Reading Modal**: Overhauled the modal into a dual-input form showing both Electricity and Water fields.
 - **Infinite Redirect Loop Resolution**: Resolved conflicts between localStorage and JWT Cookies.
 - **Soft Termination**: Changed contract termination logic to preserve history (status: Terminated/MovedOut) instead of hard-deleting records.
 
 ### Session 21: Runtime Error Resolution
+
 - **Non-floor Properties**: Updated Backend and Frontend to display direct room lists for properties without floors.
 - **Defensive JS**: Implemented comprehensive null-safety checks to prevent DOM access crashes.
 - **Auth Flow**: Added interceptors to automatically redirect to Login upon 401/403 API responses.
 
 ### [2026-05-05] - Session 22: Automated Contract Management
+
 - **Grace Period Mechanism**: Expired contracts transition to "Waiting" status for 7 days before full termination, preserving final invoices.
 
 ### [2026-05-05] - Session 23: Advanced Billing & Exports
-- **Prorated Rent**: Implemented proportional rent calculation (0%/50%/100%) based on actual move-in dates.
-- **Excel Exports**: Integrated `ClosedXML` to generate professional, downloadable `.xlsx` invoices.
+
+- **Invoice Calculation**: Advanced formula involving base rent, per-capita utility consumption, mandatory/optional services, and partial payment carry-overs.
+- **Automated Notifications**: `IEmailService` sends initial billing notifications. Background `InvoiceReminderWorker` automatically dispatches daily overdue warnings.
+- **Role-Based Workflows**: Segregated capabilities ensuring only admins mutate financial models while tenants possess restricted, view-centric proxies.
+
+## 6. Document Generation & Automation
+
+- **Printable Contracts**: `ContractService` integrates with `PrintContract.cshtml` to compile robust lease agreements natively formatted for A4 physical printing. Eliminates need for heavy PDF-generation libraries in favor of native CSS `@media print` paradigms.
+- **Excel Exports**: `ClosedXML` utilization in `ExportService` allowing bulk administrative archiving of localized financial data.
 
 ### [2026-05-05] - Session 24-25: Refactoring & Occupant Management
 - **Modularization**: Decoupled `Index.cshtml` and monolithic JS into maintainable modules.
@@ -116,13 +128,30 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 - **Interactive Feedback (Toasts & Loading)**: Integrated `showPremiumToast` and button loading states to provide real-time visual feedback on user actions.
 - **Backend Robustness**: Implemented null-safe partial updates in the service layer to prevent accidental data erasure during profile saves.
 
+### [2026-05-15] - Session 34: JWT Security System (Refresh Token & Revocation)
+- **Refresh Token Rotation**: Implemented a secure 64-byte Refresh Token mechanism stored in the Database.
+- **CSRF Protection**: Applied `SameSite=Strict` Cookie for the Refresh Token with an isolated API path.
+- **Token Revocation**: Integrated revocation logic (nullifying DB token) upon user Logout.
+- **Lifespan Upgrade**: Reduced Access Token lifespan from 6 hours to 15 minutes to minimize theft risks.
+- **Real-time Status Validation (Token Delay Fix)**: Updated `OnTokenValidated` in Program.cs to query User status instantly, blocking banned tenants immediately rather than waiting for token expiration.
+
+### [2026-05-15] - Session 35: Revenue Analytics Chart (Dashboard)
+- **Backend API**: Created the `/api/Invoice/RevenueChart` endpoint to aggregate financial data for the last 6 months, automatically calculating Total Expected (issued invoices) and Total Collected (paid invoices).
+- **Frontend Dashboard**: Integrated `Chart.js` for a Bar Chart with dual parallel columns. Placed the chart directly on the Admin Overview page for dynamic financial trend analysis, styled cohesively with the transparent Glassmorphism theme.
+
+### [2026-05-15] - Session 36: Frontend Architecture Hardening & Asset Localization
+- **Modular JavaScript**: Extracted over 500 lines of inline JS from layout files into dedicated modules (`admin-ui.js`, `tenant-notifications.js`, etc.), improving load times and maintainability.
+- **Asset Localization**: Eliminated CDN dependencies by self-hosting Bootstrap Icons, Chart.js, and SignalR within `wwwroot/lib` for offline reliability.
+- **Dark Mode Optimization**: Conducted a full UI audit and fixed "hidden text" accessibility issues across Floor Map, Overview, and Meter Reading modules.
+- **Error Handling Standardization**: Unified the global notification system with premium toasts and standardized catch-block logging.
+
 ---
 
 ## 3. Current System Status
 
 **Last Updated**: 2026-05-15
 **By**: Antigravity (AI)
-**Status**: ✅ Stable — Full User Experience (UX) optimization and data synchronization complete.
+**Status**: ✅ Stable — Full User Experience (UX) optimization, Security hardening, and Data synchronization complete.
 
 **Completed Features:**
 - [x] Authentication & RBAC (JWT Cookie)
@@ -141,12 +170,12 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 - [x] UI Optimization for Motel Setup (Tabbed Layout, Pagination, Bulk Add)
 - [x] Bi-directional Profile Data Synchronization
 - [x] Premium Header Redesign & Interactive Toast Notifications
+- [x] JWT Refresh Token & Revocation Mechanism
+- [x] Advanced Revenue Analytics & Charts
 
 **Pending / Future Enhancements:**
-- [ ] Online Payment Gateway Integration (VNPay, Momo)
-- [ ] Advanced Revenue Analytics & Charts
+- [ ] Online Payment Gateway Integration (VNPay, Momo) - Deprioritized due to robust VietQR implementation.
 - [ ] Mobile Application (Flutter/React Native)
-- [ ] JWT Refresh Token & Revocation Mechanism
 
 ---
 

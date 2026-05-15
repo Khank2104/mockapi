@@ -31,6 +31,11 @@ namespace UserManagementSystem.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
+        [MaxLength(500)]
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
+
+
         [ForeignKey("CreatedBy")]
         
         public User? Creator { get; set; }
