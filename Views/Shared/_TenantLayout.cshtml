@@ -13,8 +13,15 @@
     <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tenants/theme.css" asp-append-version="true" />
 </head>
 <body class="tenant-body">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('tenant-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <div class="dashboard-wrapper">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -78,15 +85,18 @@
                 </div>
 
                 <div class="header-actions">
-                    <div class="position-relative cursor-pointer me-3" id="notification-bell" onclick="toggleNotificationModal()">
-                        <i class="bi bi-bell fs-4 text-muted"></i>
-                        <span id="notification-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">
+                    <div class="header-icon-btn" id="theme-btn" onclick="toggleTheme()" title="Chuyển chế độ sáng/tối">
+                        <i class="bi bi-moon-stars"></i>
+                    </div>
+                    <div class="header-icon-btn" id="notification-bell" onclick="toggleNotificationModal()" title="Thông báo">
+                        <i class="bi bi-bell"></i>
+                        <span id="notification-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
                             0
                         </span>
                     </div>
 
-                    <div class="user-profile-badge">
-                        <img id="navAvatar" src="" class="avatar-sm">
+                    <div class="user-profile-badge" onclick="window.location.href='/Home/Profile'">
+                        <img id="navAvatar" src="" class="avatar-sm" alt="Avatar">
                         <div class="user-info">
                             <span id="navUserName" class="name">Tenant</span>
                             <span class="role">Khách thuê</span>
@@ -121,11 +131,41 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        <div id="liveToast" class="toast align-items-center border-0 rounded-4 shadow-lg glass-card" role="alert" aria-live="assertive" aria-atomic="true" style="background: rgba(255, 255, 255, 0.9);">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center">
+                    <i class="bi me-3 fs-4" id="toastIcon"></i>
+                    <div>
+                        <div class="fw-bold" id="toastTitle"></div>
+                        <div id="toastMessage" class="small opacity-75"></div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     
     <script>
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('tenant-theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('#theme-btn i');
+            if (!icon) return;
+            icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
+        }
+
         const connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").build();
         connection.on("NewNotification", (userId) => {
             showPremiumToast("Thông báo", "Bạn có thông báo mới trong hệ thống.", "info");
@@ -134,15 +174,27 @@
 
         function showPremiumToast(title, message, type = 'primary') {
             const toastEl = document.getElementById('liveToast');
-            document.getElementById('toastTitle').innerText = title;
-            document.getElementById('toastMessage').innerText = message;
-            const iconEl = toastEl.querySelector('i');
-            iconEl.className = `bi me-2 `;
-            if (type === 'success') iconEl.classList.add('bi-check-circle-fill', 'text-success');
-            else if (type === 'danger' || type === 'error') iconEl.classList.add('bi-exclamation-octagon-fill', 'text-danger');
-            else iconEl.classList.add('bi-bell-fill', 'text-primary');
+            const iconEl = document.getElementById('toastIcon');
+            const titleEl = document.getElementById('toastTitle');
+            const msgEl = document.getElementById('toastMessage');
+            
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            
+            // Reset and set icon/color
+            iconEl.className = 'bi me-3 fs-4';
+            if (type === 'success') {
+                iconEl.classList.add('bi-check-circle-fill', 'text-success');
+            } else if (type === 'danger' || type === 'error') {
+                iconEl.classList.add('bi-exclamation-octagon-fill', 'text-danger');
+            } else if (type === 'warning') {
+                iconEl.classList.add('bi-exclamation-triangle-fill', 'text-warning');
+            } else {
+                iconEl.classList.add('bi-info-circle-fill', 'text-primary');
+            }
 
-            new bootstrap.Toast(toastEl).show();
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
         }
         window.showPremiumToast = showPremiumToast;
 
@@ -154,6 +206,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadNotificationsCount();
+            const theme = localStorage.getItem('tenant-theme') || 'light';
+            updateThemeIcon(theme);
         });
 
         async function loadNotificationsCount() {

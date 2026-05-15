@@ -33,6 +33,9 @@ namespace UserManagementSystem.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Balance { get; set; } = 0;
+
         [ForeignKey("UserId")]
         
         public User? User { get; set; }

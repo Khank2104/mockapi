@@ -109,6 +109,11 @@ window.changeTenantPage = changeTenantPage;
             document.getElementById('td-email').innerText = tenant.email || 'N/A';
             document.getElementById('td-room').innerText = tenant.currentRoomCode !== 'N/A' ? `Phòng ${tenant.currentRoomCode}` : 'Chưa xếp phòng';
 
+            const balanceEl = document.getElementById('td-balance');
+            const balanceVal = tenant.balance || 0;
+            balanceEl.innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(balanceVal);
+            balanceEl.className = 'fw-bold ' + (balanceVal > 0 ? 'text-success' : (balanceVal < 0 ? 'text-danger' : 'text-muted'));
+
             const statusEl = document.getElementById('td-status');
             if (tenant.status === 'Staying') {
                 statusEl.className = 'badge rounded-pill px-3 py-2 mt-1 bg-success bg-opacity-10 text-success';

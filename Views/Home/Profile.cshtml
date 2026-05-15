@@ -43,9 +43,12 @@
                     <a class="profile-nav-link active" href="#" data-tab="account">
                         <i class="bi bi-person-bounding-box"></i> Thông tin tài khoản
                     </a>
-                    <a class="profile-nav-link" href="#" data-tab="identity">
-                        <i class="bi bi-card-text"></i> Hồ sơ chi tiết
-                    </a>
+                    @if (role == "tenant")
+                    {
+                        <a class="profile-nav-link" href="#" data-tab="identity">
+                            <i class="bi bi-card-text"></i> Hồ sơ chi tiết
+                        </a>
+                    }
                     <a class="profile-nav-link" href="#" data-tab="security">
                         <i class="bi bi-shield-lock"></i> Bảo mật & Mật khẩu
                     </a>
@@ -66,9 +69,12 @@
                 <div id="tab-account" class="profile-tab-content">
                     @await Html.PartialAsync("_ProfileAccount")
                 </div>
-                <div id="tab-identity" class="profile-tab-content d-none">
-                    @await Html.PartialAsync("_ProfileIdentity")
-                </div>
+                @if (role == "tenant")
+                {
+                    <div id="tab-identity" class="profile-tab-content d-none">
+                        @await Html.PartialAsync("_ProfileIdentity")
+                    </div>
+                }
                 <div id="tab-security" class="profile-tab-content d-none">
                     @await Html.PartialAsync("_ProfileSecurity")
                 </div>

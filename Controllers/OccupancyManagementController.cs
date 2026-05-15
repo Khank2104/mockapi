@@ -11,10 +11,12 @@ namespace UserManagementSystem.Controllers
     public class OccupancyManagementController : ControllerBase
     {
         private readonly IOccupancyService _occupancyService;
+        private readonly IContractService _contractService;
 
-        public OccupancyManagementController(IOccupancyService occupancyService)
+        public OccupancyManagementController(IOccupancyService occupancyService, IContractService contractService)
         {
             _occupancyService = occupancyService;
+            _contractService = contractService;
         }
 
         private int GetRequesterId()
@@ -40,35 +42,35 @@ namespace UserManagementSystem.Controllers
         [HttpPost("CreateContract")]
         public async Task<IActionResult> CreateContract([FromBody] ContractRequest request)
         {
-            var result = await _occupancyService.CreateContractAsync(request, GetRequesterId());
+            var result = await _contractService.CreateContractAsync(request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPost("TerminateContract/{id}")]
         public async Task<IActionResult> TerminateContract(int id)
         {
-            var result = await _occupancyService.TerminateContractAsync(id, GetRequesterId());
+            var result = await _contractService.TerminateContractAsync(id, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpGet("GetAllContracts")]
         public async Task<IActionResult> GetAllContracts([FromQuery] int? motelId = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _occupancyService.GetAllContractsAsync(GetRequesterId(), motelId, page, pageSize);
+            var result = await _contractService.GetAllContractsAsync(GetRequesterId(), motelId, page, pageSize);
             return Ok(result);
         }
 
         [HttpGet("GetActiveContractByRoom/{roomId}")]
         public async Task<IActionResult> GetActiveContractByRoom(int roomId)
         {
-            var result = await _occupancyService.GetActiveContractByRoomAsync(roomId);
+            var result = await _contractService.GetActiveContractByRoomAsync(roomId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
         [HttpPut("UpdateContract/{id}")]
         public async Task<IActionResult> UpdateContract(int id, [FromBody] ContractRequest request)
         {
-            var result = await _occupancyService.UpdateContractAsync(id, request, GetRequesterId());
+            var result = await _contractService.UpdateContractAsync(id, request, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
     }

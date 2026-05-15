@@ -11,10 +11,12 @@ namespace UserManagementSystem.Controllers
     public class InvoiceController : ControllerBase
     {
         private readonly IInvoiceService _invoiceService;
+        private readonly IExportService _exportService;
 
-        public InvoiceController(IInvoiceService invoiceService)
+        public InvoiceController(IInvoiceService invoiceService, IExportService exportService)
         {
             _invoiceService = invoiceService;
+            _exportService = exportService;
         }
 
         private int GetRequesterId()
@@ -51,10 +53,17 @@ namespace UserManagementSystem.Controllers
             return Ok(result);
         }
 
+        [HttpGet("FinancialDashboard")]
+        public async Task<IActionResult> GetFinancialDashboard([FromQuery] int month, [FromQuery] int year, [FromQuery] int? motelId = null)
+        {
+            var result = await _invoiceService.GetDashboardFinancialSummaryAsync(month, year, GetRequesterId(), motelId);
+            return Ok(result);
+        }
+
         [HttpGet("{id}/ExportExcel")]
         public async Task<IActionResult> ExportExcel(int id)
         {
-            var fileBytes = await _invoiceService.ExportInvoiceToExcelAsync(id, GetRequesterId());
+            var fileBytes = await _exportService.ExportInvoiceToExcelAsync(id, GetRequesterId());
             if (fileBytes == null || fileBytes.Length == 0) return NotFound("Invoice not found or access denied.");
 
             var fileName = $"HoaDon_Phong_{id}_{DateTime.Now:yyyyMMdd}.xlsx";

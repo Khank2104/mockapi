@@ -53,13 +53,16 @@ const AccountInfo = (() => {
         } catch (e) {}
     };
 
-    const save = async () => {
+    const save = async (event) => {
         const payload = {
             name: document.getElementById('acc-name').value,
-            phone: document.getElementById('acc-phone').value,
-            email: document.getElementById('acc-email').innerText,
-            username: document.getElementById('acc-username').innerText
+            phone: document.getElementById('acc-phone').value
         };
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang lưu...';
+        btn.disabled = true;
+
         try {
             const response = await fetch('/api/UserProxy/UpdateProfile', {
                 method: 'PUT',
@@ -70,11 +73,15 @@ const AccountInfo = (() => {
             if (result.success) {
                 showPremiumToast("Thành công", "Cập nhật tài khoản thành công!", "success");
                 load();
+                if (typeof IdentityInfo !== 'undefined') IdentityInfo.load();
             } else {
-                showPremiumToast("Lỗi", result.message, "danger");
+                showPremiumToast("Lỗi", result.message || "Không thể cập nhật tài khoản", "danger");
             }
         } catch (e) {
             showPremiumToast("Lỗi", "Lỗi kết nối máy chủ", "danger");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
     };
 
@@ -102,6 +109,7 @@ const IdentityInfo = (() => {
             if (result.success) {
                 const d = result.data;
                 document.getElementById('id-fullname').value = d.fullName || '';
+                document.getElementById('id-phone').value = d.phone || '';
                 document.getElementById('id-citizenId').value = d.citizenId || '';
                 document.getElementById('id-dob').value = d.dateOfBirth ? d.dateOfBirth.split('T')[0] : '';
                 document.getElementById('id-gender').value = d.gender || '';
@@ -111,15 +119,21 @@ const IdentityInfo = (() => {
         } catch (e) {}
     };
 
-    const save = async () => {
+    const save = async (event) => {
         const payload = {
             fullName: document.getElementById('id-fullname').value,
+            phone: document.getElementById('id-phone').value,
             citizenId: document.getElementById('id-citizenId').value,
             dateOfBirth: document.getElementById('id-dob').value,
             gender: document.getElementById('id-gender').value,
             permanentAddress: document.getElementById('id-address').value,
             emergencyContact: document.getElementById('id-emergency').value
         };
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang lưu...';
+        btn.disabled = true;
+
         try {
             const response = await fetch('/api/TenantPortal/UpdateMyProfile', {
                 method: 'PUT',
@@ -130,10 +144,16 @@ const IdentityInfo = (() => {
             if (result.success) {
                 showPremiumToast("Thành công", "Đã cập nhật hồ sơ chi tiết!", "success");
                 load();
+                AccountInfo.load(); // Đồng bộ sang tab Tài khoản
             } else {
-                showPremiumToast("Lỗi", result.message, "danger");
+                showPremiumToast("Lỗi", result.message || "Không thể cập nhật hồ sơ", "danger");
             }
-        } catch (e) {}
+        } catch (e) {
+            showPremiumToast("Lỗi", "Lỗi kết nối máy chủ", "danger");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     };
 
     return { load, save };

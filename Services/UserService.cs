@@ -79,10 +79,12 @@ namespace UserManagementSystem.Services
             if (isManager && targetUser.Role.RoleName == "superuser" && requester.UserId != targetUser.UserId)
                 return new ApiResponse { Success = false, Message = "Không thể sửa thông tin Superuser khác." };
 
-            targetUser.Name = request.Name;
-            targetUser.Email = request.Email;
+            if (!string.IsNullOrWhiteSpace(request.Name)) targetUser.Name = request.Name;
+            if (!string.IsNullOrWhiteSpace(request.Email)) targetUser.Email = request.Email;
+            if (!string.IsNullOrWhiteSpace(request.Username)) targetUser.Username = request.Username;
+            
             targetUser.Avatar = request.Avatar ?? targetUser.Avatar;
-            targetUser.Phone = request.Phone;
+            targetUser.Phone = request.Phone; // Phone can be cleared if explicitly sent as empty
             targetUser.UpdatedAt = DateTime.Now;
 
             if (isManager && !string.IsNullOrEmpty(request.Status))
@@ -92,6 +94,19 @@ namespace UserManagementSystem.Services
                 targetUser.PasswordHash = _authService.HashPassword(request.Password);
 
             await _db.SaveChangesAsync();
+
+            // Đồng bộ sang bảng Tenants nếu là khách thuê
+            if (targetUser.Role?.RoleName == "tenant")
+            {
+                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == targetUser.UserId);
+                if (tenant != null)
+                {
+                    tenant.FullName = targetUser.Name;
+                    tenant.Phone = targetUser.Phone;
+                    tenant.UpdatedAt = DateTime.Now;
+                    await _db.SaveChangesAsync();
+                }
+            }
 
             await _notificationService.CreateNotificationAsync(targetUser.UserId, "Cập nhật hồ sơ", "Thông tin tài khoản của bạn đã được cập nhật thành công.", "success");
 

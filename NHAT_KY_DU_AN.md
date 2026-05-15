@@ -105,9 +105,20 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 
 ## 3. Trạng Thái Dự Án Hiện Tại
 
-**Ngày cập nhật**: 2026-05-12
+### [2026-05-15] - Session 33: Đồng bộ Hồ sơ Cá nhân & Tái thiết kế Giao diện Premium
+- **Sửa lỗi mất Số điện thoại**: Khắc phục triệt để lỗi mất SĐT khi cập nhật hồ sơ nhờ việc bổ sung trường nhập liệu vào tab Identity và đồng bộ hóa payload.
+- **Đồng bộ 2 chiều (Bi-directional Sync)**: Nâng cấp `UserService` và `TenantService` để tự động cập nhật thông tin chéo giữa bảng `Users` và `Tenants`, đảm bảo dữ liệu luôn đồng nhất.
+- **Tái thiết kế Header**: Đại tu giao diện Header trên cả Admin và Tenant Dashboard. Áp dụng Glassmorphism, sửa lỗi căn lề và thêm Badge Profile cao cấp.
+- **Hệ thống Thông báo (Toasts) & Loading**: Tích hợp `showPremiumToast` và trạng thái `Loading` cho các nút bấm, giúp người dùng nhận biết kết quả thao tác ngay lập tức.
+- **Bảo mật dữ liệu (Null-safety)**: Cập nhật cơ chế cập nhật từng phần (Partial Update) tại Backend, ngăn chặn việc ghi đè dữ liệu cũ bằng giá trị rỗng/null.
+
+---
+
+## 3. Trạng Thái Dự Án Hiện Tại
+
+**Ngày cập nhật**: 2026-05-15
 **Thực hiện bởi**: Antigravity (AI)
-**Trạng thái**: ✅ **Ổn định** — Hoàn thiện cấu trúc UI dạng Grid và cơ chế thêm/sửa/xóa toàn diện cho khu trọ.
+**Trạng thái**: ✅ **Ổn định** — Hoàn thiện trải nghiệm người dùng (UX) và cơ chế đồng bộ dữ liệu hồ sơ.
 
 **Tính năng ĐÃ HOÀN THÀNH:**
 - [x] Xác thực & Phân quyền (JWT Cookie, Role-based)
@@ -121,6 +132,8 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 - [x] Cổng thanh toán QR (VietQR + Upload minh chứng)
 - [x] Giao diện Card Grid đồng nhất toàn bộ Dashboard Admin
 - [x] Tối ưu hóa UI Thiết lập Khu trọ (Tabbed Layout, Pagination, Bulk Add)
+- [x] Đồng bộ dữ liệu Hồ sơ cá nhân & Redesign Header Premium
+- [x] Trạng thái Loading & Thông báo tương tác thời gian thực
 
 **Cần làm tiếp:**
 - [ ] Tích hợp cổng thanh toán trực tuyến (VNPay, Momo)
@@ -174,3 +187,28 @@ Với tư cách là một Trợ lý AI lập trình (Agentic AI), Antigravity đ
   - Áp dụng các ràng buộc Unique Index ở tầng Database để chống trùng lặp dữ liệu (ví dụ: cấm tạo 2 phòng cùng mã trong 1 khu trọ).
   - Xây dựng hệ thống `ContractExpirationService` chạy ngầm (Background Worker) giúp dọn dẹp và cập nhật trạng thái hợp đồng một cách tự động, không gây nghẽn luồng chính.
   - Bổ sung phòng thủ Null-safety toàn diện trên Javascript để ngăn ngừa lỗi crash ứng dụng âm thầm.
+
+---
+
+## 6. Walkthrough: Quy Trình Nghiệp Vụ Chính
+
+Dưới đây là tóm tắt các luồng xử lý chính trong hệ thống QuanTro:
+
+### A. Thiết lập Cơ sở hạ tầng
+1. **Khai báo Khu trọ**: Admin nhập thông tin tên, địa chỉ khu trọ.
+2. **Khai báo Tầng & Phòng**: Sử dụng tính năng "Thêm hàng loạt" để nhanh chóng tạo sơ đồ phòng.
+3. **Cấu hình Dịch vụ**: Chốt giá điện, nước, wifi... cho từng phòng.
+
+### B. Quản lý Khách thuê & Hợp đồng
+1. **Tiếp nhận khách**: Đăng ký tài khoản cho khách thuê.
+2. **Ký hợp đồng**: Sử dụng Wizard 3 bước để chọn phòng, dịch vụ và chốt ngày vào ở. Hệ thống tự động tính tiền cọc và tiền phòng tháng đầu (prorated).
+3. **Quản lý người ở**: Thêm các thành viên cùng phòng nếu cần.
+
+### C. Vận hành hàng tháng
+1. **Ghi chỉ số**: Ghi số điện/nước vào cuối tháng thông qua Form ghi kép.
+2. **Phát hành hóa đơn**: Hệ thống tự động tổng hợp tiền phòng + tiền dịch vụ + phụ thu để tạo hóa đơn.
+3. **Thanh toán**: Khách thuê quét mã VietQR và gửi minh chứng. Admin kiểm tra và duyệt thanh toán.
+
+### D. Chấm dứt & Lưu trữ
+1. **Thanh lý hợp đồng**: Khi khách dời đi, hệ thống giải phóng phòng và khóa tài khoản khách nhưng vẫn giữ lại lịch sử hóa đơn để đối soát.
+

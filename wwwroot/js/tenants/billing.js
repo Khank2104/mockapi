@@ -15,38 +15,86 @@ const BillingMgmt = (() => {
             const result = await response.json();
             
             if (result.success) {
-                if (result.data.length === 0) {
+                const data = result.data;
+                const invoices = data.invoices || [];
+                const balance = data.balance || 0;
+
+                updateSummaryCards(balance, invoices);
+                
+                if (invoices.length === 0) {
                     container.innerHTML = '<div class="text-center py-5 opacity-50"><i class="bi bi-receipt fs-1 d-block mb-3"></i>Chưa có hóa đơn nào.</div>';
                     return;
                 }
-                renderInvoices(result.data);
+                renderInvoices(invoices);
             }
         } catch (e) {
             container.innerHTML = '<div class="alert alert-danger">Lỗi tải dữ liệu.</div>';
         }
     };
 
+    const updateSummaryCards = (balance, invoices) => {
+        const balanceEl = document.getElementById('current-balance');
+        const statusEl = document.getElementById('balance-status');
+        const paidEl = document.getElementById('paid-this-month');
+        const pendingEl = document.getElementById('total-pending');
+        const countEl = document.getElementById('invoice-count');
+
+        if (balanceEl) balanceEl.innerText = `${balance.toLocaleString('vi-VN')} đ`;
+        if (statusEl) {
+            if (balance > 0) {
+                statusEl.innerHTML = '<span class="text-success"><i class="bi bi-plus-circle-fill me-1"></i>Bạn đang đóng dư tiền</span>';
+            } else if (balance < 0) {
+                statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i>Bạn còn khoản nợ cần trả</span>';
+            } else {
+                statusEl.innerHTML = '<span class="text-muted"><i class="bi bi-check-circle-fill me-1"></i>Số dư hiện tại bằng 0</span>';
+            }
+        }
+
+        const now = new Date();
+        const curMonth = now.getMonth() + 1;
+        const curYear = now.getFullYear();
+
+        const paidThisMonth = invoices
+            .filter(i => i.billingMonth === curMonth && i.billingYear === curYear)
+            .reduce((sum, i) => sum + (i.paidAmount || 0), 0);
+        
+        const totalPending = invoices
+            .filter(i => i.invoiceStatus !== 'Paid')
+            .reduce((sum, i) => sum + (i.totalAmount - (i.paidAmount || 0)), 0);
+
+        if (paidEl) paidEl.innerText = `${paidThisMonth.toLocaleString('vi-VN')} đ`;
+        if (pendingEl) pendingEl.innerText = `${totalPending.toLocaleString('vi-VN')} đ`;
+        if (countEl) countEl.innerText = invoices.length;
+    };
+
     const renderInvoices = (data) => {
         const container = document.getElementById('invoice-list-container');
         container.innerHTML = data.map(i => `
-            <div class="glass-card mb-3 p-3 border-0 shadow-sm animate-fade-in">
+            <div class="glass-card mb-3 p-4 border-0 shadow-sm animate-fade-in hover-lift">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-4">
-                            <i class="bi bi-calendar2-event fs-4"></i>
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-4" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-receipt fs-3"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0">Tháng ${i.billingMonth}/${i.billingYear}</h5>
-                            <span class="status-pill ${i.invoiceStatus === 'Paid' ? 'status-active' : (i.invoiceStatus === 'Pending' ? 'status-warning' : 'status-locked')} mt-1">
-                                ${i.invoiceStatus === 'Paid' ? 'Đã thanh toán' : (i.invoiceStatus === 'Pending' ? 'Chờ duyệt' : 'Chưa thanh toán')}
-                            </span>
+                            <div class="small text-muted mb-1">Hóa đơn kỳ tháng ${i.billingMonth}/${i.billingYear}</div>
+                            <h5 class="fw-bold mb-0">Phòng ${i.roomCode || ''}</h5>
+                            <div class="d-flex gap-2 mt-2">
+                                <span class="badge ${i.invoiceStatus === 'Paid' ? 'bg-success' : (i.invoiceStatus === 'Pending' ? 'bg-warning' : 'bg-danger')} bg-opacity-10 ${i.invoiceStatus === 'Paid' ? 'text-success' : (i.invoiceStatus === 'Pending' ? 'text-warning' : 'text-danger')} rounded-pill px-3">
+                                    ${i.invoiceStatus === 'Paid' ? 'Đã thanh toán' : (i.invoiceStatus === 'Pending' ? 'Chờ duyệt' : 'Chưa thanh toán')}
+                                </span>
+                                ${i.paidAmount > 0 && i.invoiceStatus !== 'Paid' ? `<span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3">Đã đóng ${i.paidAmount.toLocaleString('vi-VN')} đ</span>` : ''}
+                            </div>
                         </div>
                     </div>
                     <div class="text-end">
-                        <div class="fw-bold fs-5 text-primary">${i.totalAmount.toLocaleString('vi-VN')} đ</div>
-                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3 mt-2" onclick="BillingMgmt.viewDetail(${i.invoiceId})">
-                            Xem chi tiết
-                        </button>
+                        <div class="small text-muted mb-1">Tổng cộng</div>
+                        <div class="fw-bold fs-4 text-primary">${i.totalAmount.toLocaleString('vi-VN')} đ</div>
+                        <div class="mt-3">
+                            <button class="btn btn-premium btn-sm rounded-pill px-4" onclick="BillingMgmt.viewDetail(${i.invoiceId})">
+                                Chi tiết
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
