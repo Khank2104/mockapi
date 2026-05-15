@@ -34,12 +34,12 @@ const RoomMgmt = (() => {
         // Occupants
         const occupantList = document.getElementById('occupant-list');
         occupantList.innerHTML = data.occupants.map(o => `
-            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 mb-3 border-0">
-                <div class="bg-white rounded-circle shadow-sm p-2">
+            <div class="d-flex align-items-center gap-3 p-3 bg-secondary bg-opacity-10 rounded-4 mb-3 border-0">
+                <div class="bg-body rounded-circle shadow-sm p-2">
                     <i class="bi bi-person-fill text-primary fs-5"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <div class="fw-bold text-dark">${o.fullName}</div>
+                    <div class="fw-bold text-body">${o.fullName}</div>
                     <div class="small text-muted">${o.occupantRole === 'Owner' ? 'Chủ hợp đồng' : 'Thành viên'}</div>
                 </div>
                 <div class="text-end">
@@ -54,7 +54,7 @@ const RoomMgmt = (() => {
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom border-light">
                 <div class="d-flex align-items-center gap-3">
                     <div class="text-primary"><i class="bi bi-check-circle-fill"></i></div>
-                    <div class="fw-bold text-dark small text-uppercase">${s.serviceName}</div>
+                    <div class="fw-bold text-body small text-uppercase">${s.serviceName}</div>
                 </div>
                 <div class="text-end">
                     <div class="fw-bold">${s.unitPrice.toLocaleString('vi-VN')} đ</div>

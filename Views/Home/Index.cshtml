@@ -11,7 +11,7 @@
                 <h2 class="fw-bold mb-2">Xin chào cư dân! 👋</h2>
                 <p class="opacity-75 mb-4">Chào mừng bạn đến với hệ thống quản lý phòng trọ thông minh. Hãy kiểm tra các thông báo và hóa đơn mới nhất của mình nhé.</p>
                 <div class="d-flex gap-3">
-                    <a href="/Home/MyInvoices" class="btn btn-white rounded-pill px-4 fw-bold">Thanh toán hóa đơn</a>
+                    <a href="/Home/MyInvoices" class="btn btn-light bg-white text-primary rounded-pill px-4 fw-bold">Thanh toán hóa đơn</a>
                     <a href="/Home/MySupport" class="btn btn-outline-white rounded-pill px-4">Gửi yêu cầu hỗ trợ</a>
                 </div>
             </div>
@@ -176,10 +176,10 @@
                     const unpaid = invoices.filter(i => i.invoiceStatus !== 'Paid').slice(0, 4);
                     const container = document.getElementById('dashboard-invoice-summary');
                     if (unpaid.length === 0) {
-                        container.innerHTML = '<div class="alert alert-light border-0 rounded-4 p-4 text-center">🎉 Tuyệt vời! Bạn không còn hóa đơn nào chưa thanh toán.</div>';
+                        container.innerHTML = '<div class="alert alert-secondary bg-secondary bg-opacity-10 border-0 rounded-4 p-4 text-center">🎉 Tuyệt vời! Bạn không còn hóa đơn nào chưa thanh toán.</div>';
                     } else {
                         container.innerHTML = unpaid.map(i => `
-                            <div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-light rounded-4 hover-card">
+                            <div class="d-flex justify-content-between align-items-center p-3 mb-2 bg-secondary bg-opacity-10 rounded-4 hover-card">
                                 <div>
                                     <div class="fw-bold">Tháng ${i.billingMonth}/${i.billingYear}</div>
                                     <div class="small text-muted">Hạn chốt: ${new Date(i.dueDate).toLocaleDateString('vi-VN')}</div>
@@ -211,7 +211,7 @@
                         container.innerHTML = '<div class="text-center py-4 opacity-50">Chưa có yêu cầu hỗ trợ nào.</div>';
                     } else {
                         container.innerHTML = requests.slice(0, 4).map(r => `
-                            <div class="p-3 mb-2 border-bottom border-light hover-card">
+                            <div class="p-3 mb-2 border-bottom border-secondary border-opacity-10 hover-card">
                                 <div class="d-flex justify-content-between mb-1">
                                     <span class="small fw-bold">${r.title}</span>
                                     <span class="badge ${getStatusBadge(r.status)} rounded-pill x-small">${r.status}</span>
@@ -228,7 +228,7 @@
 
         function getStatusBadge(status) {
             switch(status.toLowerCase()) {
-                case 'pending': return 'bg-warning text-dark';
+                case 'pending': return 'bg-warning bg-opacity-10 text-warning';
                 case 'inprogress': return 'bg-primary';
                 case 'resolved': return 'bg-success';
                 default: return 'bg-secondary';
@@ -245,13 +245,13 @@
 
     .quick-access-card {
         display: block;
-        background: white;
+        background: var(--bs-body-bg);
         padding: 1.5rem;
         border-radius: 24px;
         text-decoration: none;
         transition: all 0.3s ease;
         text-align: center;
-        border: 1px solid rgba(0,0,0,0.03);
+        border: 1px solid var(--bs-border-color-translucent);
     }
     .quick-access-card:hover {
         transform: translateY(-5px);
@@ -267,5 +267,5 @@
         margin: 0 auto 1rem;
         font-size: 1.5rem;
     }
-    .quick-access-card h6 { margin-bottom: 0.25rem; color: #1e293b; }
+    .quick-access-card h6 { margin-bottom: 0.25rem; color: var(--bs-heading-color); }
 </style>

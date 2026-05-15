@@ -41,7 +41,7 @@ const SupportMgmt = (() => {
                 ${r.resolutionNote ? `
                     <div class="bg-success bg-opacity-10 p-2 rounded-3 mt-2">
                         <small class="text-success fw-bold d-block">Phản hồi từ quản lý:</small>
-                        <small class="text-dark">${r.resolutionNote}</small>
+                        <small class="text-muted">${r.resolutionNote}</small>
                     </div>
                 ` : ''}
             </div>
@@ -50,7 +50,7 @@ const SupportMgmt = (() => {
 
     const getStatusBadgeClass = (status) => {
         switch(status.toLowerCase()) {
-            case 'pending': return 'bg-warning text-dark';
+            case 'pending': return 'bg-warning bg-opacity-10 text-warning';
             case 'inprogress': return 'bg-primary';
             case 'resolved': return 'bg-success';
             case 'rejected': return 'bg-danger';

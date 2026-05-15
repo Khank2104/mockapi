@@ -1,0 +1,253 @@
+@model dynamic
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hợp Đồng Thuê Phòng @Model.roomCode</title>
+    <!-- Sử dụng Times New Roman, font chuẩn của văn bản hành chính Việt Nam -->
+    <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.5;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+            font-size: 14pt; /* Kích thước chữ chuẩn văn bản hành chính */
+        }
+        .page-container {
+            width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            padding: 20mm 20mm 20mm 30mm; /* Lề chuẩn: trên 2cm, dưới 2cm, phải 2cm, trái 3cm */
+            margin: 0 auto;
+            background: white;
+            box-sizing: border-box;
+        }
+        
+        p {
+            text-align: justify;
+            margin-top: 6pt;
+            margin-bottom: 6pt;
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-justify { text-align: justify; }
+        .fw-bold { font-weight: bold; }
+        .fst-italic { font-style: italic; }
+        .text-uppercase { text-transform: uppercase; }
+        
+        .header-title { 
+            font-size: 13pt; /* Tiêu đề quốc hiệu */
+        }
+        .sub-title { 
+            font-size: 14pt; 
+            margin-top: 2px;
+        }
+        
+        .line-separator {
+            width: 40%;
+            border-top: 1.5px solid black;
+            margin: 5px auto 15px auto;
+        }
+
+        .contract-title { 
+            font-size: 16pt; 
+            margin-top: 20pt; 
+            margin-bottom: 15pt; 
+        }
+
+        .date-location {
+            font-size: 14pt;
+            font-style: italic;
+            text-align: right;
+            margin-bottom: 15pt;
+        }
+
+        .party-header { 
+            font-size: 14pt; 
+            font-weight: bold; 
+            margin-top: 10pt; 
+            margin-bottom: 5pt; 
+        }
+
+        .party-info {
+            padding-left: 10mm;
+            text-align: justify;
+        }
+
+        .party-info p {
+            margin: 4pt 0;
+        }
+
+        .article-title {
+            font-weight: bold;
+            margin-top: 12pt;
+            margin-bottom: 6pt;
+        }
+
+        .article-content {
+            padding-left: 5mm;
+            text-align: justify;
+        }
+
+        .article-content p {
+            margin: 4pt 0;
+            text-indent: 10mm; /* Lùi đầu dòng */
+        }
+        
+        table.signature-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 30pt; 
+        }
+        table.signature-table td { 
+            width: 50%; 
+            text-align: center; 
+            vertical-align: top; 
+        }
+        .signature-box { 
+            height: 100px; 
+        }
+        
+        /* Print specific styles */
+        @@media print {
+            body { background: white; margin: 0; }
+            .page-container {
+                width: 100%;
+                margin: 0;
+                padding: 20mm 20mm 20mm 30mm;
+                box-shadow: none;
+                page-break-after: always;
+            }
+            .no-print { display: none !important; }
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .print-btn:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ In Hợp Đồng</button>
+
+    <div class="page-container">
+        <!-- Quốc hiệu, Tiêu ngữ -->
+        <div class="text-center">
+            <div class="fw-bold text-uppercase header-title">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+            <div class="fw-bold sub-title">Độc lập – Tự do – Hạnh phúc</div>
+            <div class="line-separator"></div>
+        </div>
+
+        <div class="text-center fw-bold text-uppercase contract-title">
+            HỢP ĐỒNG THUÊ PHÒNG TRỌ
+        </div>
+
+        <div class="date-location">
+            Hôm nay, ngày @DateTime.Now.Day tháng @DateTime.Now.Month năm @DateTime.Now.Year, tại @Model.motelName, chúng tôi gồm:
+        </div>
+
+        <div class="party-header">BÊN CHO THUÊ PHÒNG (BÊN A):</div>
+        <div class="party-info">
+            <p><strong>Ông/Bà:</strong> @Model.ownerName</p>
+            <p><strong>Số điện thoại:</strong> @Model.ownerPhone</p>
+            <p><strong>Là chủ sở hữu hợp pháp của khu trọ:</strong> @Model.motelName</p>
+            <p><strong>Địa chỉ khu trọ:</strong> @Model.motelAddress</p>
+        </div>
+
+        <div class="party-header">BÊN THUÊ PHÒNG (BÊN B):</div>
+        <div class="party-info">
+            <p><strong>Ông/Bà:</strong> @Model.tenantName</p>
+            <p><strong>Số CCCD/CMND:</strong> @Model.tenantIdentityCard</p>
+            <p><strong>Số điện thoại:</strong> @Model.tenantPhone</p>
+            <p><strong>Địa chỉ thường trú:</strong> @Model.tenantAddress</p>
+        </div>
+
+        <p class="fst-italic" style="margin-top: 15pt;">
+            Sau khi bàn bạc, thỏa thuận, hai bên đồng ý ký kết hợp đồng thuê phòng trọ với các điều khoản sau đây:
+        </p>
+
+        <div class="article-title">ĐIỀU 1: ĐỐI TƯỢNG VÀ THỜI HẠN THUÊ</div>
+        <div class="article-content">
+            <p>Bên A đồng ý cho Bên B thuê phòng số <strong>@Model.roomCode</strong> thuộc khu trọ <strong>@Model.motelName</strong> để sử dụng vào mục đích để ở và sinh hoạt.</p>
+            <p>Thời hạn thuê phòng là từ ngày <strong>@Model.startDate.ToString("dd/MM/yyyy")</strong> đến ngày <strong>@Model.endDate.ToString("dd/MM/yyyy")</strong>.</p>
+        </div>
+
+        <div class="article-title">ĐIỀU 2: GIÁ THUÊ VÀ PHƯƠNG THỨC THANH TOÁN</div>
+        <div class="article-content">
+            <p>Giá thuê phòng là: <strong>@Model.monthlyRent.ToString("N0") VNĐ/tháng</strong> <span class="fst-italic">(Bằng chữ: ..............................................................)</span>.</p>
+            <p>Tiền đặt cọc: Bên B giao cho Bên A số tiền đặt cọc là <strong>@Model.depositAmount.ToString("N0") VNĐ</strong>. Số tiền này sẽ được hoàn trả (hoặc cấn trừ) khi hợp đồng kết thúc nếu Bên B không vi phạm các điều khoản và không làm hư hỏng tài sản của Bên A.</p>
+            <p>Chi phí điện, nước, rác, wifi và các dịch vụ khác sẽ được Bên B thanh toán hàng tháng theo chỉ số thực tế sử dụng hoặc mức giá cố định theo quy định chung tại khu trọ.</p>
+        </div>
+
+        <div class="article-title">ĐIỀU 3: QUYỀN VÀ NGHĨA VỤ CỦA CÁC BÊN</div>
+        <div class="article-content">
+            <p><strong>1. Quyền và nghĩa vụ của Bên A:</strong> Giao phòng và trang thiết bị (nếu có) đúng tình trạng như đã thỏa thuận. Đảm bảo các điều kiện sinh hoạt cơ bản, cung cấp điện, nước đầy đủ cho Bên B.</p>
+            <p><strong>2. Quyền và nghĩa vụ của Bên B:</strong> Thanh toán tiền thuê phòng và các dịch vụ đúng thời hạn. Sử dụng phòng đúng mục đích, tuân thủ nghiêm ngặt nội quy khu trọ, giữ gìn an ninh trật tự và vệ sinh chung. Không tự ý sửa chữa, cải tạo phòng khi chưa có sự đồng ý bằng văn bản của Bên A. Nếu làm hư hỏng tài sản phải bồi thường theo giá trị hiện tại.</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.terms))
+        {
+            <div class="article-title">ĐIỀU 4: THỎA THUẬN KHÁC</div>
+            <div class="article-content">
+                <p>@Model.terms</p>
+            </div>
+            <div class="article-title">ĐIỀU 5: ĐIỀU KHOẢN THI HÀNH</div>
+        }
+        else
+        {
+            <div class="article-title">ĐIỀU 4: ĐIỀU KHOẢN THI HÀNH</div>
+        }
+
+        <div class="article-content">
+            <p>Hợp đồng này được lập thành 02 (hai) bản có giá trị pháp lý như nhau, mỗi bên giữ 01 (một) bản để thực hiện. Hai bên cam kết thực hiện đúng các điều khoản đã ghi trong hợp đồng. Mọi tranh chấp phát sinh (nếu có) sẽ được giải quyết thông qua thương lượng hòa giải. Nếu không hòa giải được sẽ yêu cầu cơ quan pháp luật giải quyết.</p>
+        </div>
+
+        <table class="signature-table">
+            <tr>
+                <td class="fw-bold">BÊN THUÊ PHÒNG (BÊN B)</td>
+                <td class="fw-bold">BÊN CHO THUÊ (BÊN A)</td>
+            </tr>
+            <tr>
+                <td class="fst-italic">(Ký, ghi rõ họ tên)</td>
+                <td class="fst-italic">(Ký, ghi rõ họ tên)</td>
+            </tr>
+            <tr>
+                <td class="signature-box"></td>
+                <td class="signature-box"></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">@Model.tenantName</td>
+                <td class="fw-bold">@Model.ownerName</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Tự động bật hộp thoại in khi trang load xong
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
+</body>
+</html>

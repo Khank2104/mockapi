@@ -33,6 +33,7 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 ## 2. Lịch Sử Phát Triển & Các Cột Mốc
 
 ### Giai đoạn 1-13: Hạ tầng cốt lõi, API & Dashboard UX
+
 - Triển khai toàn bộ Schema CSDL bằng EF Core.
 - Xây dựng logic tính toán hóa đơn tự động và bảo mật RBAC (JWT, BCrypt, HttpOnly Cookies).
 - Phát triển giao diện Dashboard theo phong cách Glassmorphism cao cấp.
@@ -40,18 +41,36 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 - Tích hợp Serilog và Swagger/OpenAPI.
 
 ### Session 14-16: Luồng Nghiệp Vụ & Sơ Đồ Phòng
+
 - **Sơ đồ phòng (Floor Map)**: Thiết kế lại module quản lý theo dạng lưới trực quan, đồng bộ trạng thái phòng theo thời gian thực.
 - **Quản lý vòng đời hợp đồng**: Thêm quy trình chấm dứt hợp đồng thủ công và tự động giải phóng phòng.
 - **Background Worker**: Triển khai `ContractExpirationService` chạy định kỳ hàng giờ để xử lý hợp đồng hết hạn.
 
+### Session 36: Automated Operations (Email & Contracts)
+
+- **Email Notifications**: Tích hợp `IEmailService` vào `InvoiceService` để tự động gửi thông báo hóa đơn mới cho người thuê thông qua địa chỉ Email đã đăng ký.
+- **Background Worker**: Xây dựng `InvoiceReminderWorker` (chạy ngầm theo giờ) quét cơ sở dữ liệu để tìm các hóa đơn quá hạn và tự động gửi Email nhắc nợ. Cơ chế chống spam được tích hợp bằng cách kiểm tra bảng `Notifications` để đảm bảo mỗi người dùng chỉ nhận tối đa 1 email nhắc nhở mỗi ngày.
+- **Printable Contract**: Phát triển API `GetContractForPrintAsync` trong `ContractService` lấy toàn bộ thông tin chi tiết của hợp đồng. Tạo trang `PrintContract.cshtml` thiết kế theo chuẩn khổ giấy A4, hỗ trợ in ấn trực tiếp từ trình duyệt (`window.print()`).
+- **Admin UI Update**: Bổ sung nút "In Hợp Đồng" vào từng Card Hợp Đồng trên giao diện Dashboard, giúp Admin dễ dàng tạo bản cứng có chữ ký cho quy trình lưu trữ.
+
 ### Session 17-20: Tối ưu hóa UI & Logic Hợp đồng
+
 - **Form ghi chỉ số kép**: Gộp ghi điện và nước vào một modal duy nhất để tối ưu thao tác admin.
 - **Xử lý vòng lặp Redirect**: Giải quyết xung đột giữa localStorage và JWT Cookies.
 - **Cơ chế Soft Termination**: Thay đổi logic chấm dứt hợp đồng để bảo toàn lịch sử tài chính thay vì xóa vĩnh viễn.
 
 ### Session 21: Hoàn thiện Sơ đồ phòng & Khắc phục lỗi Runtime
+
 - **Hỗ trợ khu trọ không chia tầng**: Cập nhật Backend và Frontend để hiển thị danh sách phòng trực tiếp.
 - **Phòng chống lỗi classList of null**: Thực hiện Audit JS, thêm các kiểm tra an toàn (null check) cho toàn bộ thao tác DOM.
+
+### Session 22: Tối ưu hóa Asset & Refactor Javascript
+
+- **JS Refactoring**: Tách toàn bộ Javascript inline từ `_AdminLayout.cshtml` và `_TenantLayout.cshtml` ra các file riêng biệt (`admin-ui.js`, `admin-notifications.js`, `tenant-ui.js`, `tenant-notifications.js`) để tăng tốc độ tải trang và khả năng bảo trì.
+- **Localization**: Chuyển đổi các thư viện CDN (Bootstrap Icons, Chart.js, SignalR) sang lưu trữ local trong `wwwroot/lib`, giúp hệ thống hoạt động ổn định không phụ thuộc internet quốc tế.
+- **Dark Mode Hardening**: Rà soát và khắc phục triệt để các lỗi hiển thị (hidden text) trong chế độ Dark Mode tại module Sơ đồ phòng, Tổng quan và các Modal ghi chỉ số điện nước.
+- **Error Handling**: Chuẩn hóa cơ chế bắt lỗi và hiển thị thông báo (Toast) trên toàn bộ hệ thống Admin và Tenant Portal.
+
 - **Xử lý phiên làm việc**: Tự động chuyển hướng về trang Login khi API trả về lỗi 401/403.
 
 ### [2026-05-05] - Session 22: Tự động hóa quản lý Hợp đồng (Background Task)
@@ -101,9 +120,11 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 - **Tạo Phòng Hàng Loạt (Bulk Add)**: Bổ sung tính năng tạo hàng loạt tự động sinh mã phòng liên tiếp (VD: 101, 102, 103...), giảm thiểu đáng kể thời gian nhập liệu ban đầu cho các khu trọ lớn.
 - **Đồng bộ hóa Trải nghiệm**: Gỡ bỏ nút "Sửa HĐ" ở Sơ đồ phòng để định tuyến mọi luồng xử lý hợp đồng về khu vực Quản lý Hợp đồng riêng biệt. Tinh chỉnh CSS để giao diện Tab hiển thị sắc nét trên nền Glassmorphism.
 
----
-
-## 3. Trạng Thái Dự Án Hiện Tại
+### [2026-05-12] - Session 32: Tối ưu hóa Luồng Nghiệp vụ & Xử lý Xung đột Logic
+- **Thanh lý Hợp đồng & Lưu trữ**: Cập nhật logic chấm dứt hợp đồng. Hệ thống sẽ xóa tài khoản đăng nhập (User) của khách thuê để chặn truy cập, nhưng giữ lại toàn bộ hồ sơ (Tenant), Hợp đồng và Hóa đơn trong DB để đối soát (Archive).
+- **Hủy & Sửa Hóa đơn**: Bổ sung tính năng "Hủy hóa đơn" đối với các hóa đơn chưa thanh toán. Điều này cho phép Admin xóa hóa đơn sai, sửa lại chỉ số điện nước và phát hành lại hóa đơn mới.
+- **Xóa Chỉ số sai**: Cho phép xóa chỉ số điện/nước nếu hóa đơn kỳ đó chưa được phát hành, giúp sửa lỗi nhập liệu nhanh chóng.
+- **Duyệt Thanh toán một phần**: Cập nhật quy trình duyệt QR Payment. Admin có thể nhập "Số tiền thực nhận" từ ảnh minh chứng. Hệ thống sẽ ghi nhận đúng số tiền đó và chuyển trạng thái hóa đơn sang "Thanh toán một phần" (Partially Paid) nếu chưa đủ, thay vì mặc định chốt 100% như trước.
 
 ### [2026-05-15] - Session 33: Đồng bộ Hồ sơ Cá nhân & Tái thiết kế Giao diện Premium
 - **Sửa lỗi mất Số điện thoại**: Khắc phục triệt để lỗi mất SĐT khi cập nhật hồ sơ nhờ việc bổ sung trường nhập liệu vào tab Identity và đồng bộ hóa payload.
@@ -111,6 +132,17 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 - **Tái thiết kế Header**: Đại tu giao diện Header trên cả Admin và Tenant Dashboard. Áp dụng Glassmorphism, sửa lỗi căn lề và thêm Badge Profile cao cấp.
 - **Hệ thống Thông báo (Toasts) & Loading**: Tích hợp `showPremiumToast` và trạng thái `Loading` cho các nút bấm, giúp người dùng nhận biết kết quả thao tác ngay lập tức.
 - **Bảo mật dữ liệu (Null-safety)**: Cập nhật cơ chế cập nhật từng phần (Partial Update) tại Backend, ngăn chặn việc ghi đè dữ liệu cũ bằng giá trị rỗng/null.
+
+### [2026-05-15] - Session 34: Bảo mật Hệ thống JWT (Refresh Token & Revocation)
+- **Refresh Token Rotation**: Triển khai cơ chế sinh Refresh Token 64-byte an toàn, lưu trữ Database.
+- **Bảo mật CSRF**: Áp dụng Cookie `SameSite=Strict` cho Refresh Token và cấu hình Path riêng biệt.
+- **Thu hồi Token (Revocation)**: Tích hợp logic thu hồi token (đặt null trong DB) khi người dùng chủ động Logout.
+- **Nâng cấp thời gian sống (Lifespan)**: Giảm hạn sử dụng Access Token từ 6 tiếng xuống 15 phút để giảm thiểu rủi ro bị đánh cắp.
+- **Real-time Status Validation (Token Delay Fix)**: Cập nhật `OnTokenValidated` trong Program.cs để truy vấn trạng thái User ngay lập tức. Nếu Admin khóa tài khoản, thẻ JWT của khách thuê sẽ bị từ chối (Fail) tức thì thay vì phải chờ hết hạn.
+
+### [2026-05-15] - Session 35: Biểu đồ Thống kê Doanh thu (Revenue Chart)
+- **Backend API**: Tạo mới API `/api/Invoice/RevenueChart` trong `InvoiceService` truy xuất dữ liệu 6 tháng gần nhất, tự động tính toán tổng hóa đơn phát hành (Dự kiến thu) và số tiền đã đóng (Thực thu).
+- **Frontend Dashboard**: Tích hợp `Chart.js` dạng Bar Chart, thiết kế cột kéo song song (Expected vs Collected). Đặt canvas biểu đồ trực tiếp vào trang Tổng quan Admin để phân tích xu hướng thu chi một cách sinh động, giao diện Glassmorphism trong suốt, thân thiện.
 
 ---
 
@@ -135,23 +167,18 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 - [x] Đồng bộ dữ liệu Hồ sơ cá nhân & Redesign Header Premium
 - [x] Trạng thái Loading & Thông báo tương tác thời gian thực
 
+- [x] Cơ chế Refresh Token & Thu hồi JWT
+- [x] Biểu đồ phân tích doanh thu nâng cao
+
 **Cần làm tiếp:**
-- [ ] Tích hợp cổng thanh toán trực tuyến (VNPay, Momo)
-- [ ] Biểu đồ phân tích doanh thu nâng cao
+- [ ] Tích hợp cổng thanh toán trực tuyến (VNPay, Momo) - Đã có VietQR, tạm gác lại.
 - [ ] Ứng dụng Mobile (Flutter/React Native)
-- [ ] Cơ chế Refresh Token & Thu hồi JWT
 
 ---
 
-## 4. Nhật Ký Sửa Lỗi & Tái Cấu Trúc (Refactoring)
-
-*(Chi tiết các bước Refactor từ DRY Principle, Tách Module JS, Tách DTO, đến Audit Database Constraints đã được thực hiện và lưu trữ trong lịch sử phiên bản)*
-
-### Session 32: Tối ưu hóa Luồng Nghiệp vụ & Xử lý Xung đột Logic
-- **Thanh lý Hợp đồng & Lưu trữ**: Cập nhật logic chấm dứt hợp đồng. Hệ thống sẽ xóa tài khoản đăng nhập (User) của khách thuê để chặn truy cập, nhưng giữ lại toàn bộ hồ sơ (Tenant), Hợp đồng và Hóa đơn trong DB để đối soát (Archive).
-- **Hủy & Sửa Hóa đơn**: Bổ sung tính năng "Hủy hóa đơn" đối với các hóa đơn chưa thanh toán. Điều này cho phép Admin xóa hóa đơn sai, sửa lại chỉ số điện nước và phát hành lại hóa đơn mới.
-- **Xóa Chỉ số sai**: Cho phép xóa chỉ số điện/nước nếu hóa đơn kỳ đó chưa được phát hành, giúp sửa lỗi nhập liệu nhanh chóng.
-- **Duyệt Thanh toán một phần**: Cập nhật quy trình duyệt QR Payment. Admin có thể nhập "Số tiền thực nhận" từ ảnh minh chứng. Hệ thống sẽ ghi nhận đúng số tiền đó và chuyển trạng thái hóa đơn sang "Thanh toán một phần" (Partially Paid) nếu chưa đủ, thay vì mặc định chốt 100% như trước.
+### Hoàn tất Tái cấu trúc (Refactoring)
+- **Tách Module JS & DTO**: Áp dụng triệt để DRY Principle.
+- **Audit Database Constraints**: Hoàn thiện ràng buộc dữ liệu.
 
 *Tài liệu này sẽ liên tục được cập nhật theo tiến trình của dự án.*
 

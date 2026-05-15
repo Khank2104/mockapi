@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
@@ -149,152 +149,11 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
     
-    <script>
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('tenant-theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
+    <script src="~/js/tenants/tenant-ui.js" asp-append-version="true"></script>
+    <script src="~/js/tenants/tenant-notifications.js" asp-append-version="true"></script>
 
-        function updateThemeIcon(theme) {
-            const icon = document.querySelector('#theme-btn i');
-            if (!icon) return;
-            icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
-        }
-
-        const connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").build();
-        connection.on("NewNotification", (userId) => {
-            showPremiumToast("Thông báo", "Bạn có thông báo mới trong hệ thống.", "info");
-        });
-        connection.start().catch(err => console.error(err.toString()));
-
-        function showPremiumToast(title, message, type = 'primary') {
-            const toastEl = document.getElementById('liveToast');
-            const iconEl = document.getElementById('toastIcon');
-            const titleEl = document.getElementById('toastTitle');
-            const msgEl = document.getElementById('toastMessage');
-            
-            titleEl.innerText = title;
-            msgEl.innerText = message;
-            
-            // Reset and set icon/color
-            iconEl.className = 'bi me-3 fs-4';
-            if (type === 'success') {
-                iconEl.classList.add('bi-check-circle-fill', 'text-success');
-            } else if (type === 'danger' || type === 'error') {
-                iconEl.classList.add('bi-exclamation-octagon-fill', 'text-danger');
-            } else if (type === 'warning') {
-                iconEl.classList.add('bi-exclamation-triangle-fill', 'text-warning');
-            } else {
-                iconEl.classList.add('bi-info-circle-fill', 'text-primary');
-            }
-
-            const toast = new bootstrap.Toast(toastEl);
-            toast.show();
-        }
-        window.showPremiumToast = showPremiumToast;
-
-        async function logout() {
-            try { await fetch('/api/UserProxy/Logout', { method: 'POST' }); } catch (e) {}
-            localStorage.removeItem('currentUser');
-            window.location.href = '/Account/Login';
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadNotificationsCount();
-            const theme = localStorage.getItem('tenant-theme') || 'light';
-            updateThemeIcon(theme);
-        });
-
-        async function loadNotificationsCount() {
-            try {
-                const res = await fetch('/api/NotificationProxy/GetMyNotifications');
-                const result = await res.json();
-                if (result.success) {
-                    const count = result.unreadCount;
-                    const badge = document.getElementById('notification-count');
-                    if (count > 0) {
-                        badge.innerText = count > 99 ? '99+' : count;
-                        badge.classList.remove('d-none');
-                    } else {
-                        badge.classList.add('d-none');
-                    }
-                }
-            } catch (e) {}
-        }
-
-        async function toggleNotificationModal() {
-            const modal = new bootstrap.Modal(document.getElementById('notificationListModal'));
-            modal.show();
-            
-            const list = document.getElementById('notification-list');
-            try {
-                const res = await fetch('/api/NotificationProxy/GetMyNotifications');
-                const result = await res.json();
-                if (result.success) {
-                    if (result.data.length === 0) {
-                        list.innerHTML = '<div class="text-center py-4 opacity-50">Không có thông báo nào.</div>';
-                    } else {
-                        list.innerHTML = result.data.map(n => `
-                            <div class="p-3 mb-2 rounded-3 ${n.isRead ? 'bg-light opacity-75' : 'bg-primary bg-opacity-10 border-start border-primary border-4'}" 
-                                 onclick="markNotificationAsRead(${n.id}, this)" style="cursor: pointer;">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <span class="fw-bold small">${n.title}</span>
-                                    <span class="x-small text-muted">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</span>
-                                </div>
-                                <div class="small text-muted">${n.message}</div>
-                            </div>
-                        `).join('');
-                    }
-                }
-            } catch (e) {
-                list.innerHTML = '<div class="alert alert-danger">Lỗi tải thông báo.</div>';
-            }
-        }
-
-        async function markNotificationAsRead(id, element) {
-            try {
-                const res = await fetch(`/api/NotificationProxy/MarkAsRead/${id}`, { method: 'POST' });
-                const result = await res.json();
-                if (result.success) {
-                    element.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
-                    element.classList.add('bg-light', 'opacity-75');
-                    loadNotificationsCount();
-                }
-            } catch (e) {}
-        }
-
-        async function markAllNotificationsAsRead() {
-            try {
-                const res = await fetch('/api/NotificationProxy/MarkAllAsRead', { method: 'POST' });
-                const result = await res.json();
-                if (result.success) {
-                    const items = document.querySelectorAll('#notification-list > div');
-                    items.forEach(el => {
-                        el.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
-                        el.classList.add('bg-light', 'opacity-75');
-                    });
-                    loadNotificationsCount();
-                }
-            } catch (e) {}
-        }
-
-        (function() {
-            const userJson = localStorage.getItem('currentUser');
-            if (userJson) {
-                const user = JSON.parse(userJson);
-                document.getElementById('navUserName').innerText = user.name;
-                document.getElementById('navAvatar').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`;
-                document.getElementById('tenant-welcome').innerText = `Chào ${user.name}!`;
-            } else {
-                window.location.href = '/Account/Login';
-            }
-        })();
-    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

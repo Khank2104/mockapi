@@ -11,7 +11,7 @@
                     container.innerHTML = result.data.map(a => `
                         <tr>
                             <td><div class="fw-bold">${a.name}</div></td>
-                            <td><span class="badge bg-light text-dark">${a.username}</span></td>
+                            <td><span class="badge bg-secondary bg-opacity-10 text-secondary">${a.username}</span></td>
                             <td><span class="status-pill status-${a.status === 'Active' ? 'active' : 'locked'}">${a.status}</span></td>
                             <td>
                                 <div class="d-flex gap-2">

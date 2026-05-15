@@ -58,18 +58,18 @@ let currentContractPage = 1;
                                     </span>
                                 </div>
                                 
-                                <div class="flex-grow-1 p-3 bg-light rounded-4 mb-3">
+                                <div class="flex-grow-1 p-3 bg-secondary bg-opacity-10 rounded-4 mb-3">
                                     <div class="card-info-row d-flex justify-content-between mb-2">
                                         <span class="text-muted small">Giá thuê:</span>
                                         <span class="fw-bold text-primary">${(c.monthlyRent || 0).toLocaleString()}đ</span>
                                     </div>
                                     <div class="card-info-row d-flex justify-content-between mb-2">
                                         <span class="text-muted small">Tiền cọc:</span>
-                                        <span class="fw-bold text-dark">${(c.depositAmount || 0).toLocaleString()}đ</span>
+                                        <span class="fw-bold text-body">${(c.depositAmount || 0).toLocaleString()}đ</span>
                                     </div>
                                     <div class="card-info-row d-flex justify-content-between border-0">
                                         <span class="text-muted small">Thời hạn:</span>
-                                        <span class="small fw-bold">${c.startDate ? new Date(c.startDate).toLocaleDateString('vi-VN') : 'N/A'} - ${c.endDate ? new Date(c.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
+                                        <span class="small fw-bold text-body">${c.startDate ? new Date(c.startDate).toLocaleDateString('vi-VN') : 'N/A'} - ${c.endDate ? new Date(c.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
                                     </div>
                                 </div>
                                 
@@ -77,6 +77,9 @@ let currentContractPage = 1;
                                     <button class="btn btn-sm btn-outline-primary rounded-pill flex-grow-1" onclick="openEditContractFromList(${c.roomId}, '${c.roomCode}')">
                                         <i class="bi bi-pencil-square me-1"></i> Sửa
                                     </button>
+                                    <a href="/Admin/Contract/Print/${c.contractId}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="In Hợp Đồng">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
                                     ${c.contractStatus === 'Active' ? `
                                         <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="terminateContract(${c.contractId})" title="Chấm dứt">
                                             <i class="bi bi-x-circle"></i>
@@ -209,7 +212,7 @@ window.loadContractsData = loadContractsData;
                         const isMandatory = sName.includes("điện") || sName.includes("nước");
                         return `
                         <div class="col-md-6">
-                            <div class="form-check p-2 border rounded-4 ${isMandatory ? 'bg-primary bg-opacity-10 border-primary border-opacity-25' : 'bg-light bg-opacity-50'}">
+                            <div class="form-check p-2 border rounded-4 ${isMandatory ? 'bg-primary bg-opacity-10 border-primary border-opacity-25' : 'bg-secondary bg-opacity-10'}">
                                 <input class="form-check-input ms-0 me-2" type="checkbox" value="${s.serviceId}" id="svc-${s.serviceId}" 
                                        ${isMandatory ? 'checked disabled' : 'checked'}>
                                 <label class="form-check-label small fw-bold" for="svc-${s.serviceId}">
@@ -390,7 +393,7 @@ window.addOccupantToRoom = addOccupantToRoom;
                 return;
             }
             el.innerHTML = _contractOccupants.map((o, i) => `
-                <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-light border">
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border">
                     <div class="d-flex align-items-center gap-3">
                         <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(o.tenantName)}&background=6366f1&color=fff" class="rounded-circle" style="width:36px;height:36px">
                         <div>

@@ -55,7 +55,7 @@
                             <tr>
                                 <td><div class="fw-bold text-primary">Phòng ${p.roomCode}</div></td>
                                 <td class="fw-bold text-success">+${p.amount.toLocaleString()}đ</td>
-                                <td><span class="badge bg-light text-dark fw-normal">${p.method}</span></td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary fw-normal">${p.method}</span></td>
                                 <td class="text-muted small">${new Date(p.date).toLocaleDateString('vi-VN')}</td>
                             </tr>
                         `).join('');
@@ -121,11 +121,85 @@
             });
         }
 
+        let revenueChartInstance;
+
+        async function loadRevenueChart() {
+            try {
+                const response = await fetch('/api/Invoice/RevenueChart');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const ctx = document.getElementById('revenueChart').getContext('2d');
+                    if (revenueChartInstance) revenueChartInstance.destroy();
+                    
+                    const labels = result.data.map(d => d.month);
+                    const expectedData = result.data.map(d => d.expected);
+                    const collectedData = result.data.map(d => d.collected);
+
+                    revenueChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Dự kiến thu',
+                                    data: expectedData,
+                                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                                    borderColor: '#6366f1',
+                                    borderWidth: 2,
+                                    borderRadius: 4
+                                },
+                                {
+                                    label: 'Thực thu (Đã đóng)',
+                                    data: collectedData,
+                                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                                    borderColor: '#22c55e',
+                                    borderWidth: 0,
+                                    borderRadius: 4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let value = context.raw;
+                                            return context.dataset.label + ': ' + value.toLocaleString('vi-VN') + 'đ';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            if (value >= 1000000) return (value / 1000000) + ' Tr';
+                                            if (value >= 1000) return (value / 1000) + ' K';
+                                            return value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to load revenue chart", e);
+            }
+        }
+
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
             loadOverviewData();
+            loadRevenueChart();
         });
 
 window.loadOverviewData = loadOverviewData;
 window.renderChart = renderChart;
 window.loadFinancialDashboard = loadFinancialDashboard;
+window.loadRevenueChart = loadRevenueChart;

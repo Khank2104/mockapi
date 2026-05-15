@@ -147,8 +147,10 @@
                 const finalContainer = document.getElementById(targetId);
                 if (finalContainer) finalContainer.innerHTML = html;
             } catch (e) {
+                console.error("Error loading motels for selection:", e);
                 container.innerHTML = '<div class="col-12 alert alert-soft-danger text-center py-5"><i class="bi bi-exclamation-triangle fs-2 d-block mb-3"></i>Không thể tải danh sách khu trọ. Vui lòng thử lại.</div>';
             }
+
         }
 
         function selectGlobalMotel(moduleId, motelId) {

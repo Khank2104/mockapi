@@ -157,7 +157,7 @@ function loadFloormapForMotel() {
     let html = '<div class="mb-3">';
     html += '<div class="d-flex gap-2 flex-wrap mb-4" id="floor-tabs">';
     motel.floors.forEach((f, i) => {
-        html += `<button class="btn rounded-pill px-4 fw-bold ${i === 0 ? 'btn-premium' : 'btn-outline-secondary'}" onclick="switchFloorTab(${f.floorId}, this)">${f.floorName || 'Tầng ' + f.floorNumber} <span class="badge ${i === 0 ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary'} ms-2">${f.rooms.length}</span></button>`;
+        html += `<button class="btn rounded-pill px-4 fw-bold ${i === 0 ? 'btn-premium' : 'btn-outline-secondary'}" onclick="switchFloorTab(${f.floorId}, this)">${f.floorName || 'Tầng ' + f.floorNumber} <span class="badge ${i === 0 ? 'bg-primary text-white' : 'bg-primary bg-opacity-10 text-primary'} ms-2">${f.rooms.length}</span></button>`;
     });
     html += '</div>';
 
@@ -208,7 +208,7 @@ function switchFloorTab(floorId, btn) {
     if (panel) panel.style.display = 'block';
     btn.className = 'btn rounded-pill px-4 fw-bold btn-premium';
     const btnBadge = btn.querySelector('.badge');
-    if (btnBadge) btnBadge.className = 'badge bg-white text-primary ms-2';
+    if (btnBadge) btnBadge.className = 'badge bg-primary text-white ms-2';
 }
 
 
@@ -265,7 +265,7 @@ async function openFmpRoom(roomId, roomCode, statusLabel) {
                 const occs = occupantResult.data;
                 const listEl = document.getElementById('fmp-occupants-list');
                 listEl.innerHTML = occs.map(o => `
-            <div class="d-flex align-items-center justify-content-between p-2 rounded-3 bg-white border x-small">
+            <div class="d-flex align-items-center justify-content-between p-2 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 x-small">
             <div class="d-flex align-items-center gap-2">
             <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:0.7rem">
             <i class="bi bi-person-fill"></i>

@@ -22,8 +22,27 @@
     --glass-border: rgba(255, 255, 255, 0.1);
     --text-main: #f8fafc;  /* Near white */
     --text-muted: #cbd5e1; /* Light slate */
+    --text-light: #94a3b8; /* Muted slate */
     --dark-glass-bg: rgba(15, 23, 42, 0.95);
 }
+
+/* Force high-visibility on common text classes in Dark Mode */
+[data-theme='dark'] .text-dark {
+    color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme='dark'] .text-body {
+    color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .card-info-row span:first-child {
+    color: var(--text-muted) !important;
+}
+
 
 [data-theme='dark'] body {
     background: #0f172a;
@@ -42,6 +61,21 @@
     background: rgba(30, 41, 59, 0.7) !important;
     color: #f8fafc !important;
 }
+
+[data-theme='dark'] .stat-card {
+    background: rgba(30, 41, 59, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme='dark'] .user-table th {
+    background: rgba(15, 23, 42, 0.8) !important;
+    color: var(--text-muted) !important;
+}
+
+[data-theme='dark'] .user-table td {
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
 
 [data-theme='dark'] .nav-link {
     color: rgba(255, 255, 255, 0.7) !important;
