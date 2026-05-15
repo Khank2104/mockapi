@@ -11,10 +11,12 @@ namespace UserManagementSystem.Controllers
     public class InvoiceController : ControllerBase
     {
         private readonly IInvoiceService _invoiceService;
+        private readonly IExportService _exportService;
 
-        public InvoiceController(IInvoiceService invoiceService)
+        public InvoiceController(IInvoiceService invoiceService, IExportService exportService)
         {
             _invoiceService = invoiceService;
+            _exportService = exportService;
         }
 
         private int GetRequesterId()
@@ -51,10 +53,17 @@ namespace UserManagementSystem.Controllers
             return Ok(result);
         }
 
+        [HttpGet("FinancialDashboard")]
+        public async Task<IActionResult> GetFinancialDashboard([FromQuery] int month, [FromQuery] int year, [FromQuery] int? motelId = null)
+        {
+            var result = await _invoiceService.GetDashboardFinancialSummaryAsync(month, year, GetRequesterId(), motelId);
+            return Ok(result);
+        }
+
         [HttpGet("{id}/ExportExcel")]
         public async Task<IActionResult> ExportExcel(int id)
         {
-            var fileBytes = await _invoiceService.ExportInvoiceToExcelAsync(id, GetRequesterId());
+            var fileBytes = await _exportService.ExportInvoiceToExcelAsync(id, GetRequesterId());
             if (fileBytes == null || fileBytes.Length == 0) return NotFound("Invoice not found or access denied.");
 
             var fileName = $"HoaDon_Phong_{id}_{DateTime.Now:yyyyMMdd}.xlsx";
@@ -64,22 +73,8 @@ namespace UserManagementSystem.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var invoice = await _invoiceService.GetInvoiceByIdAsync(id, GetRequesterId());
-            if (!invoice.Success) return Forbid();
-            
-            // Delete invoice logic using DB context directly for quick admin action
-            var db = HttpContext.RequestServices.GetService<UserManagementSystem.Data.ApplicationDbContext>();
-            if (db == null) return StatusCode(500, "Database connection error");
-
-            var inv = await db.Invoices.FindAsync(id);
-            if (inv != null) {
-                var details = db.InvoiceDetails.Where(d => d.InvoiceId == id).ToList();
-                db.InvoiceDetails.RemoveRange(details);
-                db.Invoices.Remove(inv);
-                await db.SaveChangesAsync();
-                return Ok(new ApiResponse { Success = true, Message = "Đã xóa hóa đơn." });
-            }
-            return NotFound();
+            var result = await _invoiceService.DeleteInvoiceAsync(id, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
         }
     }
 }

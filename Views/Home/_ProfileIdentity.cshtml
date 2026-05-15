@@ -23,6 +23,12 @@
         </div>
         <div class="col-md-6">
             <div class="profile-input-group">
+                <label class="profile-label">Số điện thoại liên lạc</label>
+                <input type="text" id="id-phone" class="form-control profile-input" placeholder="090x xxx xxx">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="profile-input-group">
                 <label class="profile-label">Giới tính</label>
                 <select id="id-gender" class="form-select profile-input">
                     <option value="">-- Chọn giới tính --</option>
@@ -47,7 +53,7 @@
     </div>
     
     <div class="mt-4 pt-3 border-top">
-        <button class="btn btn-premium px-5 py-3 rounded-pill shadow-lg" onclick="IdentityInfo.save()">
+        <button class="btn btn-premium px-5 py-3 rounded-pill shadow-lg" onclick="IdentityInfo.save(event)">
             <i class="bi bi-shield-check me-2"></i> Lưu hồ sơ chi tiết
         </button>
     </div>

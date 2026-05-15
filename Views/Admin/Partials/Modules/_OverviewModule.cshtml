@@ -63,23 +63,56 @@
         <div class="col-lg-8">
             <div class="glass-card">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold fs-5">Yêu cầu hỗ trợ gần đây</h3>
-                    <button class="btn btn-premium btn-sm" onclick="switchModule('requests')">Xem tất cả</button>
+                    <h3 class="fw-bold fs-5"><i class="bi bi-cash-stack text-success me-2"></i>Tổng doanh thu tháng @DateTime.Now.Month</h3>
+                    <div class="d-flex gap-2">
+                         <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3">
+                            <i class="bi bi-check-circle-fill me-1"></i> <span id="dash-paid-count">0</span> Đã đóng
+                        </span>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 py-2 px-3">
+                            <i class="bi bi-exclamation-circle-fill me-1"></i> <span id="dash-unpaid-count">0</span> Chưa đóng
+                        </span>
+                    </div>
                 </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-4 bg-light border d-flex align-items-center">
+                            <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                <i class="bi bi-calculator"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small">Tổng tiền hóa đơn</div>
+                                <div class="fw-bold fs-5" id="dash-total-expected">0đ</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-4 bg-success bg-opacity-10 border border-success border-opacity-25 d-flex align-items-center">
+                            <div class="stat-icon bg-success text-white me-3" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                <i class="bi bi-piggy-bank"></i>
+                            </div>
+                            <div>
+                                <div class="text-success small">Thực thu (Đã thu)</div>
+                                <div class="fw-bold fs-5 text-success" id="dash-total-collected">0đ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="fw-bold fs-6 mb-3">Các khoản thu gần đây</h4>
                 <div class="table-container">
                     <table class="premium-table">
                         <thead>
                             <tr>
                                 <th>PHÒNG</th>
-                                <th>TIÊU ĐỀ</th>
-                                <th>TRẠNG THÁI</th>
+                                <th>SỐ TIỀN</th>
+                                <th>HÌNH THỨC</th>
                                 <th>THỜI GIAN</th>
                             </tr>
                         </thead>
-                        <tbody id="recent-requests-list">
-                            <!-- Loading placeholder with Skeleton -->
-                            <tr><td colspan="4"><div class="skeleton" style="height: 40px; margin-bottom: 8px;"></div></td></tr>
-                            <tr><td colspan="4"><div class="skeleton" style="height: 40px;"></div></td></tr>
+                        <tbody id="dash-recent-payments">
+                            <!-- Loading placeholder -->
+                            <tr><td colspan="4" class="text-center py-4 text-muted">Đang tải dữ liệu tài chính...</td></tr>
                         </tbody>
                     </table>
                 </div>

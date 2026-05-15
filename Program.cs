@@ -37,7 +37,8 @@ try
         });
 
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
     builder.Services.AddHttpClient();
     builder.Services.AddSignalR();
@@ -53,10 +54,12 @@ try
     builder.Services.AddScoped<ITenantService, TenantService>();
     builder.Services.AddScoped<IMotelService, MotelService>();
     builder.Services.AddScoped<IOccupancyService, OccupancyService>();
+    builder.Services.AddScoped<IContractService, ContractService>();
     builder.Services.AddScoped<IMeterReadingService, MeterReadingService>();
     builder.Services.AddScoped<IInvoiceCalculationService, InvoiceCalculationService>();
     builder.Services.AddScoped<IInvoiceService, InvoiceService>();
     builder.Services.AddScoped<IPaymentService, PaymentService>();
+    builder.Services.AddScoped<IExportService, ExportService>();
     builder.Services.AddScoped<IRequestService, RequestService>();
     builder.Services.AddScoped<IAccessControlService, AccessControlService>();
     builder.Services.AddScoped<IGlobalServiceService, GlobalServiceService>();
@@ -184,7 +187,8 @@ try
 
         options.AddPolicy("TenantOnly", policy => 
             policy.RequireAssertion(context => 
-                context.User.HasClaim(c => c.Type == "role" && c.Value.ToLower() == "tenant")));
+                context.User.HasClaim(c => c.Type == "role" && 
+                    (c.Value.ToLower() == "tenant" || c.Value.ToLower() == "admin" || c.Value.ToLower() == "superuser"))));
     });
 
     var app = builder.Build();
@@ -208,7 +212,7 @@ try
         });
     }
 
-    app.UseHttpsRedirection();
+    // app.UseHttpsRedirection();
     app.UseRouting();
 
     app.UseAuthentication(); 

@@ -78,7 +78,7 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Data = response };
         }
 
-        public async Task<ApiResponse> GetAllProfilesAsync(int adminId, string? searchTerm = null, int page = 1, int pageSize = 10)
+        public async Task<ApiResponse> GetAllProfilesAsync(int adminId, string? searchTerm = null, int page = 1, int pageSize = 10, int? motelId = null)
         {
             if (!await _accessControl.IsAdminOrSuperAsync(adminId)) return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
 
@@ -86,6 +86,11 @@ namespace UserManagementSystem.Services
                 .Include(t => t.User)
                 .Include(t => t.RoomOccupancies).ThenInclude(ro => ro.Room)
                 .AsQueryable();
+
+            if (motelId.HasValue)
+            {
+                query = query.Where(t => t.RoomOccupancies.Any(ro => ro.Room.MotelId == motelId.Value));
+            }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -117,7 +122,8 @@ namespace UserManagementSystem.Services
                         .Where(ro => ro.Status == "Staying")
                         .Select(ro => ro.Room.RoomCode)
                         .FirstOrDefault() ?? "N/A",
-                    HasActiveContract = _db.Contracts.Any(c => c.PrimaryTenantId == t.TenantId && c.ContractStatus == "Active")
+                    HasActiveContract = _db.Contracts.Any(c => c.PrimaryTenantId == t.TenantId && c.ContractStatus == "Active"),
+                    Balance = t.Balance
                 })
                 .ToListAsync();
 
@@ -230,41 +236,69 @@ namespace UserManagementSystem.Services
 
         public async Task<ApiResponse> GetProfileByUserIdAsync(int userId)
         {
-            var t = await _db.Tenants.Include(t => t.User).FirstOrDefaultAsync(t => t.UserId == userId);
-            if (t == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hồ sơ khách thuê." };
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            if (user == null) return new ApiResponse { Success = false, Message = "Không tìm thấy người dùng." };
 
+            var t = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == userId);
+            
+            // Trả về thông tin Tenant nếu có, nếu không lấy thông tin cơ bản từ User
             return new ApiResponse { 
                 Success = true, 
                 Data = new {
-                    t.TenantId,
-                    t.FullName,
-                    t.CitizenId,
-                    t.Phone,
-                    t.Gender,
-                    t.DateOfBirth,
-                    t.PermanentAddress,
-                    t.EmergencyContact,
-                    Email = t.User?.Email
+                    TenantId = t?.TenantId ?? 0,
+                    FullName = t?.FullName ?? user.Name,
+                    CitizenId = t?.CitizenId ?? "",
+                    Phone = t?.Phone ?? user.Phone,
+                    Gender = t?.Gender ?? "",
+                    DateOfBirth = t?.DateOfBirth,
+                    PermanentAddress = t?.PermanentAddress ?? "",
+                    EmergencyContact = t?.EmergencyContact ?? "",
+                    Email = user.Email
                 } 
             };
         }
 
         public async Task<ApiResponse> UpdateProfileByUserIdAsync(int userId, UpdateTenantProfileRequest request)
         {
+            var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
+            if (user == null) return new ApiResponse { Success = false, Message = "Không tìm thấy tài khoản." };
+
+            // Chỉ khách thuê mới được có bản ghi ở bảng Tenants
+            if (user.Role?.RoleName != "tenant")
+            {
+                return new ApiResponse { Success = false, Message = "Chỉ tài khoản khách thuê mới có hồ sơ chi tiết." };
+            }
+
             var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == userId);
-            if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy hồ sơ khách thuê." };
+            
+            if (tenant == null) 
+            {
+                tenant = new Tenant
+                {
+                    UserId = userId,
+                    FullName = request.FullName,
+                    CreatedAt = DateTime.Now,
+                    TenantStatus = "Active"
+                };
+                _db.Tenants.Add(tenant);
+            }
 
             tenant.FullName = request.FullName;
             tenant.CitizenId = request.CitizenId;
-            tenant.Phone = request.Phone;
+            if (request.Phone != null) tenant.Phone = request.Phone;
             tenant.Gender = request.Gender;
             tenant.DateOfBirth = request.DateOfBirth;
             tenant.PermanentAddress = request.PermanentAddress;
             tenant.EmergencyContact = request.EmergencyContact;
             tenant.UpdatedAt = DateTime.Now;
 
+            // Đồng bộ ngược lại bảng Users
+            if (!string.IsNullOrWhiteSpace(request.FullName)) user.Name = request.FullName;
+            if (request.Phone != null) user.Phone = request.Phone;
+            user.UpdatedAt = DateTime.Now;
+
             await _db.SaveChangesAsync();
-            return new ApiResponse { Success = true, Message = "Cập nhật thông tin hồ sơ cá nhân thành công." };
+            return new ApiResponse { Success = true, Message = "Cập nhật hồ sơ và đồng bộ tài khoản thành công." };
         }
     }
 }

@@ -28,6 +28,14 @@
                              style="max-height: 300px; object-fit: contain;" onclick="window.open(this.src, '_blank')">
                         <p class="small text-muted mt-2"><i class="bi bi-info-circle me-1"></i> Nhấn vào ảnh để xem kích thước lớn</p>
                     </div>
+                    <div id="verify-payment-form" class="bg-white rounded-3 p-3 mb-3 border d-none">
+                        <label class="form-label small fw-bold text-muted">Số tiền thực nhận (VNĐ):</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">₫</span>
+                            <input type="number" id="verify-actual-amount" class="form-control border-start-0 fw-bold text-primary" placeholder="Nhập số tiền...">
+                        </div>
+                        <p class="x-small text-muted mt-2 mb-0"><i class="bi bi-info-circle me-1"></i> Để trống nếu khách đã trả đủ 100%.</p>
+                    </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-success flex-grow-1 rounded-pill" onclick="verifyInvoicePayment(true)">
                             <i class="bi bi-check-circle me-1"></i> Phê duyệt
@@ -71,35 +79,57 @@
                     <div class="row g-4 mb-4">
                         <!-- Điện -->
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-4 h-100">
-                                <h6 class="fw-bold text-warning mb-3"><i class="bi bi-lightning-charge-fill me-2"></i>Chỉ số Điện</h6>
+                            <div class="p-4 bg-light rounded-4 h-100 border">
+                                <h6 class="fw-bold text-warning mb-4 d-flex align-items-center">
+                                    <span class="bg-warning bg-opacity-10 p-2 rounded-3 me-2"><i class="bi bi-lightning-charge-fill"></i></span>
+                                    Chỉ số Điện
+                                </h6>
                                 <input type="hidden" id="record-elec-serviceId">
-                                <div class="mb-3">
-                                    <label class="form-label x-small fw-bold opacity-75">SỐ CŨ</label>
-                                    <input type="number" id="record-elec-prev" class="form-control rounded-3 py-2 bg-white" readonly>
+                                <div class="mb-4">
+                                    <label class="form-label x-small fw-bold text-muted text-uppercase ls-1">Số cũ (kWh)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-clock-history"></i></span>
+                                        <input type="number" id="record-elec-prev" class="form-control rounded-end-3 py-2 bg-white border-start-0" readonly>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="form-label x-small fw-bold opacity-75 text-primary">SỐ MỚI</label>
-                                    <input type="number" id="record-elec-curr" class="form-control rounded-3 py-2 border-primary shadow-sm fw-bold" placeholder="Nhập số điện..." oninput="calculateElecUsage()">
+                                <div class="mb-2">
+                                    <label class="form-label x-small fw-bold text-primary text-uppercase ls-1">Số mới (kWh)</label>
+                                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                                        <span class="input-group-text bg-primary text-white border-0"><i class="bi bi-pencil-square"></i></span>
+                                        <input type="number" id="record-elec-curr" class="form-control py-2 border-0 fw-bold" placeholder="0.0" oninput="calculateElecUsage()">
+                                    </div>
                                 </div>
-                                <div class="mt-2 text-end text-muted x-small d-none" id="usage-elec-container">Tiêu thụ: <b id="usage-elec-value" class="text-dark">0</b> <span id="usage-elec-unit">kWh</span></div>
+                                <div class="mt-3 py-2 px-3 rounded-pill bg-warning bg-opacity-10 text-warning x-small fw-bold d-none text-center animate-fade-in" id="usage-elec-container">
+                                    <i class="bi bi-activity me-1"></i> Tiêu thụ: <span id="usage-elec-value">0</span> <span id="usage-elec-unit">kWh</span>
+                                </div>
                             </div>
                         </div>
                         
                         <!-- Nước -->
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-4 h-100">
-                                <h6 class="fw-bold text-info mb-3"><i class="bi bi-droplet-fill me-2"></i>Chỉ số Nước</h6>
+                            <div class="p-4 bg-light rounded-4 h-100 border">
+                                <h6 class="fw-bold text-info mb-4 d-flex align-items-center">
+                                    <span class="bg-info bg-opacity-10 p-2 rounded-3 me-2"><i class="bi bi-droplet-fill"></i></span>
+                                    Chỉ số Nước
+                                </h6>
                                 <input type="hidden" id="record-water-serviceId">
-                                <div class="mb-3">
-                                    <label class="form-label x-small fw-bold opacity-75">SỐ CŨ</label>
-                                    <input type="number" id="record-water-prev" class="form-control rounded-3 py-2 bg-white" readonly>
+                                <div class="mb-4">
+                                    <label class="form-label x-small fw-bold text-muted text-uppercase ls-1">Số cũ (m³)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-clock-history"></i></span>
+                                        <input type="number" id="record-water-prev" class="form-control rounded-end-3 py-2 bg-white border-start-0" readonly>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="form-label x-small fw-bold opacity-75 text-primary">SỐ MỚI</label>
-                                    <input type="number" id="record-water-curr" class="form-control rounded-3 py-2 border-primary shadow-sm fw-bold" placeholder="Nhập số nước..." oninput="calculateWaterUsage()">
+                                <div class="mb-2">
+                                    <label class="form-label x-small fw-bold text-primary text-uppercase ls-1">Số mới (m³)</label>
+                                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                                        <span class="input-group-text bg-primary text-white border-0"><i class="bi bi-pencil-square"></i></span>
+                                        <input type="number" id="record-water-curr" class="form-control py-2 border-0 fw-bold" placeholder="0.0" oninput="calculateWaterUsage()">
+                                    </div>
                                 </div>
-                                <div class="mt-2 text-end text-muted x-small d-none" id="usage-water-container">Tiêu thụ: <b id="usage-water-value" class="text-dark">0</b> <span id="usage-water-unit">Khối</span></div>
+                                <div class="mt-3 py-2 px-3 rounded-pill bg-info bg-opacity-10 text-info x-small fw-bold d-none text-center animate-fade-in" id="usage-water-container">
+                                    <i class="bi bi-activity me-1"></i> Tiêu thụ: <span id="usage-water-value">0</span> <span id="usage-water-unit">m³</span>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -40,7 +40,6 @@
 <partial name="Partials/Modals/_RequestModals" />
 
 @section Scripts {
-    <script src="~/js/admin/admin-core.js" asp-append-version="true"></script>
     <script src="~/js/admin/global-services.js" asp-append-version="true"></script>
     <script src="~/js/admin/contracts.js" asp-append-version="true"></script>
     <script src="~/js/admin/tenants.js" asp-append-version="true"></script>
@@ -120,6 +119,8 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 0.6rem;
         }
+        .hover-lift { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hover-lift:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important; }
         .hover-card { transition: all 0.2s ease; }
         .hover-card:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
     </style>

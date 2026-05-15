@@ -17,57 +17,89 @@
                     totalBillingPages = totalPages;
 
                     if (items.length === 0) {
-                        container.innerHTML = '<tr><td colspan="5" class="text-center py-5">Không có dữ liệu hóa đơn phù hợp.</td></tr>';
+                        container.innerHTML = `
+                            <div class="col-12 text-center py-5">
+                                <div class="empty-state border-0 bg-transparent">
+                                    <i class="bi bi-receipt fs-1 opacity-25"></i>
+                                    <h4 class="text-muted mt-3">Không có dữ liệu hóa đơn</h4>
+                                    <p class="text-muted small">Kỳ này hiện chưa có hóa đơn nào được khởi tạo.</p>
+                                </div>
+                            </div>`;
                         updatePaginationUI(0, 0, 0, 1, 1);
                         return;
                     }
 
                     container.innerHTML = items.map(r => {
-                        // Hiển thị chỉ số điện
                         const elecHtml = r.electricity 
-                            ? `<div class="d-flex align-items-center gap-2 text-warning">
-                                <i class="bi bi-lightning-charge-fill"></i>
-                                <span><small class="text-muted">Cũ: ${r.electricity.previousReading}</small> → <b>${r.electricity.currentReading}</b> <small class="text-muted">(${r.electricity.usageAmount} kWh)</small></span>
+                            ? `<div class="bg-warning bg-opacity-10 rounded-3 p-2 text-center flex-grow-1 border border-warning border-opacity-25 shadow-sm position-relative">
+                                <div class="text-warning small fw-bold mb-1"><i class="bi bi-lightning-charge-fill me-1"></i>Điện</div>
+                                <div class="fw-bolder fs-6 text-dark">${r.electricity.currentReading} <span class="fw-normal x-small text-muted">(${r.electricity.usageAmount} kWh)</span></div>
+                                ${!r.invoice ? `<button class="btn btn-link btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="deleteReading(${r.electricity.readingId})" style="line-height:1; font-size: 10px;"><i class="bi bi-x-circle"></i></button>` : ''}
                                </div>` 
-                            : `<div class="d-flex align-items-center gap-2 text-warning opacity-50"><i class="bi bi-lightning-charge"></i> <span class="small">Chưa ghi...</span></div>`;
+                            : `<div class="bg-light rounded-3 p-2 text-center flex-grow-1 border opacity-75">
+                                <div class="text-muted small fw-bold mb-1"><i class="bi bi-lightning-charge me-1"></i>Điện</div>
+                                <div class="x-small text-muted mt-1">Chưa ghi</div>
+                               </div>`;
                             
-                        // Hiển thị chỉ số nước
                         const waterHtml = r.water 
-                            ? `<div class="d-flex align-items-center gap-2 text-info">
-                                <i class="bi bi-droplet-fill"></i>
-                                <span><small class="text-muted">Cũ: ${r.water.previousReading}</small> → <b>${r.water.currentReading}</b> <small class="text-muted">(${r.water.usageAmount} m³)</small></span>
+                            ? `<div class="bg-info bg-opacity-10 rounded-3 p-2 text-center flex-grow-1 border border-info border-opacity-25 shadow-sm position-relative">
+                                <div class="text-info small fw-bold mb-1"><i class="bi bi-droplet-fill me-1"></i>Nước</div>
+                                <div class="fw-bolder fs-6 text-dark">${r.water.currentReading} <span class="fw-normal x-small text-muted">(${r.water.usageAmount} m³)</span></div>
+                                ${!r.invoice ? `<button class="btn btn-link btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="deleteReading(${r.water.readingId})" style="line-height:1; font-size: 10px;"><i class="bi bi-x-circle"></i></button>` : ''}
                                </div>` 
-                            : `<div class="d-flex align-items-center gap-2 text-info opacity-50"><i class="bi bi-droplet"></i> <span class="small">Chưa ghi...</span></div>`;
+                            : `<div class="bg-light rounded-3 p-2 text-center flex-grow-1 border opacity-75">
+                                <div class="text-muted small fw-bold mb-1"><i class="bi bi-droplet me-1"></i>Nước</div>
+                                <div class="x-small text-muted mt-1">Chưa ghi</div>
+                               </div>`;
 
-                        const invoiceStatus = r.invoice 
-                            ? (r.invoice.invoiceStatus === 'Paid' 
-                                ? `<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i> Đã thanh toán</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>` 
-                                : (r.invoice.invoiceStatus === 'Pending' 
-                                    ? `<span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill"><i class="bi bi-clock-history me-1"></i> Chờ duyệt</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>`
-                                    : `<span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill"><i class="bi bi-exclamation-circle me-1"></i> Chưa thu</span><br><small class="text-muted fw-bold mt-1 d-block">${r.invoice.totalAmount.toLocaleString()} đ</small>`))
-                            : `<span class="badge bg-secondary bg-opacity-10 text-muted px-3 py-2 rounded-pill">Chưa chốt</span>`;
-
-                        const actionBtn = r.invoice
-                            ? `<div class="btn-group">
-                                 <button class="btn btn-sm btn-outline-primary px-3" onclick="viewInvoiceDetails(${r.invoice.invoiceId})" title="Xem hóa đơn"><i class="bi bi-eye"></i> Xem</button>
-                                 <button class="btn btn-sm btn-outline-danger px-3" onclick="deleteInvoice(${r.invoice.invoiceId})" title="Xóa để tính lại"><i class="bi bi-trash"></i> Xóa</button>
+                        const statusBadge = r.invoice 
+                            ? `<div class="mb-3 text-center">
+                                <div class="badge ${r.invoice.invoiceStatus === 'Paid' ? 'bg-success' : (r.invoice.invoiceStatus === 'Pending' ? 'bg-warning text-dark' : 'bg-danger')} bg-opacity-10 text-${r.invoice.invoiceStatus === 'Paid' ? 'success' : (r.invoice.invoiceStatus === 'Pending' ? 'warning text-dark' : 'danger')} rounded-pill px-3 py-1 mb-2 border border-${r.invoice.invoiceStatus === 'Paid' ? 'success' : (r.invoice.invoiceStatus === 'Pending' ? 'warning' : 'danger')} border-opacity-50 shadow-sm">
+                                    <i class="bi ${r.invoice.invoiceStatus === 'Paid' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'} me-1"></i>
+                                    ${r.invoice.invoiceStatus === 'Paid' ? 'Đã thanh toán' : (r.invoice.invoiceStatus === 'Pending' ? 'Chờ duyệt' : 'Chưa thanh toán')}
+                                </div>
+                                <div class="fs-4 fw-bolder text-primary drop-shadow-sm">${r.invoice.totalAmount.toLocaleString()}đ</div>
                                </div>`
-                            : `<div class="btn-group">
-                                 <button class="btn btn-sm btn-outline-warning px-3" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}')"><i class="bi bi-pencil-square"></i> Số điện/nước</button>
-                                 <button class="btn btn-sm btn-premium px-3" onclick="generateInvoice(${r.roomId})"><i class="bi bi-calculator"></i> Tính tiền</button>
+                            : `<div class="mb-3 text-center">
+                                <div class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-3 py-1 mb-2 border border-secondary border-opacity-25">
+                                    <i class="bi bi-clock me-1"></i> Chưa chốt hóa đơn
+                                </div>
+                                <div class="fs-4 fw-bold text-muted opacity-25">0đ</div>
+                               </div>`;
+
+                        const actionArea = r.invoice
+                            ? `<div class="d-flex gap-2 justify-content-center">
+                                 <button class="btn btn-sm btn-outline-primary rounded-pill px-4 shadow-sm hover-lift" onclick="viewInvoiceDetails(${r.invoice.invoiceId})"><i class="bi bi-eye me-1"></i> Xem chi tiết</button>
+                                 <button class="btn btn-sm btn-outline-danger rounded-circle shadow-sm hover-lift" style="width:32px; height:32px; padding:0" onclick="deleteInvoice(${r.invoice.invoiceId})" title="Xóa hóa đơn"><i class="bi bi-trash"></i></button>
+                               </div>`
+                            : `<div class="d-flex flex-column gap-2">
+                                 <button class="btn btn-sm btn-outline-warning rounded-pill shadow-sm hover-lift" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}')"><i class="bi bi-pencil-square me-1"></i> Nhập số điện nước</button>
+                                 <button class="btn btn-sm btn-premium rounded-pill shadow-sm hover-lift" onclick="generateInvoice(${r.roomId})"><i class="bi bi-calculator me-1"></i> Lập hóa đơn</button>
                                </div>`;
 
                         return `
-                            <tr>
-                                <td>
-                                    <div class="fw-bold fs-6 text-primary">Phòng ${r.roomCode}</div>
-                                    <div class="x-small text-muted">${r.motelName}</div>
-                                </td>
-                                <td>${elecHtml}</td>
-                                <td>${waterHtml}</td>
-                                <td>${invoiceStatus}</td>
-                                <td>${actionBtn}</td>
-                            </tr>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <div class="glass-card billing-card p-4 h-100 d-flex flex-column hover-lift" style="border-top: 4px solid var(--primary); border-radius: 1.25rem;">
+                                    <div class="text-center mb-4 position-relative">
+                                        <div class="position-absolute top-0 end-0 opacity-25">
+                                            <i class="bi bi-receipt fs-3"></i>
+                                        </div>
+                                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-pill px-4 py-2 fw-bolder fs-5 shadow-sm border border-primary border-opacity-25">
+                                            Phòng ${r.roomCode}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-3 mb-4">
+                                        ${elecHtml}
+                                        ${waterHtml}
+                                    </div>
+                                    
+                                    <div class="mt-auto d-flex flex-column justify-content-end bg-light rounded-4 p-3 border border-light" style="min-height: 160px;">
+                                        ${statusBadge}
+                                        <div class="mt-auto">${actionArea}</div>
+                                    </div>
+                                </div>
+                            </div>
                         `;
                     }).join('');
 
@@ -426,6 +458,9 @@ window.generateInvoice = generateInvoice;
                     // Handle Payment Proof display
                     const proofContainer = document.getElementById('payment-proof-container');
                     const proofImg = document.getElementById('payment-proof-img');
+                    const verifyForm = document.getElementById('verify-payment-form');
+                    const actualAmountInput = document.getElementById('verify-actual-amount');
+
                     if (inv.paymentProofPath) {
                         proofContainer.classList.remove('d-none');
                         proofImg.src = inv.paymentProofPath;
@@ -433,10 +468,14 @@ window.generateInvoice = generateInvoice;
                         // Chỉ hiện nút Phê duyệt/Từ chối nếu trạng thái là Pending
                         const actionButtons = proofContainer.querySelector('.d-flex.gap-2');
                         if (actionButtons) {
-                            actionButtons.style.display = inv.status === 'Pending' ? 'flex' : 'none';
+                            const isPending = inv.status === 'Pending';
+                            actionButtons.style.display = isPending ? 'flex' : 'none';
+                            if (verifyForm) verifyForm.classList.toggle('d-none', !isPending);
+                            if (actualAmountInput) actualAmountInput.value = inv.totalAmount - inv.paidAmount;
                         }
                     } else {
                         proofContainer.classList.add('d-none');
+                        if (verifyForm) verifyForm.classList.add('d-none');
                     }
 
                     // Ẩn nút QR Thanh toán nếu đã thanh toán
@@ -452,8 +491,25 @@ window.generateInvoice = generateInvoice;
             }
         }
 
+        async function deleteReading(readingId) {
+            if (confirm("Bạn có chắc chắn muốn XÓA chỉ số này?")) {
+                try {
+                    const response = await fetch(`/api/MeterReading/${readingId}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if (result.success) {
+                        showPremiumToast("Thành công", result.message, "success");
+                        loadBillingData();
+                    } else {
+                        showPremiumToast("Lỗi", result.message, "danger");
+                    }
+                } catch (e) {
+                    showPremiumToast("Lỗi", "Không thể xóa chỉ số.", "danger");
+                }
+            }
+        }
+
         async function deleteInvoice(invoiceId) {
-            if (confirm(`Bạn có chắc chắn muốn XÓA hóa đơn này? Bạn có thể "Tính tiền" lại sau khi xóa.`)) {
+            if (confirm(`Bạn có chắc chắn muốn XÓA hóa đơn này? Sau khi xóa bạn có thể sửa chỉ số điện nước.`)) {
                 try {
                     const response = await fetch(`/api/Invoice/${invoiceId}`, { method: 'DELETE' });
                     const result = await response.json();
@@ -492,6 +548,7 @@ window.generateInvoice = generateInvoice;
 window.viewInvoiceDetails = viewInvoiceDetails;
 window.downloadInvoiceExcel = downloadInvoiceExcel;
 window.deleteInvoice = deleteInvoice;
+window.deleteReading = deleteReading;
 
         function openQRPaymentPage() {
             const id = document.getElementById('current-invoice-id')?.value;
@@ -511,11 +568,17 @@ window.openQRPaymentPage = openQRPaymentPage;
             const action = approved ? 'phê duyệt' : 'từ chối';
             if (!confirm(`Bạn có chắc chắn muốn ${action} minh chứng thanh toán này?`)) return;
 
+            const actualAmount = approved ? document.getElementById('verify-actual-amount').value : null;
+
             try {
                 const response = await fetch('/api/QRPayment/Verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ invoiceId: parseInt(id), approved: approved })
+                    body: JSON.stringify({ 
+                        invoiceId: parseInt(id), 
+                        approved: approved,
+                        actualAmount: actualAmount ? parseFloat(actualAmount) : null
+                    })
                 });
                 const result = await response.json();
                 if (result.success) {

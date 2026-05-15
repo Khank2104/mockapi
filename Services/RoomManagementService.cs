@@ -80,6 +80,28 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Message = "Cập nhật phòng thành công." };
         }
 
+        public async Task<ApiResponse> DeleteRoomAsync(int roomId, int adminId)
+        {
+            var room = await _db.Rooms
+                .Include(r => r.Motel)
+                .Include(r => r.Contracts)
+                .FirstOrDefaultAsync(r => r.RoomId == roomId);
+
+            if (room == null || (room.Motel.OwnerUserId != adminId && !await _accessControl.IsSuperuserAsync(adminId)))
+                return new ApiResponse { Success = false, Message = "Không tìm thấy phòng hoặc bạn không có quyền." };
+
+            // Check if room is occupied
+            var isOccupied = room.Contracts != null && room.Contracts.Any(c => c.ContractStatus == "Active");
+            if (isOccupied)
+                return new ApiResponse { Success = false, Message = "Không thể xóa phòng đang có người ở." };
+
+            _db.Rooms.Remove(room);
+            await _db.SaveChangesAsync();
+
+            return new ApiResponse { Success = true, Message = "Xóa phòng thành công." };
+        }
+
+
         public async Task<ApiResponse> UpdateRoomSettingAsync(RoomSettingRequest request, int adminId)
         {
             var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == request.RoomId);

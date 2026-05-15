@@ -38,6 +38,7 @@ namespace UserManagementSystem.Models
         public string Status { get; set; } = "Active";
         public string? CurrentRoomCode { get; set; }
         public bool HasActiveContract { get; set; }
+        public decimal Balance { get; set; }
     }
 
 

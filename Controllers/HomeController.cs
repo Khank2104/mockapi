@@ -37,16 +37,19 @@ public class HomeController : Controller
 
     public IActionResult MyRoom()
     {
+        if (User.FindFirst("role")?.Value?.ToLower() != "tenant") return RedirectToAction("Index");
         return View();
     }
 
     public IActionResult MyInvoices()
     {
+        if (User.FindFirst("role")?.Value?.ToLower() != "tenant") return RedirectToAction("Index");
         return View();
     }
 
     public IActionResult MySupport()
     {
+        if (User.FindFirst("role")?.Value?.ToLower() != "tenant") return RedirectToAction("Index");
         return View();
     }
 

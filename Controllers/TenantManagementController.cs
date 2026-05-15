@@ -46,9 +46,9 @@ namespace UserManagementSystem.Controllers
         }
 
         [HttpGet("GetAllTenants")]
-        public async Task<IActionResult> GetAllTenants([FromQuery] string? searchTerm = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllTenants([FromQuery] string? searchTerm = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] int? motelId = null)
         {
-            var result = await _tenantService.GetAllProfilesAsync(GetRequesterId(), searchTerm, page, pageSize);
+            var result = await _tenantService.GetAllProfilesAsync(GetRequesterId(), searchTerm, page, pageSize, motelId);
             return Ok(result);
         }
 

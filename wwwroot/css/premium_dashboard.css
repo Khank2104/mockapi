@@ -157,30 +157,117 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    padding: 1.25rem 0;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .welcome-text h1 {
-    font-size: 1.75rem;
+    font-size: 1.85rem;
     font-weight: 800;
-    color: var(--text-main) !important;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, var(--text-main) 0%, var(--text-light) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
 }
 
 .welcome-text p {
-    color: var(--text-muted) !important;
+    font-size: 0.9rem;
     font-weight: 500;
+    color: var(--text-light);
 }
 
-.user-profile-widget {
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.header-icon-btn {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
     background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+    transition: var(--transition-smooth);
+    position: relative;
+}
+
+.header-icon-btn:hover {
+    transform: translateY(-3px);
+    background: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    border-color: #6366f1;
+}
+
+.header-icon-btn i {
+    font-size: 1.25rem;
+    color: var(--text-light);
+}
+
+.header-icon-btn:hover i {
+    color: #6366f1;
+}
+
+.user-profile-badge {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0.5rem 0.75rem;
+    padding-right: 1.25rem;
+    border-radius: 20px;
     border: 1px solid var(--glass-border);
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.85rem;
     box-shadow: var(--shadow-premium);
+    transition: var(--transition-smooth);
+    cursor: pointer;
+}
+
+.user-profile-badge:hover {
+    transform: translateY(-2px);
+    background: white;
+    border-color: #6366f1;
+}
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.user-info .name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.user-info .role {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+#notification-count {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border: 2px solid white;
 }
 
 /* --- Components --- */
@@ -461,3 +548,87 @@ body {
     border: none;
     box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
 }
+
+/* Motel Selection Grid Styles */
+.motel-selection-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.motel-selection-card:hover {
+    transform: translateY(-12px) scale(1.02) !important;
+    background: white !important;
+    box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.15), 0 18px 36px -18px rgba(0, 0, 0, 0.1) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+[data-theme='dark'] .motel-selection-card:hover {
+    background: rgba(30, 41, 59, 0.9) !important;
+}
+
+.motel-selection-card .selection-card-icon {
+    transition: all 0.5s ease;
+}
+
+.motel-selection-card:hover .selection-card-icon {
+    transform: rotate(10deg) scale(1.1);
+    background: var(--primary-gradient) !important;
+    color: white !important;
+}
+
+.motel-selection-card h5 {
+    transition: color 0.3s ease;
+}
+
+.motel-selection-card:hover h5 {
+    color: #6366f1;
+}
+
+
+/* Contract & Billing Card Grid Styles */
+.contract-card, .billing-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    border: 1px solid var(--glass-border) !important;
+    background: var(--glass-bg);
+}
+
+.contract-card:hover, .billing-card:hover {
+    transform: translateY(-8px) !important;
+    background: white !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1) !important;
+    border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+[data-theme='dark'] .contract-card, [data-theme='dark'] .billing-card {
+    background: rgba(30, 41, 59, 0.7);
+}
+
+[data-theme='dark'] .contract-card:hover, [data-theme='dark'] .billing-card:hover {
+    background: rgba(30, 41, 59, 0.95) !important;
+}
+
+.card-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+[data-theme='dark'] .card-info-row {
+    border-bottom-color: rgba(255,255,255,0.05);
+}
+
+.card-info-row:last-child {
+    border-bottom: none;
+}
+
+.billing-usage-box {
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 12px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.billing-status-Paid { color: #166534; background: #dcfce7; }
+.billing-status-Pending { color: #92400e; background: #fef3c7; }
+.billing-status-Unpaid { color: #991b1b; background: #fee2e2; }

@@ -195,7 +195,40 @@ namespace UserManagementSystem.Services
                 }
             }
 
-            decimal totalAmount = actualRoomRent + extraOccupantTotal + serviceTotal;
+            // 4. Cân đối số dư cũ (Thừa/Thiếu) + Nợ tồn đọng từ các hóa đơn cũ
+            decimal currentBalance = 0;
+            var primaryTenant = await _db.Tenants.FindAsync(contract?.PrimaryTenantId ?? currentOccupants.FirstOrDefault()?.TenantId);
+            if (primaryTenant != null)
+            {
+                // Lấy số dư hiện tại trong ví
+                currentBalance = primaryTenant.Balance;
+
+                // Cộng thêm nợ từ các hóa đơn chưa thanh toán đủ trong quá khứ
+                var unpaidInvoices = await _db.Invoices
+                    .Include(i => i.Payments)
+                    .Where(i => i.RoomId == roomId && (i.BillingYear < year || (i.BillingYear == year && i.BillingMonth < month)) && i.InvoiceStatus != "Paid")
+                    .ToListAsync();
+                
+                decimal totalUnpaid = unpaidInvoices.Sum(i => i.TotalAmount - i.Payments.Sum(p => p.PaidAmount));
+                currentBalance -= totalUnpaid; // Nợ cũ làm giảm số dư (hoặc tăng số âm)
+
+                if (currentBalance != 0)
+                {
+                    details.Add(new InvoiceDetailResponse
+                    {
+                        ServiceName = currentBalance > 0 ? "Khấu trừ số dư cũ" : "Nợ cũ chuyển sang",
+                        Description = currentBalance > 0 ? "Số tiền dư tích lũy" : "Tổng nợ từ các kỳ trước",
+                        Quantity = 1,
+                        UnitPrice = -currentBalance,
+                        SubTotal = -currentBalance
+                    });
+                }
+            }
+
+            decimal totalAmount = actualRoomRent + extraOccupantTotal + serviceTotal - currentBalance;
+
+            // Đảm bảo tổng tiền không âm (nếu dư quá nhiều thì trừ dần)
+            if (totalAmount < 0) totalAmount = 0;
 
             return new ApiResponse
             {

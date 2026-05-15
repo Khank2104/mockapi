@@ -8,7 +8,7 @@ namespace UserManagementSystem.Services
         Task<ApiResponse> CreateProfileAsync(CreateTenantProfileRequest request, int adminId);
         Task<ApiResponse> UpdateProfileAsync(int tenantId, UpdateTenantProfileRequest request, int adminId);
         Task<ApiResponse> GetProfileByIdAsync(int tenantId);
-        Task<ApiResponse> GetAllProfilesAsync(int adminId, string? searchTerm = null, int page = 1, int pageSize = 10);
+        Task<ApiResponse> GetAllProfilesAsync(int adminId, string? searchTerm = null, int page = 1, int pageSize = 10, int? motelId = null);
         
         // Tenant Account
         Task<ApiResponse> CreateAccountAsync(CreateTenantAccountRequest request, int adminId);

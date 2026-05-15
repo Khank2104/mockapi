@@ -4,7 +4,7 @@ QuanTro is a comprehensive property management solution designed for small to me
 
 ---
 
-## 1. Detailed Database Schema (Updated 2026-05-07)
+## 1. Detailed Database Schema
 
 The system utilizes a highly NORMALIZED SQL Server design to ensure performance and data integrity.
 
@@ -33,64 +33,101 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 ## 2. Development History & Milestone Logs
 
 ### Phases 1-13: Core Infrastructure, APIs & Dashboard UX
-
 - Implemented the full Database Schema with EF Core.
 - Built automated billing logic and robust RBAC security (JWT, BCrypt, HttpOnly Cookies).
 - Developed a Premium Glassmorphism Single Page Application (SPA) dashboard.
 - Resolved circular reference issues by utilizing DTO patterns across all services.
 - Added Serilog for structured logging and Swagger/OpenAPI for documentation.
-- Built comprehensive global utility services management (Electricity, Water, Trash, Wifi).
 
 ### Session 14-16: Core Business Flow & Visual Mapping
+- **Floor Map Generation**: Redesigned the motel management module into a visual floor map grid. Dynamic room status syncing based on active Contracts.
+- **Contract Lifecycle Management**: Added manual termination workflow and room clearing.
+- **Automated Grace Period Expiring**: Implemented `ContractExpirationService` background worker running hourly.
 
-- **Floor Map Generation**:
-  - Redesigned the motel management module into a visual floor map grid.
-  - Dynamic room status syncing based on active Contracts (Vacant vs Occupied).
-  - Side panel for quick financial and mandatory utility checks.
-- **Contract Lifecycle Management (Hard Delete)**:
-  - Added manual termination workflow that cascades and permanently purges all related Invoices, Requests, Occupants, Contracts, and User accounts, resetting the room to Vacant.
-- **Automated Grace Period Expiring**:
-  - Implemented `ContractExpirationService` background worker running hourly. Expired contracts enter a 7-day grace period before being completely purged from the system.
-- **Invoice & Billing Generation**:
-  - Upgraded the Admin Invoice module to display all occupied rooms.
-  - Implemented the `generateInvoice` backend algorithm to automatically calculate the total sum (Rent + Services) and issue an invoice.
-  - Tenant Portal accurately fetches and displays only the authorized user's invoices.
-
-### Session 17: UI/UX Optimization for Utility Readings
-
-- **Dual Meter Reading Modal**:
-  - Overhauled the "Record Meter" modal into a dual-input form showing both Electricity and Water fields side by side.
-  - Submits both readings simultaneously for a more efficient admin workflow.
-
-### Session 18: System Stability & Redirect Loop Fix
-
-- **Infinite Redirect Loop Resolution**:
-  - Resolved conflicts between `localStorage` and `JWT Cookies` in `auth.js`.
-- **Process Management & Startup Optimization**:
-  - Fixed "Address already in use" by purging zombie `dotnet` processes.
-
-### Session 20: Contract-First Workflow & Data Preservation (Latest)
-
-- **Invoice Decoupling**: Refactored `InvoiceCalculationService` to calculate bills based on room settings and occupants, making the formal contract object an optional reference.
-- **"Contract First" Enforcement**: Restricted adding occupants to rooms without active contracts.
-- **Automated Check-in**: Primary tenants are now automatically added to the room occupancy list upon contract signing.
+### Session 17-20: UI/UX Optimization & Logic Refinement
+- **Dual Meter Reading Modal**: Overhauled the modal into a dual-input form showing both Electricity and Water fields.
+- **Infinite Redirect Loop Resolution**: Resolved conflicts between localStorage and JWT Cookies.
 - **Soft Termination**: Changed contract termination logic to preserve history (status: Terminated/MovedOut) instead of hard-deleting records.
-- **Build Fixes**: Resolved CS0117 error by adding `ServiceId` to `MeterReadingResponse` DTO.
-- **Mid-Month Logic**: Fixed calculation errors for contracts starting mid-month.
+
+### Session 21: Runtime Error Resolution
+- **Non-floor Properties**: Updated Backend and Frontend to display direct room lists for properties without floors.
+- **Defensive JS**: Implemented comprehensive null-safety checks to prevent DOM access crashes.
+- **Auth Flow**: Added interceptors to automatically redirect to Login upon 401/403 API responses.
+
+### [2026-05-05] - Session 22: Automated Contract Management
+- **Grace Period Mechanism**: Expired contracts transition to "Waiting" status for 7 days before full termination, preserving final invoices.
+
+### [2026-05-05] - Session 23: Advanced Billing & Exports
+- **Prorated Rent**: Implemented proportional rent calculation (0%/50%/100%) based on actual move-in dates.
+- **Excel Exports**: Integrated `ClosedXML` to generate professional, downloadable `.xlsx` invoices.
+
+### [2026-05-05] - Session 24-25: Refactoring & Occupant Management
+- **Modularization**: Decoupled `Index.cshtml` and monolithic JS into maintainable modules.
+- **Add Occupant Modal**: Built the logic to easily add roommates and dynamically calculate Extra Occupant Surcharges.
+
+### [2026-05-07] - Session 26: Tenant Portal Re-architecture & Notifications
+- **Modular Tenant UI**: Refactored profiles into sections and added pages for Room, Invoices, and Support.
+- **Global Toast System**: Implemented `showPremiumToast` for system-wide, real-time feedback.
+- **Build Fixes**: Synchronized naming conventions (`DefaultPrice`/`UnitPrice`) and eliminated null reference warnings.
+
+### [2026-05-07] - Session 27: Tenant Dashboard Completion
+- **Tenant Dashboard UX**: Built a modern dashboard hub with sidebars and summary widgets for tenants.
+- **API Fixes**: Resolved routing errors and 403 permission bugs for invoice viewing.
+- **Hardening**: Enhanced the user ID extraction logic from JWT tokens.
+
+### [2026-05-08] - Session 28: Security Audit (JWT)
+- **Current State Analysis**: Audited JWT implementation across API, MVC, and SignalR components.
+- **Key Findings**: JWT is successfully implemented using HttpOnly Cookies combined with robust Policy-based Authorization.
+- **Security Roadmap**: Identified post-release security enhancements: Refresh Token logic, Token Revocation (Blacklisting), and CSRF protection measures.
+
+### [2026-05-09] - Session 29: QR Payment Integration & Stabilization
+- **QR Payment Portal**: Integrated VietQR dynamic generation and secure payment proof upload flow.
+- **Data Synchronization**: Enforced camelCase API standards and fixed 404/Undefined errors across modules.
+- **Personalized Notifications**: Added notification bell and list, secured by JWT identity.
+- **UX Refinements**: Implemented automatic state transitions (Pending status) based on invoice lifecycle.
+
+### [2026-05-11] - Session 30: Admin Dashboard UI Standardization & Layout Bug Fixes
+- **Contracts Module Layout**: Replaced the legacy `<table>`-based layout with a Bootstrap `row g-4` card grid.
+- **Root Cause Bug Fix**: Applied defensive null-safety guards in `contracts.js` to prevent crashes.
+- **Refactoring**: Refactored `renderGlobalMotelSelector` to target module-specific list containers.
+- **Floor Map Sync**: Automatically read `window._globalSelectedMotelId` to render rooms immediately upon property selection.
+- **Cache Pre-loading**: Fetched motels preemptively to prevent blank UI states.
+
+### [2026-05-12] - Session 31: Motel Setup UI Overhaul & Complete CRUD
+- **Comprehensive Motel CRUD**: Implemented full Create, Read, Update, and Delete capabilities for Motels, Floors, and Rooms with secure API calls and dynamic, seamless DOM updates.
+- **Safe Deletion Protocol**: Enforced strict backend constraints; prevented the deletion of Floors and Rooms if they are currently occupied, safeguarding active contract data integrity.
+- **Tabbed Interface Refactor**: Completely overhauled the Motel Setup module (`_MotelSetupModule.cshtml`). Transitioned the bulky Floor and Room declaration forms into a modern, compact Tab layout, maximizing screen real estate and eliminating scrolling fatigue.
+- **Pagination & Filtering Engine**: Developed robust client-side Javascript logic for room list pagination (10 items/page), complemented by real-time search functionality and floor-based filtering.
+- **Bulk Room Generation**: Introduced a bulk-add utility that automatically generates multiple rooms with sequentially incremented codes (e.g., 101, 102, 103...), drastically cutting down initial data entry overhead for large properties.
+- **Workflow & UI Polish**: Removed the isolated "Edit Contract" button from the Floor Map to centralize all contract lifecycle management into the dedicated Contracts module. Customized CSS to ensure inactive Tab buttons stand out against the translucent Glassmorphism theme.
+
+### [2026-05-12] - Session 32: Business Logic Optimization & Conflict Resolution
+- **Contract Termination & Archiving**: Updated the contract termination logic. The system now deletes the tenant's login account (User record) to block access while preserving all profiles (Tenant), Contracts, and Invoices in the DB for historical auditing (Archiving).
+- **Invoice Cancellation & Correction**: Added a "Cancel Invoice" feature for unpaid bills. This allows Admins to delete erroneous invoices, fix meter readings, and regenerate the correct bill.
+- **Reading Correction**: Enabled the deletion of incorrect meter readings if the corresponding monthly invoice has not yet been generated.
+- **Partial Payment Verification**: Upgraded the QR Payment verification flow. Admins can now input the "Actual Amount Received" from the payment proof. The system records the partial payment and updates the status to "Partially Paid" if the balance is not zero, instead of defaulting to 100% paid.
+
+---
+
+### [2026-05-15] - Session 33: Profile Synchronization & Premium Header Redesign
+- **Phone Persistence Fix**: Resolved a critical bug where phone numbers were erased during Identity Profile updates by ensuring field inclusion in the JS payload.
+- **Bi-directional Data Sync**: Enhanced `UserService` and `TenantService` to automatically propagate changes between `Users` and `Tenants` tables.
+- **Premium Header Overhaul**: Redesigned the top header for both Admin and Tenant dashboards with glassmorphism, fixed alignment, and interactive profile badges.
+- **Interactive Feedback (Toasts & Loading)**: Integrated `showPremiumToast` and button loading states to provide real-time visual feedback on user actions.
+- **Backend Robustness**: Implemented null-safe partial updates in the service layer to prevent accidental data erasure during profile saves.
 
 ---
 
 ## 3. Current System Status
 
-**Last Updated**: 2026-05-04
+**Last Updated**: 2026-05-15
 **By**: Antigravity (AI)
-**Status**: ✅ Stable — System hang and redirect loop issues resolved.
+**Status**: ✅ Stable — Full User Experience (UX) optimization and data synchronization complete.
 
 **Completed Features:**
-
 - [x] Authentication & RBAC (JWT Cookie)
 - [x] Motel, Floor, and Room Setup
-- [x] Visual Floor Map with Real-time Sync
+- [x] Visual Floor Map with Global Motel Selector
 - [x] Tenant Account Registration
 - [x] 3-Step Contract Generation Wizard
 - [x] Global Utility Services Configuration
@@ -98,324 +135,56 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 - [x] Automated Invoice Calculation
 - [x] Tenant Portal (Invoices & Requests)
 - [x] Background Cleanup for Expired Contracts
+- [x] QR Payment Portal (VietQR + Proof Upload)
+- [x] SignalR Real-time Notifications
+- [x] Unified Card Grid UI across all Admin modules
+- [x] UI Optimization for Motel Setup (Tabbed Layout, Pagination, Bulk Add)
+- [x] Bi-directional Profile Data Synchronization
+- [x] Premium Header Redesign & Interactive Toast Notifications
 
 **Pending / Future Enhancements:**
-
 - [ ] Online Payment Gateway Integration (VNPay, Momo)
 - [ ] Advanced Revenue Analytics & Charts
 - [ ] Mobile Application (Flutter/React Native)
+- [ ] JWT Refresh Token & Revocation Mechanism
 
 ---
 
 ## 4. Refactoring & Bug Fix Logs
 
-### [2026-05-04] — DRY Principle Refactoring: Access Control Centralization
+*(Detailed refactoring steps regarding DRY Principles, JS Module Separation, DTO extraction, and Database Constraint Audits have been completed and are documented in the version history.)*
 
-**Issue**: Authorization methods like `IsSuperuser`, `CanAccessRoom`, and `CanAccessInvoice` were manually duplicated across multiple service files (`MotelService`, `InvoiceService`, `PaymentService`, `MeterReadingService`, etc.). This violated the DRY (Don't Repeat Yourself) principle and created significant security maintenance risks.
-
-**Solution (Refactoring Step 1)**:
-
-1. **Created Centralized Service**: Introduced `IAccessControlService` and `AccessControlService` as the single source of truth for authorization checks.
-2. **Consolidated Logic**: Migrated `IsSuperuserAsync`, `IsAdminOfMotelAsync`, `IsAdminOrSuperAsync`, `CanAccessRoomAsync`, and `CanAccessInvoiceAsync` into the new service.
-3. **DI Registration**: Registered `IAccessControlService` in `Program.cs`.
-4. **Removed Redundant Code**: Updated 6 different services (`AdminService`, `TenantService`, `MotelService`, `InvoiceService`, `MeterReadingService`, `PaymentService`) by removing their private duplicate methods and injecting the new centralized service.
-5. **Verified Stability**: Achieved 0 compilation errors. API routes and business behaviors remained 100% unchanged.
-
-### [2026-05-04] — Refactoring Step 2: Service Synchronization & Invoice Logic Fix
-
-**Issue**:
-
-1. `InvoiceCalculationService` was incorrectly calculating costs for *all* globally active services, disregarding whether the service was explicitly enabled for a specific room via `RoomServiceSettings.IsActive`.
-2. When an Admin created a new Global Service, existing rooms were not automatically provisioned with a corresponding `RoomServiceSetting` record, causing errors and missing services when modifying existing contracts.
-
-**Solution**:
-
-1. **Invoice Calculation Fix**: Updated `InvoiceCalculationService` to only calculate services that are both globally active AND active at the room level. The unit price remains tied to the global `Service.DefaultPrice` to ensure centralized pricing control.
-2. **Occupancy Service Fix**: Updated `CreateContractAsync` and `UpdateContractAsync` in `OccupancyService.cs`. The system now actively scans all global services when creating or updating a contract. If a room lacks a `RoomServiceSetting` for any global service, it automatically initializes it. This guarantees rooms always have complete service configurations.
-3. System compiled with 0 errors. No UI or API route changes were necessary.
-
-### [2026-05-04] — Refactoring Step 3: Financial Data Preservation (Soft-Termination)
-
-**Issue**: The `ContractExpirationService` was configured to perform hard-deletes of `Invoices`, `Payments`, `Tenants`, and `Users` once a contract remained in the `Waiting` state for over 7 days. This destructive behavior violates standard accounting practices by deleting historical financial records.
-
-**Solution**:
-
-1. Changed behavior to **Soft-Termination**: Instead of deletion, contracts are now moved to the `Terminated` status.
-2. Kept Financials: `Invoices` and `Payments` remain untouched for revenue reporting. `Tenants` and `Users` are kept to preserve historical occupant records.
-3. Released Resources: Only the physical room occupancy is affected. The room status is set back to `Vacant`, and `RoomOccupants` are cleared out to make way for new tenants.
-
-### [2026-05-04] — Refactoring Step 4: Frontend JavaScript Modularization
-
-**Issue**: The `Views/Admin/Index.cshtml` file had become a massive monolithic file (nearly 3,000 lines), containing over 1,700 lines of inline JavaScript intermingling over 60 functions. This heavily violated Separation of Concerns (SoC) and presented a huge maintenance risk.
-
-**Solution**:
-
-1. Extracted JS Modules: Utilized a custom Python script to automatically parse and safely extract the JavaScript logic into **10 separate module files** located at `wwwroot/js/admin/` (e.g., `admin-core.js`, `contracts.js`, `billing.js`).
-2. Maintained Compatibility: Exposed all extracted functions to the `window` object (e.g., `window.switchModule = switchModule`) to preserve existing inline HTML `onclick` bindings without breaking the UI.
-3. Cleaned Up Razor View: Replaced the massive script block in `Index.cshtml` with concise `<script src="...">` includes, reducing the file size to roughly 1,200 lines.
-4. The system compiled with 0 errors and no changes to backend API routes or UI behavior were required.
-
-### [2026-05-04] — Refactoring Step 5: Data Model Modularization
-
-**Objective**: Improve Separation of Concerns (SoC) and code maintainability at the Data Models layer.
-
-**Solution**:
-
-1. Organized Structure: Created a new directory `Models/Entities/` to host domain-specific entities.
-2. Split Monolith: Decomposed the large `Models/MotelEntities.cs` (over 400 lines) into **15 individual entity files** (e.g., `Motel.cs`, `Room.cs`, `Invoice.cs`, etc.).
-3. **Preserved Namespace**: Maintained the original `UserManagementSystem.Models` namespace in all new files. This ensured full backward compatibility and avoided breaking any references in existing Controllers or Services.
-4. Safe Refactor: Ensured no changes were made to the database schema, migrations, or business logic.
-5. Cleanup: Deleted the now-obsolete `Models/MotelEntities.cs` file.
-6. The system compiled with **0 errors**.
-
-### [2026-05-04] — Refactoring Step 6: DTO & Service Interface Modularization
-
-**Objective**: Enhance Separation of Concerns (SoC) for DTOs and Service Contracts (Interfaces).
-
-**Solution**:
-
-1. **Interface Reorganization**: Created a `Services/Interfaces/` directory and decomposed the consolidated `IBillingAndRequestServices.cs` into individual files: `IMeterReadingService.cs`, `IInvoiceCalculationService.cs`, `IInvoiceService.cs`, `IPaymentService.cs`, and `IRequestService.cs`.
-2. **DTO Reorganization**: Created a `Models/DTOs/` directory and redistributed classes from `MotelManagementDTOs.cs` and `BillingAndRequestDTOs.cs` into functional groups: `AdminDTOs.cs`, `TenantDTOs.cs`, `MotelDTOs.cs`, `RoomDTOs.cs`, `ServiceDTOs.cs`, `ContractDTOs.cs`, `BillingDTOs.cs`, and `RequestDTOs.cs`.
-3. **Namespace Stability**: Maintained original namespaces (`UserManagementSystem.Services` and `UserManagementSystem.Models`) to ensure absolute compatibility across the codebase.
-4. Consistent Logic: Zero changes to business logic, API routes, or database schemas.
-5. Cleanup: Deleted all now-obsolete monolithic files.
-6. The system compiled with **0 errors**.
-
-### [2026-05-04] — Refactoring Step 7A: Extracting Global Services
-
-**Objective**: Reduce monolithic dependency on `MotelService` and adhere to the Single Responsibility Principle (SRP).
-
-**Solution**:
-
-1. **Logic Separation**: Successfully migrated system-wide service management (Get, Create, Update, Seed) from `MotelService` to the newly created `GlobalServiceService`.
-2. **Auth Optimization**: Replaced manual database user/role queries with `IAccessControlService.IsSuperuserAsync`, ensuring cleaner and more consistent permission checks.
-3. **Notification Update**: Refined notification logic to target the correct role identifier ("tenant") when global prices change.
-4. **Behavior Integrity**: Maintained full API route and frontend compatibility.
-5. The system compiled with **0 errors**, and all admin JS files passed syntax validation.
-
-### [2026-05-04] — Refactoring Step 7B: Extracting Room and RoomSetting Logic
-
-**Objective**: Modularize room-specific management logic, separating it from general property (motel) management.
-
-**Solution**:
-
-1. **Logic Migration**: Successfully moved all room-related methods (`CreateRoom`, `UpdateRoom`, `UpdateRoomSetting`, `GetRoomSettings`, `GetRoomServices`, `GetRoomOccupants`) to the new `RoomManagementService`.
-2. **Refined GetRoomServices**: Updated `GetRoomServicesAsync` to join the `Services` table (global category & pricing) with `RoomServiceSettings` (per-room activation toggles). This ensures accurate `IsActive` status for each room. Pricing Rule: `UnitPrice` in `RoomServiceSettings` is strictly auxiliary; the system always prioritizes `Services.DefaultPrice` during invoice calculation to maintain global pricing consistency.
-3. **MotelService Cleanup**: Removed unused dependencies (`INotificationService`, `IConfiguration`) and fields from `MotelService`, streamlining it to focus solely on Motel and Floor operations.
-4. **API Stability**: Maintained all original endpoints in `MotelManagementController` with zero changes to routes or frontend behavior.
-5. The project compiled with **0 errors**.
-
-### [2026-05-04] — Step 8: Database Audit and Safety Constraints
-
-**Objective**: Enhance data integrity at the physical layer, preventing application-level logical errors.
-
-**Solution**:
-
-1. **Migration**: Generated and applied the `AddSafeDatabaseConstraints` migration to introduce unique indices.
-2. **Rooms**: Added a unique index on `(MotelId, RoomCode)` to prevent duplicate room numbers within the same property.
-3. **Services**: Added a unique index on `ServiceCode` to ensure unique service identifiers system-wide.
-4. **RoomServiceSettings**: Added a unique index on `(RoomId, ServiceId)` to ensure one configuration record per service per room.
-5. **MeterReadings**: Added a unique index on `(RoomId, ServiceId, BillingMonth, BillingYear)` to prevent duplicate readings for the same period.
-6. **Contracts**: Implemented a **Filtered Unique Index** on `RoomId` where `ContractStatus = 'Active'`, ensuring a maximum of one active contract per room.
-7. The system compiled successfully with **0 errors**.
-
-### [2026-05-04] — Step 9: Adding Test Project for Core Business Logic
-
-**Objective**: Ensure core services (Invoice, Payment, Room, Access Control) behave correctly after multiple refactoring steps.
-
-**Solution**:
-
-1. **Setup**: Created `UserManagementSystem.Tests` project using xUnit and SQLite In-memory to respect the new database constraints.
-2. **InvoiceCalculationService**: Verified global pricing rules, room-specific service exclusion, and error handling for missing meter readings.
-3. **PaymentService**: Ensured payments cannot exceed the remaining invoice balance.
-4. **RoomManagementService**: Validated accurate retrieval of room-specific service activation status.
-5. **AccessControlService**: Tested superuser bypass and tenant-level room access restrictions.
-6. **Project Isolation**: Configured `UserManagementSystem.csproj` to properly exclude test files from the production build.
-
-### [2026-05-04] - Step 10: Floor Map UI Stability & Runtime Error Resolution
-
-**Issue**: The Motel Floor Map was failing to load or crashing due to API inconsistencies (null handling for non-floor properties) and JavaScript errors (accessing classList on null elements).
-
-**Solution**:
-
-1. **API Refinement**: Updated `MotelService.cs` to properly map `Rooms` for properties without floors.
-2. **Defensive Programming**: Implemented comprehensive null-safety checks in `admin-core.js`, `billing.js`, and `motels-floormap.js`.
-3. **Session Management**: Added global interceptors for 401/403 errors and updated the logout flow to properly clear server-side sessions.
-4. **UI Fixes**: Synchronized `Index.cshtml` with JS selectors to prevent element-not-found errors.
-
-### [2026-05-05] - Step 11: Automated Contract Expiration Management (Background Task)
-
-**Objective**: Automate the lifecycle of rental contracts to ensure rooms are freed up and tenant statuses are updated immediately upon contract expiration.
-
-**Solution**:
-
-1. **Background Service**: Implemented `ContractExpirationService` running hourly.
-2. **Expiration Logic**: Automatically transitions "Active" contracts to "Waiting" status when they expire, resetting room status to "Vacant" and occupants to "MovedOut".
-3. **Grace Period**: Implemented a 7-day "Waiting" period before final "Termination" to preserve historical financial data and allow for final adjustments.
-4. **Monitoring**: Integrated detailed Serilog logging for background task execution.
-
-**Files Created/Modified**:
-
-- `Services/BackgroundTasks/ContractExpirationService.cs`
-- `Program.cs` (Service registration)
-
-### [2026-05-05] - Step 12: Advanced Billing & Prorated Rent Logic
-
-**Objective**: Implement professional-grade billing features, including automated meter rollover, prorated rent calculation for new tenants, and Excel export capability.
-
-**Solution**:
-
-1. **Prorated Rent System**:
-    - Enhanced `InvoiceCalculationService` with logic based on the contract start date:
-        - Stay duration $\le$ 7 days: 0% Rent (Free).
-        - Stay duration 8-15 days: 50% Rent.
-        - Stay duration > 15 days: 100% Rent.
-    - Utilities (Electricity/Water) remain strictly metered based on actual consumption.
-2. **Automated Meter Rollover**: Refined `MeterReadingService` to automatically fetch the previous month's final reading as the current month's starting point, reducing manual entry errors.
-3. **Excel Integration**:
-    - Integrated `ClosedXML` library to generate dynamic Excel workbooks.
-    - Added an `ExportExcel` endpoint to provide downloadable .xlsx invoices with professional styling and detailed cost breakdowns.
-4. **UI Enhancement**:
-    - Implemented `invoiceDetailsModal` for instant invoice preview.
-    - Updated `billing.js` to handle real-time usage calculation and seamless Excel downloads.
-
-**Files Created/Modified**:
-
-- `Services/InvoiceCalculationService.cs`
-- `Services/InvoiceService.cs`
-- `Controllers/InvoiceController.cs`
-
-### [2026-05-05] - Step 13: Frontend Modularization (Partial Views)
-
-**Objective**: Decouple the monolithic `Index.cshtml` into smaller, reusable partial views to improve maintainability and scalability.
-
-**Solution**:
-
-1. **Implementation of Partial Views**: Extracted all major UI sections and modal groups into standalone `.cshtml` files.
-2. **Directory Organization**:
-    - Created `Views/Admin/Partials/Modules/` for feature-specific sections (Billing, Floor Map, etc.).
-    - Created `Views/Admin/Partials/Modals/` for organized modal management.
-3. **Preservation of Logic**: Maintained all existing IDs and class selectors to ensure full compatibility with the existing JavaScript module system.
-4. **Result**: Reduced `Index.cshtml` from 1200+ lines to ~100 lines, significantly improving developer experience and reducing the risk of merge conflicts.
-
-**Files Created/Modified**:
-
-- `Views/Admin/Index.cshtml` (Skeleton)
-- 14 new partial view files in the `Partials` directory.
-
-### [2026-05-05] - Step 14: Billing Sync, Query Fixes, and Occupancy Enhancements
-
-**Objective**: Ensure perfectly accurate monthly invoices based strictly on contract terms, fix critical database query exceptions, and refine occupant tracking for extra-person surcharges.
-
-**Solution**:
-
-1. **Invoice Calculation Precision**:
-    - Updated `InvoiceCalculationService` to strictly bill only the services explicitly selected in `RoomServiceSettings`. The controversial fallback mechanism that automatically billed unselected global services was fully removed to prevent erroneous charges.
-    - Added comprehensive console debugging logs to easily trace why specific services are billed or skipped.
-2. **EF Core Translation Bug Fix**:
-    - Addressed a critical 500 Internal Server Error when fetching previous meter readings caused by an incompatible `.GroupBy()` LINQ query in `MeterReadingService.cs`.
-    - Re-wrote the query to perform client-side evaluation after `.ToListAsync()` to restore stability when users input new meter indices.
-3. **Occupancy Management (Roommates & Surcharges)**:
-    - **Contract UI Filter**: Implemented filtering in `contracts.js` to ensure users currently assigned to a room (`Status === 'Staying'`) are hidden from the "Select Primary Tenant" dropdown when creating new contracts.
-    - **Add Occupant Modal**: Built and integrated the `addOccupantModal` logic to allow landlords to assign roommates/family members to existing active contracts.
-    - **Occupant Limits**: Refactored `OccupancyService.cs` (`CreateContractAsync` and `UpdateContractAsync`) to properly record `StandardOccupants` and `ExtraOccupantFee` to the `RoomSettings` table. Dynamically adjusted `MaxOccupants` to equal `StandardOccupants + 5` to remove artificial constraints, thereby ensuring the system correctly calculates "Extra Occupant Surcharges" when roommates are added.
-
-**Files Created/Modified**:
-
-- `Services/MeterReadingService.cs`
-- `Services/OccupancyService.cs`
-- `Services/InvoiceCalculationService.cs`
-- `wwwroot/js/admin/contracts.js`
-- `wwwroot/js/admin/room-details.js`
-- `Views/Admin/Partials/Modals/_TenantModals.cshtml`
-
-### [2026-05-07] - Step 15: Tenant Portal Re-architecture & Global Notifications
-
-**Objective**: Upgrade the Tenant Portal to premium standards by modularizing features for better maintainability and integrating real-time feedback systems.
-
-**Solution**:
-1. **Modular Tenant UI**:
-    - Refactored the monolithic `Profile.cshtml` into 3 clean partials: Account Info, Identity (ID Card/Address), and Security.
-    - Launched 3 dedicated feature pages: **My Room**, **My Invoices**, and **Support Requests**.
-2. **Enhanced Room Insights**:
-    - Updated Backend APIs to provide tenants with a full list of room members and active service pricing.
-3. **Global Notification System**:
-    - Implemented a unified `showPremiumToast` system in the main layout.
-    - Integrated real-time feedback for all tenant actions (Save, Delete, Submit Request) without requiring page reloads.
-4. **Asset Consolidation**:
-    - Organized all tenant-specific JavaScript into `wwwroot/js/tenants/`.
-    - Standardized styling via a consolidated `tenant-portal.css` file.
-5. **Logic Hardening**:
-    - Resolved build errors related to property naming inconsistencies (`DefaultPrice` vs `UnitPrice`).
-    - Fixed potential Null Reference exceptions across various portal controllers.
-
-**Files Created/Modified**:
-- `Controllers/TenantPortalController.cs`
-- `Services/InvoiceService.cs`
-- `wwwroot/js/tenants/` (profile.js, room.js, billing.js, support.js)
-- `Views/Home/` (Profile.cshtml, MyRoom.cshtml, MyInvoices.cshtml, MySupport.cshtml)
-- `Views/Shared/_Layout.cshtml`
-
-### Session 16: Tenant Dashboard & System Hardening (2026-05-07)
-**Objective**: Finalize the tenant portal experience and eliminate technical debt.
-
-1. **Unified Tenant Dashboard**:
-    - Created a new central hub for tenants with data summary widgets and a sticky sidebar for seamless navigation.
-2. **API Logic Resolution**:
-    - Fixed critical routing errors in frontend modules where endpoint names didn't match backend actions.
-    - Updated `GetRequesterId` logic to ensure robust user identification across all portal controllers.
-3. **Authorized Tenant Access**:
-    - Implemented secure `GetInvoiceDetail` endpoints specifically for tenants to bypass admin-only policy restrictions.
-4. **Zero-Warning Stability**:
-    - Resolved all remaining build warnings related to null reference exceptions (CS8602).
-
-**Files Created/Modified**:
-- `Controllers/TenantPortalController.cs`, `UserProxyController.cs`
-- `wwwroot/js/tenants/` (room.js, billing.js, profile.js)
-- `Views/Home/Index.cshtml`, `_TenantLayout.cshtml`
-- `NHAT_KY_DU_AN.md`, `PROJECT_WALKTHROUGH.md`
-
-### Session 17: JWT Security Audit & Roadmap (2026-05-08)
-**Objective**: Perform a comprehensive audit of the JWT authentication layer and define the security hardening path.
-
-1. **JWT Deep Integration**:
-    - Verified that JWT is thoroughly used across **API** endpoints, **MVC** controllers, and **SignalR** hubs.
-    - Confirmed the use of `HttpOnly` Cookies for secure token transmission, solving cross-request synchronization issues.
-2. **Policy-Based Authorization**:
-    - Validated the implementation of robust policies (`SuperuserOnly`, `Management`, `TenantOnly`) that leverage JWT claims for clean access control.
-3. **Security Gap Identification (Roadmap)**:
-    - **Refresh Tokens**: Identified the need for auto-renewal of sessions to improve UX (currently 6-hour hard limit).
-    - **Revocation Mechanism**: Planning for a token blacklist/revocation system to handle account locking in real-time.
-    - **CSRF Defense**: Flagged the requirement for Antiforgery protection when using Cookie-based JWT in a web context.
-
-### Session 29: QR Payment Integration & Stabilization (2026-05-09)
-**Objective**: Stabilize core administrative modules and launch the professional QR Payment portal for tenants.
-
-1. **QR Payment Portal**: 
-    - Integrated dynamic VietQR generation with automatic amount and note injection.
-    - Implemented a secure payment proof upload workflow with automatic status transition to `Pending`.
-2. **Personalized Notifications**:
-    - Added a notification bell and list to both Admin and Tenant layouts.
-    - Secured notification data using JWT identity claims, ensuring users only see their own alerts.
-    - Integrated SignalR for real-time "toast" feedback for all billing and payment actions.
-3. **System Hardening**:
-    - Enforced camelCase standards across all APIs to resolve 404/Undefined errors in frontend modules.
-    - Refined action button visibility (Pay/Approve/Reject) based on the live invoice lifecycle.
-4. **Role-Based UX**: Synchronized UI state across Superuser, Admin, and Tenant roles to provide a consistent "One Truth" view of financial data.
+*This document is continuously updated to reflect the project's evolution.*
 
 ---
 
-## 3. Summary of Antigravity's (AI) Role in the Project
+## 5. Summary of Antigravity's (AI) Role in the Project
 
-- **Architectural Backbone**: Designed and implemented the core DTO pattern and Service-Oriented Architecture (SOA) to ensure a scalable and secure backend.
-- **Premium UX/UI**: Created the modern Glassmorphism dashboard and the intuitive Tenant Portal from scratch, prioritizing aesthetics and usability.
-- **Security Engineering**: Audited and hardened the JWT-based authentication system, ensuring zero-trust principles and robust role-based access control.
-- **Real-time Synchronization**: Integrated SignalR for instant system-wide updates, from contract expirations to payment notifications.
-- **Operational Automation**: Automated the complex billing, contract lifecycle, and QR payment verification workflows to minimize manual administrative overhead.
+As an Agentic AI Coding Assistant, Antigravity has played a core role in architecting, developing, and optimizing the QuanTro system from the ground up. Below is a detailed summary of the main contributions:
 
----
+### 🚀 Achievements & Developed Features
+- **Comprehensive Management System**: Completed the business logic for managing Motels, Floors, Rooms, Tenants, and Services with strict data integrity constraints.
+- **Business Automation**: Built complex billing algorithms (including prorated rent calculation based on actual days stayed), automated contract lifecycles, and room status transitions.
+- **Tenant Portal & Admin Dashboard**: Successfully developed dedicated portals for both Managers (Admins) and Renters (Tenants) allowing independent and secure operations.
+- **VietQR Payment Integration**: Integrated dynamic QR code generation and payment proof upload workflows, streamlining the reconciliation process.
+- **Business Logic Optimization**: Resolved logical conflicts between invoices, readings, and payments, making the system more flexible and resilient to real-world scenarios.
 
-## 4. Current System Status
-- `PROJECT_WALKTHROUGH.md`
+### 🛠 Technologies Utilized
+- **Backend**: C# .NET 8 (ASP.NET Core MVC & Web API), Entity Framework Core (EF Core) for ORM, LINQ.
+- **Database**: SQL Server with a highly normalized schema architecture.
+- **Frontend**: Vanilla Javascript (Modularized), HTML5, CSS3, Bootstrap 5.
+- **Security**: JSON Web Tokens (JWT) stored via HttpOnly Cookies, BCrypt (Password Hashing), Role-Based Access Control (RBAC).
+- **Utilities**: SignalR (WebSockets for Real-time Notifications), Serilog (Structured Logging), ClosedXML (Excel Export).
 
-*This walkthrough is a living document and will be updated as the project evolves.*
+### ⚡ Optimization Strategies
+- **Codebase Refactoring (Maintainability)**:
+  - Decomposed a massive monolithic `Index.cshtml` into over 15 separate Partial Views to improve developer experience.
+  - Extracted inline JavaScript functions into 10 distinct module files, strictly adhering to Separation of Concerns (SoC).
+  - Split `MotelEntities.cs` into 15 individual entity models and extensively applied DTO patterns to prevent Circular References and protect sensitive data payload.
+- **UX/UI Optimization**:
+  - Implemented a **Glassmorphism** design philosophy paired with a unified **Card Grid Layout** to deliver a modern, premium feel.
+  - Maximized screen real estate by utilizing Tabs, Modals, and seamless DOM manipulations without requiring full page reloads.
+- **Performance & System Hardening**:
+  - Applied Unique Index constraints at the Database level to prevent data duplication (e.g., forbidding duplicate room codes within the same property).
+  - Developed the `ContractExpirationService` Background Worker to automate contract state transitions without blocking the main application thread.
+  - Implemented comprehensive Null-safety checks across all JavaScript modules to prevent silent runtime crashes.

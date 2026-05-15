@@ -77,5 +77,115 @@ namespace UserManagementSystem.Services
             var payments = await _db.Payments.Where(p => p.InvoiceId == invoiceId).ToListAsync();
             return new ApiResponse { Success = true, Data = payments };
         }
+
+        public async Task<ApiResponse> SubmitPaymentProofAsync(int invoiceId, string proofPath, int tenantUserId)
+        {
+            var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.UserId == tenantUserId);
+            if (tenant == null) return new ApiResponse { Success = false, Message = "Không tìm thấy khách thuê." };
+
+            var invoice = await _db.Invoices.FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+            if (invoice == null) return new ApiResponse { Success = false, Message = "Hóa đơn không tồn tại." };
+
+            // Kiểm tra xem khách có ở trong phòng của hóa đơn này không
+            var isOccupant = await _db.RoomOccupants.AnyAsync(o => o.RoomId == invoice.RoomId && o.TenantId == tenant.TenantId && o.Status == "Staying");
+            if (!isOccupant && invoice.PrimaryTenantId != tenant.TenantId)
+                return new ApiResponse { Success = false, Message = "Bạn không có quyền gửi minh chứng cho hóa đơn này." };
+
+            invoice.PaymentProofPath = proofPath;
+            invoice.InvoiceStatus = "Pending";
+            invoice.UpdatedAt = DateTime.Now;
+
+            await _db.SaveChangesAsync();
+
+            // Notify Admin/Owner
+            var room = await _db.Rooms.Include(r => r.Motel).FirstOrDefaultAsync(r => r.RoomId == invoice.RoomId);
+            if (room != null)
+            {
+                await _notificationService.CreateNotificationAsync(room.Motel.OwnerUserId, "Xác nhận thanh toán mới", $"Phòng {room.RoomCode} đã gửi minh chứng thanh toán. Vui lòng kiểm tra đối soát.", "info");
+            }
+
+            return new ApiResponse { Success = true, Message = "Đã gửi minh chứng thanh toán thành công. Vui lòng chờ Admin xác nhận." };
+        }
+
+        public async Task<ApiResponse> VerifyPaymentAsync(int invoiceId, bool approved, int adminId, decimal? actualAmount = null)
+        {
+            var invoice = await _db.Invoices.Include(i => i.Payments).FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
+            if (invoice == null) return new ApiResponse { Success = false, Message = "Hóa đơn không tồn tại." };
+
+            if (!await _accessControl.CanAccessInvoiceAsync(invoiceId, adminId))
+                return new ApiResponse { Success = false, Message = "Quyền hạn không đủ." };
+
+            if (invoice.InvoiceStatus != "Pending")
+                return new ApiResponse { Success = false, Message = "Hóa đơn không ở trạng thái chờ duyệt." };
+
+            if (approved)
+            {
+                decimal alreadyPaid = invoice.Payments.Sum(p => p.PaidAmount);
+                decimal remaining = invoice.TotalAmount - alreadyPaid;
+                decimal amountToRecord = actualAmount ?? remaining;
+
+                if (amountToRecord <= 0)
+                    return new ApiResponse { Success = false, Message = "Hóa đơn này thực tế đã được trả đủ trước đó." };
+
+                // Tạo bản ghi thanh toán
+                var payment = new Payment
+                {
+                    InvoiceId = invoice.InvoiceId,
+                    PaidAmount = amountToRecord,
+                    PaymentMethod = "Transfer",
+                    PaymentDate = DateTime.Now,
+                    Note = "Thanh toán qua QR (Duyệt minh chứng)",
+                    ReceivedBy = adminId,
+                    CreatedAt = DateTime.Now
+                };
+                _db.Payments.Add(payment);
+
+                // Lấy thông tin khách thuê để cập nhật số dư và gửi thông báo
+                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.TenantId == invoice.PrimaryTenantId);
+
+                // Cập nhật trạng thái hóa đơn
+                if (alreadyPaid + amountToRecord >= invoice.TotalAmount)
+                {
+                    invoice.InvoiceStatus = "Paid";
+                    // Nếu trả dư, cộng vào Balance cho khách
+                    decimal surplus = (alreadyPaid + amountToRecord) - invoice.TotalAmount;
+                    if (surplus > 0 && tenant != null)
+                    {
+                        tenant.Balance += surplus;
+                        tenant.UpdatedAt = DateTime.Now;
+                    }
+                }
+                else
+                {
+                    invoice.InvoiceStatus = "PartiallyPaid";
+                }
+                
+                // Notify Tenant
+                if (tenant != null && tenant.UserId.HasValue)
+                {
+                    string msg = (invoice.InvoiceStatus == "Paid") 
+                        ? $"Hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear} đã được phê duyệt thanh toán đủ."
+                        : $"Đã ghi nhận thanh toán một phần {amountToRecord:N0}đ cho hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear}.";
+                    await _notificationService.CreateNotificationAsync(tenant.UserId.Value, "Xác nhận thanh toán", msg, "success");
+                }
+            }
+            else
+            {
+                invoice.InvoiceStatus = "Unpaid";
+                invoice.PaymentProofPath = null; // Xóa minh chứng cũ để khách gửi lại
+                
+                // Notify Tenant
+                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.TenantId == invoice.PrimaryTenantId);
+                if (tenant != null && tenant.UserId.HasValue)
+                {
+                    await _notificationService.CreateNotificationAsync(tenant.UserId.Value, "Từ chối thanh toán", $"Minh chứng thanh toán cho hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear} không hợp lệ. Vui lòng kiểm tra lại.", "warning");
+                }
+            }
+
+            invoice.UpdatedAt = DateTime.Now;
+            await _db.SaveChangesAsync();
+
+            return new ApiResponse { Success = true, Message = approved ? "Đã phê duyệt thanh toán." : "Đã từ chối minh chứng thanh toán." };
+        }
     }
 }

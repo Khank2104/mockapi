@@ -148,5 +148,27 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Message = "Cập nhật tầng thành công." };
         }
 
+        public async Task<ApiResponse> DeleteFloorAsync(int floorId, int adminId)
+        {
+            var floor = await _db.Floors
+                .Include(f => f.Motel)
+                .Include(f => f.Rooms)
+                .ThenInclude(r => r.Contracts)
+                .FirstOrDefaultAsync(f => f.FloorId == floorId);
+
+            if (floor == null || (floor.Motel.OwnerUserId != adminId && !await _accessControl.IsSuperuserAsync(adminId)))
+                return new ApiResponse { Success = false, Message = "Không tìm thấy tầng hoặc bạn không có quyền." };
+
+            // Check if any room on this floor is occupied (has active contracts)
+            var hasOccupiedRooms = floor.Rooms.Any(r => r.Contracts != null && r.Contracts.Any(c => c.ContractStatus == "Active"));
+            if (hasOccupiedRooms)
+                return new ApiResponse { Success = false, Message = "Không thể xóa tầng này vì có phòng đang có người ở." };
+
+            _db.Floors.Remove(floor);
+            await _db.SaveChangesAsync();
+
+            return new ApiResponse { Success = true, Message = "Xóa tầng thành công." };
+        }
+
     }
 }

@@ -232,20 +232,23 @@ window.confirmTerminateFromEdit = confirmTerminateFromEdit;
                 const resServices = await fetch(`/api/MotelManagement/GetRoomServices/${roomId}`);
                 const dataServices = await resServices.json();
                 const serviceList = document.getElementById('room-services-list');
-                if (dataServices.success) {
                     serviceList.innerHTML = dataServices.data.map(s => `
-                        <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-bold small">${s.serviceName}</div>
-                                <div class="x-small text-muted">${s.unit} - ${s.calculationType}</div>
+                        <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center border border-white shadow-sm hover-card">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
+                                    <i class="bi bi-tag-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">${s.serviceName}</div>
+                                    <div class="x-small text-muted text-uppercase fw-bold ls-1">${s.unit} • ${s.calculationType === 'metered' ? 'Theo chỉ số' : 'Cố định'}</div>
+                                </div>
                             </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="fw-bold text-primary">${s.unitPrice.toLocaleString()}đ</span>
-                                <span class="x-small text-muted">/ ${s.unit}</span>
+                            <div class="text-end" style="min-width: 120px;">
+                                <div class="fw-bold text-primary fs-5">${s.unitPrice.toLocaleString()}đ</div>
+                                <div class="x-small text-muted fw-bold">/ ${s.unit}</div>
                             </div>
                         </div>
                     `).join('');
-                }
 
                 // Occupants
                 const resOccupants = await fetch(`/api/MotelManagement/GetRoomOccupants/${roomId}`);

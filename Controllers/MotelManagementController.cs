@@ -43,6 +43,13 @@ namespace UserManagementSystem.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
+        [HttpPut("UpdateMotel/{motelId}")]
+        public async Task<IActionResult> UpdateMotel(int motelId, [FromBody] MotelRequest request)
+        {
+            var result = await _motelService.UpdateMotelAsync(motelId, request, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         /// <summary>
         /// Get all motels owned by the authenticated admin user
         /// </summary>
@@ -72,11 +79,39 @@ namespace UserManagementSystem.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
+        [HttpPut("UpdateFloor/{floorId}")]
+        public async Task<IActionResult> UpdateFloor(int floorId, [FromBody] FloorRequest request)
+        {
+            var result = await _motelService.UpdateFloorAsync(floorId, request, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpDelete("DeleteFloor/{floorId}")]
+        public async Task<IActionResult> DeleteFloor(int floorId)
+        {
+            var result = await _motelService.DeleteFloorAsync(floorId, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         // --- Room ---
         [HttpPost("CreateRoom")]
         public async Task<IActionResult> CreateRoom([FromBody] RoomRequest request)
         {
             var result = await _roomService.CreateRoomAsync(request, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPut("UpdateRoom/{roomId}")]
+        public async Task<IActionResult> UpdateRoom(int roomId, [FromBody] RoomRequest request)
+        {
+            var result = await _roomService.UpdateRoomAsync(roomId, request, GetRequesterId());
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpDelete("DeleteRoom/{roomId}")]
+        public async Task<IActionResult> DeleteRoom(int roomId)
+        {
+            var result = await _roomService.DeleteRoomAsync(roomId, GetRequesterId());
             return result.Success ? Ok(result) : BadRequest(result);
         }
 

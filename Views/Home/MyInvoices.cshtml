@@ -8,9 +8,33 @@
 <div class="profile-container animate-fade-in">
     <div class="row justify-content-center">
         <div class="col-lg-10">
+            <div class="row g-3 mb-5">
+                <div class="col-md-4">
+                    <div class="glass-card p-4 rounded-5 border-0 shadow-sm h-100">
+                        <div class="small text-muted mb-1 fw-bold text-uppercase">Số dư hiện tại</div>
+                        <h2 class="fw-bold mb-0" id="current-balance">0 đ</h2>
+                        <div class="mt-2 small" id="balance-status">Đang tải...</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="glass-card p-4 rounded-5 border-0 shadow-sm h-100">
+                        <div class="small text-muted mb-1 fw-bold text-uppercase">Đã đóng tháng này</div>
+                        <h2 class="fw-bold mb-0 text-primary" id="paid-this-month">0 đ</h2>
+                        <div class="mt-2 small text-muted">Thanh toán ghi nhận bởi Admin</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="glass-card p-4 rounded-5 border-0 shadow-sm h-100 bg-primary bg-gradient text-white">
+                        <div class="small opacity-75 mb-1 fw-bold text-uppercase">Phải thanh toán</div>
+                        <h2 class="fw-bold mb-0" id="total-pending">0 đ</h2>
+                        <div class="mt-2 small opacity-75">Tổng các hóa đơn chưa đóng</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="profile-section-title mb-0"><i class="bi bi-receipt-cutoff"></i> Quản lý hóa đơn</h3>
-                <div class="text-muted small fw-bold">Tổng cộng: <span id="invoice-count">...</span> hóa đơn</div>
+                <h3 class="profile-section-title mb-0"><i class="bi bi-receipt-cutoff"></i> Lịch sử hóa đơn</h3>
+                <div class="text-muted small fw-bold"><span id="invoice-count">0</span> hóa đơn</div>
             </div>
 
             <div id="invoice-list-container">

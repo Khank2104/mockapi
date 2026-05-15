@@ -8,11 +8,13 @@ namespace UserManagementSystem.Controllers
     public class QRPaymentController : Controller
     {
         private readonly IInvoiceService _invoiceService;
+        private readonly IPaymentService _paymentService;
         private readonly IWebHostEnvironment _env;
 
-        public QRPaymentController(IInvoiceService invoiceService, IWebHostEnvironment env)
+        public QRPaymentController(IInvoiceService invoiceService, IPaymentService paymentService, IWebHostEnvironment env)
         {
             _invoiceService = invoiceService;
+            _paymentService = paymentService;
             _env = env;
         }
 
@@ -76,7 +78,7 @@ namespace UserManagementSystem.Controllers
             }
 
             var relativePath = $"/uploads/proofs/{fileName}";
-            var result = await _invoiceService.SubmitPaymentProofAsync(invoiceId, relativePath, userId);
+            var result = await _paymentService.SubmitPaymentProofAsync(invoiceId, relativePath, userId);
             
             return Ok(result);
         }
@@ -89,7 +91,7 @@ namespace UserManagementSystem.Controllers
             if (string.IsNullOrEmpty(adminIdStr)) return Unauthorized(new { success = false, message = "Vui lòng đăng nhập lại." });
             
             var adminId = int.Parse(adminIdStr);
-            var result = await _invoiceService.VerifyPaymentAsync(request.InvoiceId, request.Approved, adminId);
+            var result = await _paymentService.VerifyPaymentAsync(request.InvoiceId, request.Approved, adminId, request.ActualAmount);
             return Ok(result);
         }
 
@@ -97,6 +99,7 @@ namespace UserManagementSystem.Controllers
         {
             public int InvoiceId { get; set; }
             public bool Approved { get; set; }
+            public decimal? ActualAmount { get; set; }
         }
     }
 }

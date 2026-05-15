@@ -1,11 +1,19 @@
 <!-- Tenants Module -->
 <section id="module-tenants" class="module-section d-none">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold fs-4">Danh sách Khách thuê</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <h2 class="fw-bold fs-4 mb-0">Danh sách Khách thuê</h2>
+            <div id="tenant-motel-badge" class="badge bg-primary bg-opacity-10 text-primary rounded-pill d-none">
+                <i class="bi bi-building me-1"></i> <span id="tenant-selected-motel-name">--</span>
+            </div>
+        </div>
         <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="changeGlobalMotel('tenants')">
+                <i class="bi bi-arrow-left-right me-1"></i> Đổi khu trọ
+            </button>
             <div class="search-box bg-white bg-opacity-50 rounded-pill px-3 py-2 border">
                 <i class="bi bi-search text-muted me-2"></i>
-                <input type="text" id="tenant-search-input" class="border-0 bg-transparent" placeholder="Tìm tên, SĐT, CCCD..." onkeyup="if(event.key==='Enter') loadTenantsData(1)">
+                <input type="text" id="tenant-search-input" class="border-0 bg-transparent" placeholder="Tìm tên, SĐT, CCCD..." onkeyup="if(event.key==='Enter') loadTenantsData(1, _globalSelectedMotelId)">
             </div>
             <button class="btn btn-premium" onclick="showAddTenantModal()">
                 <i class="bi bi-person-plus-fill"></i>
@@ -13,23 +21,14 @@
             </button>
         </div>
     </div>
-    <div class="glass-card">
-        <div class="table-container">
-            <table class="premium-table">
-                <thead>
-                    <tr>
-                        <th>HỌ TÊN</th>
-                        <th>PHÒNG</th>
-                        <th>LIÊN HỆ</th>
-                        <th>TRẠNG THÁI</th>
-                        <th>THAO TÁC</th>
-                    </tr>
-                </thead>
-                <tbody id="tenant-list-container">
-                    <tr><td colspan="5" class="text-center py-5 text-muted">Đang tải...</td></tr>
-                </tbody>
-            </table>
+    <!-- Tenant Grid Container -->
+    <div id="tenant-list-container" class="row g-4">
+        <!-- Cards will be dynamically loaded here -->
+        <div class="col-12 text-center py-5 text-muted">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <p>Đang tải danh sách khách thuê...</p>
         </div>
+    </div>
         
         <!-- Pagination Controls -->
         <div class="d-flex justify-content-between align-items-center mt-4 px-3">
