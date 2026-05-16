@@ -74,7 +74,7 @@
                                </div>`
                             : `<div class="d-flex flex-column gap-2">
                                  <button class="btn btn-sm btn-outline-warning rounded-pill shadow-sm hover-lift" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}', ${r.isOccupied})"><i class="bi bi-pencil-square me-1"></i> Nhập số điện nước</button>
-                                 <button class="btn btn-sm btn-premium rounded-pill shadow-sm hover-lift" onclick="generateInvoice(${r.roomId}, ${r.isOccupied})"><i class="bi bi-calculator me-1"></i> Lập hóa đơn</button>
+                                 <button class="btn btn-sm btn-premium rounded-pill shadow-sm hover-lift" onclick="generateInvoice(${r.roomId}, ${r.isOccupied}, this)"><i class="bi bi-calculator me-1"></i> Lập hóa đơn</button>
                                </div>`;
 
                         return `
@@ -373,7 +373,7 @@ window.calculateWaterUsage = calculateWaterUsage;
 
 
 window.submitMeterReading = submitMeterReading;
-        async function generateInvoice(roomId, isOccupied = true) {
+        async function generateInvoice(roomId, isOccupied = true, btnEl = null) {
             if (!isOccupied) {
                 showPremiumToast("Phòng trống", "Phòng hiện đang trống, không thể lập hóa đơn.", "warning");
                 return;
@@ -381,29 +381,38 @@ window.submitMeterReading = submitMeterReading;
 
             const month = document.getElementById('billing-month').value;
             const year = document.getElementById('billing-year').value;
-            
-            if (confirm(`Bạn có chắc muốn chốt hóa đơn tháng ${month}/${year} cho phòng này? Sau khi chốt sẽ không thể sửa chỉ số điện nước.`)) {
-                try {
-                    const response = await fetch('/api/Invoice/Generate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            roomId: parseInt(roomId),
-                            billingMonth: parseInt(month),
-                            billingYear: parseInt(year),
-                            dueDate: new Date(parseInt(year), parseInt(month), 5).toISOString()
-                        })
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        showPremiumToast("Thành công", "Đã chốt hóa đơn. Người thuê có thể xem hóa đơn này.", "success");
-                        loadBillingData();
-                    } else {
-                        showPremiumToast("Lỗi", result.message, "danger");
-                    }
-                } catch (e) {
-                    showPremiumToast("Lỗi", "Không thể tạo hóa đơn.", "danger");
+
+            if (!confirm(`Bạn có chắc muốn chốt hóa đơn tháng ${month}/${year} cho phòng này? Sau khi chốt sẽ không thể sửa chỉ số điện nước.`)) return;
+
+            // --- UX: Show loading state immediately ---
+            const originalHtml = btnEl ? btnEl.innerHTML : null;
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Đang xử lý...';
+            }
+
+            try {
+                const response = await fetch('/api/Invoice/Generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        roomId: parseInt(roomId),
+                        billingMonth: parseInt(month),
+                        billingYear: parseInt(year),
+                        dueDate: new Date(parseInt(year), parseInt(month), 5).toISOString()
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showPremiumToast("Thành công", "Đã chốt hóa đơn. Người thuê có thể xem hóa đơn này.", "success");
+                    loadBillingData(); // Card will be replaced, no need to restore button
+                } else {
+                    showPremiumToast("Lỗi", result.message, "danger");
+                    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalHtml; }
                 }
+            } catch (e) {
+                showPremiumToast("Lỗi", "Không thể tạo hóa đơn.", "danger");
+                if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalHtml; }
             }
         }
 
