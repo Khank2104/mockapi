@@ -33,10 +33,10 @@
                         const elecHtml = r.electricity 
                             ? `<div class="bg-warning bg-opacity-10 rounded-3 p-2 text-center flex-grow-1 border border-warning border-opacity-25 shadow-sm position-relative">
                                 <div class="text-warning small fw-bold mb-1"><i class="bi bi-lightning-charge-fill me-1"></i>Điện</div>
-                                <div class="fw-bolder fs-6 text-dark">${r.electricity.currentReading} <span class="fw-normal x-small text-muted">(${r.electricity.usageAmount} kWh)</span></div>
+                                <div class="fw-bolder fs-6 text-body">${r.electricity.currentReading} <span class="fw-normal x-small text-muted">(${r.electricity.usageAmount} kWh)</span></div>
                                 ${!r.invoice ? `<button class="btn btn-link btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="deleteReading(${r.electricity.readingId})" style="line-height:1; font-size: 10px;"><i class="bi bi-x-circle"></i></button>` : ''}
                                </div>` 
-                            : `<div class="bg-light rounded-3 p-2 text-center flex-grow-1 border opacity-75">
+                            : `<div class="bg-secondary bg-opacity-10 rounded-3 p-2 text-center flex-grow-1 border border-secondary border-opacity-10 opacity-75">
                                 <div class="text-muted small fw-bold mb-1"><i class="bi bi-lightning-charge me-1"></i>Điện</div>
                                 <div class="x-small text-muted mt-1">Chưa ghi</div>
                                </div>`;
@@ -44,17 +44,17 @@
                         const waterHtml = r.water 
                             ? `<div class="bg-info bg-opacity-10 rounded-3 p-2 text-center flex-grow-1 border border-info border-opacity-25 shadow-sm position-relative">
                                 <div class="text-info small fw-bold mb-1"><i class="bi bi-droplet-fill me-1"></i>Nước</div>
-                                <div class="fw-bolder fs-6 text-dark">${r.water.currentReading} <span class="fw-normal x-small text-muted">(${r.water.usageAmount} m³)</span></div>
+                                <div class="fw-bolder fs-6 text-body">${r.water.currentReading} <span class="fw-normal x-small text-muted">(${r.water.usageAmount} m³)</span></div>
                                 ${!r.invoice ? `<button class="btn btn-link btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="deleteReading(${r.water.readingId})" style="line-height:1; font-size: 10px;"><i class="bi bi-x-circle"></i></button>` : ''}
                                </div>` 
-                            : `<div class="bg-light rounded-3 p-2 text-center flex-grow-1 border opacity-75">
+                            : `<div class="bg-secondary bg-opacity-10 rounded-3 p-2 text-center flex-grow-1 border border-secondary border-opacity-10 opacity-75">
                                 <div class="text-muted small fw-bold mb-1"><i class="bi bi-droplet me-1"></i>Nước</div>
                                 <div class="x-small text-muted mt-1">Chưa ghi</div>
                                </div>`;
 
                         const statusBadge = r.invoice 
                             ? `<div class="mb-3 text-center">
-                                <div class="badge ${r.invoice.invoiceStatus === 'Paid' ? 'bg-success' : (r.invoice.invoiceStatus === 'Pending' ? 'bg-warning text-dark' : 'bg-danger')} bg-opacity-10 text-${r.invoice.invoiceStatus === 'Paid' ? 'success' : (r.invoice.invoiceStatus === 'Pending' ? 'warning text-dark' : 'danger')} rounded-pill px-3 py-1 mb-2 border border-${r.invoice.invoiceStatus === 'Paid' ? 'success' : (r.invoice.invoiceStatus === 'Pending' ? 'warning' : 'danger')} border-opacity-50 shadow-sm">
+                                <div class="badge ${r.invoice.invoiceStatus === 'Paid' ? 'bg-success' : (r.invoice.invoiceStatus === 'Pending' ? 'bg-warning' : 'bg-danger')} bg-opacity-10 text-${r.invoice.invoiceStatus === 'Paid' ? 'success' : (r.invoice.invoiceStatus === 'Pending' ? 'warning' : 'danger')} rounded-pill px-3 py-1 mb-2 border border-${r.invoice.invoiceStatus === 'Paid' ? 'success' : (r.invoice.invoiceStatus === 'Pending' ? 'warning' : 'danger')} border-opacity-50 shadow-sm">
                                     <i class="bi ${r.invoice.invoiceStatus === 'Paid' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'} me-1"></i>
                                     ${r.invoice.invoiceStatus === 'Paid' ? 'Đã thanh toán' : (r.invoice.invoiceStatus === 'Pending' ? 'Chờ duyệt' : 'Chưa thanh toán')}
                                 </div>
@@ -73,13 +73,13 @@
                                  <button class="btn btn-sm btn-outline-danger rounded-circle shadow-sm hover-lift" style="width:32px; height:32px; padding:0" onclick="deleteInvoice(${r.invoice.invoiceId})" title="Xóa hóa đơn"><i class="bi bi-trash"></i></button>
                                </div>`
                             : `<div class="d-flex flex-column gap-2">
-                                 <button class="btn btn-sm btn-outline-warning rounded-pill shadow-sm hover-lift" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}')"><i class="bi bi-pencil-square me-1"></i> Nhập số điện nước</button>
-                                 <button class="btn btn-sm btn-premium rounded-pill shadow-sm hover-lift" onclick="generateInvoice(${r.roomId})"><i class="bi bi-calculator me-1"></i> Lập hóa đơn</button>
+                                 <button class="btn btn-sm btn-outline-warning rounded-pill shadow-sm hover-lift" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}', ${r.isOccupied})"><i class="bi bi-pencil-square me-1"></i> Nhập số điện nước</button>
+                                 <button class="btn btn-sm btn-premium rounded-pill shadow-sm hover-lift" onclick="generateInvoice(${r.roomId}, ${r.isOccupied})"><i class="bi bi-calculator me-1"></i> Lập hóa đơn</button>
                                </div>`;
 
                         return `
                             <div class="col-md-6 col-lg-4 col-xl-3">
-                                <div class="glass-card billing-card p-4 h-100 d-flex flex-column hover-lift" style="border-top: 4px solid var(--primary); border-radius: 1.25rem;">
+                                <div class="glass-card billing-card card-status-${r.invoice ? r.invoice.invoiceStatus : 'Unpaid'} p-4 h-100 d-flex flex-column hover-lift">
                                     <div class="text-center mb-4 position-relative">
                                         <div class="position-absolute top-0 end-0 opacity-25">
                                             <i class="bi bi-receipt fs-3"></i>
@@ -87,6 +87,7 @@
                                         <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-pill px-4 py-2 fw-bolder fs-5 shadow-sm border border-primary border-opacity-25">
                                             Phòng ${r.roomCode}
                                         </div>
+                                        ${!r.isOccupied ? `<div class="mt-2"><span class="badge bg-secondary bg-opacity-10 text-muted border border-secondary border-opacity-25"><i class="bi bi-person-x me-1"></i> Trống</span></div>` : ''}
                                     </div>
                                     
                                     <div class="d-flex gap-3 mb-4">
@@ -94,7 +95,7 @@
                                         ${waterHtml}
                                     </div>
                                     
-                                    <div class="mt-auto d-flex flex-column justify-content-end bg-light rounded-4 p-3 border border-light" style="min-height: 160px;">
+                                    <div class="mt-auto d-flex flex-column justify-content-end bg-secondary bg-opacity-10 rounded-4 p-3 border border-secondary border-opacity-10" style="min-height: 160px;">
                                         ${statusBadge}
                                         <div class="mt-auto">${actionArea}</div>
                                     </div>
@@ -145,7 +146,12 @@
 
 window.loadBillingData = loadBillingData;
 window.changeBillingPage = changeBillingPage;
-        async function showRecordMeterModal(roomId, roomCode) {
+        async function showRecordMeterModal(roomId, roomCode, isOccupied = true) {
+            if (!isOccupied) {
+                showPremiumToast("Phòng trống", `Phòng ${roomCode} hiện không có người ở. Bạn không thể nhập chỉ số điện nước cho phòng trống.`, "warning");
+                return;
+            }
+
             document.getElementById('record-roomId').value = roomId;
             document.getElementById('record-room-code').innerText = roomCode;
             document.getElementById('record-elec-curr').value = '';
@@ -367,7 +373,12 @@ window.calculateWaterUsage = calculateWaterUsage;
 
 
 window.submitMeterReading = submitMeterReading;
-        async function generateInvoice(roomId) {
+        async function generateInvoice(roomId, isOccupied = true) {
+            if (!isOccupied) {
+                showPremiumToast("Phòng trống", "Phòng hiện đang trống, không thể lập hóa đơn.", "warning");
+                return;
+            }
+
             const month = document.getElementById('billing-month').value;
             const year = document.getElementById('billing-year').value;
             
@@ -430,7 +441,7 @@ window.generateInvoice = generateInvoice;
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover border-top">
-                                <thead class="bg-light">
+                                <thead class="bg-secondary bg-opacity-10">
                                     <tr>
                                         <th>Nội dung</th>
                                         <th>Mô tả</th>

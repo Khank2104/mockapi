@@ -12,13 +12,15 @@ namespace UserManagementSystem.Services
         private readonly IInvoiceCalculationService _calcService;
         private readonly INotificationService _notificationService;
         private readonly IAccessControlService _accessControl;
+        private readonly IEmailService _emailService;
 
-        public InvoiceService(ApplicationDbContext db, IInvoiceCalculationService calcService, INotificationService notificationService, IAccessControlService accessControl)
+        public InvoiceService(ApplicationDbContext db, IInvoiceCalculationService calcService, INotificationService notificationService, IAccessControlService accessControl, IEmailService emailService)
         {
             _db = db;
             _calcService = calcService;
             _notificationService = notificationService;
             _accessControl = accessControl;
+            _emailService = emailService;
         }
 
         public async Task<ApiResponse> GenerateInvoiceAsync(GenerateInvoiceRequest request, int adminId)
@@ -139,12 +141,38 @@ namespace UserManagementSystem.Services
             }
 
             // Notify Tenants in the room
-            var room = await _db.Rooms.Include(r => r.Occupants).ThenInclude(o => o.Tenant).FirstOrDefaultAsync(r => r.RoomId == invoice.RoomId);
+            var room = await _db.Rooms.Include(r => r.Occupants).ThenInclude(o => o.Tenant).ThenInclude(t => t.User).FirstOrDefaultAsync(r => r.RoomId == invoice.RoomId);
             if (room != null)
             {
                 foreach (var occupant in room.Occupants.Where(o => o.Status == "Staying" && o.Tenant.UserId.HasValue))
                 {
-                    await _notificationService.CreateNotificationAsync(occupant.Tenant.UserId!.Value, "Hóa đơn mới", $"Hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear} đã được phát hành.", "info");
+                    await _notificationService.CreateNotificationAsync(occupant.Tenant.UserId!.Value, "Hóa đơn mới", $"Hóa đơn tháng {invoice.BillingMonth}/{invoice.BillingYear} đã được phát hành. Số tiền: {invoice.TotalAmount:N0}đ", "info");
+                    
+                    // Gửi Email nếu có
+                    if (occupant.OccupantRole == "Primary" || occupant.OccupantRole == "Owner")
+                    {
+                        var u = occupant.Tenant.User;
+                        if (u != null && !string.IsNullOrEmpty(u.Email))
+                        {
+                            string subject = $"[QuanTro] Hóa đơn tiền phòng tháng {invoice.BillingMonth}/{invoice.BillingYear}";
+                            string body = $@"
+                                <h3>Xin chào {occupant.Tenant.FullName},</h3>
+                                <p>Hóa đơn tiền phòng tháng <b>{invoice.BillingMonth}/{invoice.BillingYear}</b> của phòng <b>{room.RoomCode}</b> đã được phát hành.</p>
+                                <ul>
+                                    <li><b>Tổng tiền cần thanh toán:</b> <span style='color:red;font-size:18px;font-weight:bold;'>{invoice.TotalAmount:N0} VNĐ</span></li>
+                                    <li><b>Hạn thanh toán:</b> {invoice.DueDate.ToString("dd/MM/yyyy")}</li>
+                                </ul>
+                                <p>Vui lòng đăng nhập vào website quản lý trọ để xem chi tiết và tiến hành thanh toán an toàn.</p>
+                                <p>Trân trọng,<br/>Ban quản lý khu trọ</p>
+                            ";
+                            try {
+                                await _emailService.SendEmailAsync(u.Email, subject, body);
+                            } catch (Exception ex) {
+                                // Log email fail
+                                Console.WriteLine($"Gửi mail thất bại: {ex.Message}");
+                            }
+                        }
+                    }
                 }
             }
 
@@ -307,6 +335,7 @@ namespace UserManagementSystem.Services
 
             var query = _db.Rooms
                 .Include(r => r.Motel)
+                .Include(r => r.Occupants)
                 .Where(r => (isSuper || r.Motel.OwnerUserId == adminId));
 
             if (motelId.HasValue && motelId.Value > 0)
@@ -360,6 +389,7 @@ namespace UserManagementSystem.Services
                     roomId = r.RoomId,
                     roomCode = r.RoomCode,
                     motelName = r.Motel.MotelName,
+                    isOccupied = r.Occupants.Any(o => o.Status == "Staying"),
                     electricity = elecReading == null ? null : (object)new
                     {
                         readingId = elecReading.ReadingId,
@@ -447,6 +477,56 @@ namespace UserManagementSystem.Services
                     lastPayments
                 }
             };
+        }
+
+        public async Task<ApiResponse> GetRevenueChartDataAsync(int adminId, int? motelId = null)
+        {
+            var isSuper = await _db.Users.AnyAsync(u => u.UserId == adminId && u.Role.RoleName == "superuser");
+
+            var query = _db.Invoices
+                .Include(i => i.Room)
+                .ThenInclude(r => r.Motel)
+                .Include(i => i.Payments)
+                .Where(i => isSuper || i.Room.Motel.OwnerUserId == adminId);
+
+            if (motelId.HasValue && motelId.Value > 0)
+            {
+                query = query.Where(i => i.Room.MotelId == motelId.Value);
+            }
+
+            // Lấy 6 tháng gần nhất (bao gồm cả tháng hiện tại)
+            var currentMonth = DateTime.Now.Month;
+            var currentYear = DateTime.Now.Year;
+            
+            var startDate = DateTime.Now.AddMonths(-5);
+            int startMonth = startDate.Month;
+            int startYear = startDate.Year;
+
+            var invoices = await query
+                .Where(i => i.BillingYear > startYear || (i.BillingYear == startYear && i.BillingMonth >= startMonth))
+                .ToListAsync();
+
+            var chartData = new List<object>();
+
+            for (int i = 5; i >= 0; i--)
+            {
+                var targetDate = DateTime.Now.AddMonths(-i);
+                int tMonth = targetDate.Month;
+                int tYear = targetDate.Year;
+
+                var monthlyInvoices = invoices.Where(inv => inv.BillingMonth == tMonth && inv.BillingYear == tYear).ToList();
+                
+                decimal expected = monthlyInvoices.Sum(inv => inv.TotalAmount);
+                decimal collected = monthlyInvoices.Sum(inv => inv.Payments.Sum(p => p.PaidAmount));
+
+                chartData.Add(new {
+                    month = $"Tháng {tMonth}",
+                    expected = expected,
+                    collected = collected
+                });
+            }
+
+            return new ApiResponse { Success = true, Data = chartData };
         }
 
         public async Task<ApiResponse> DeleteInvoiceAsync(int invoiceId, int adminId)

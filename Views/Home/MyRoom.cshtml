@@ -3,57 +3,91 @@
     ViewData["Title"] = "Thông tin phòng ở";
 }
 
-<link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
-
-<div class="profile-container animate-fade-in">
+<div class="profile-container animate-fade-in" id="room-info-content">
     <div class="row g-4">
         <div class="col-lg-8">
-            <div class="glass-card p-4 p-md-5 border-0 shadow-premium mb-4">
-                <h3 class="profile-section-title"><i class="bi bi-house-door"></i> Chi tiết phòng thuê</h3>
-                
-                <div id="room-info-content">
-                    <div class="row g-4 mb-5">
-                        <div class="col-md-6">
-                            <div class="p-4 bg-light rounded-4 border-0">
-                                <label class="profile-label">Mã phòng</label>
-                                <h2 class="fw-bold text-primary mb-0" id="room-code-display">---</h2>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-4 bg-light rounded-4 border-0">
-                                <label class="profile-label">Khu trọ</label>
-                                <h4 class="fw-bold mb-0" id="motel-name-display">---</h4>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-4 bg-white border rounded-4">
-                                <label class="profile-label">Giá thuê hàng tháng</label>
-                                <h4 class="fw-bold text-danger mb-0" id="room-rent-display">---</h4>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-4 bg-white border rounded-4">
-                                <label class="profile-label">Ngày vào ở</label>
-                                <h4 class="fw-bold mb-0" id="checkin-date-display">---</h4>
-                            </div>
-                        </div>
+            <!-- Room Identity Card -->
+            <div class="glass-card premium-hero-banner border-0 p-4 p-md-5 mb-4 shadow-premium position-relative overflow-hidden">
+                <div class="position-relative d-flex align-items-center gap-4 flex-wrap" style="z-index: 2;">
+                    <div class="hero-icon-box bg-white bg-opacity-20 text-white rounded-4 d-flex align-items-center justify-content-center shadow-lg border border-white border-opacity-20" style="width: 72px; height: 72px;">
+                        <i class="bi bi-house-door-fill fs-1"></i>
                     </div>
-
-                    <h4 class="fs-6 fw-bold text-muted mb-4 text-uppercase letter-spacing-1">Dịch vụ đang sử dụng</h4>
-                    <div class="glass-card bg-light bg-opacity-50 border-0 p-0 overflow-hidden mb-4">
-                        <div id="service-list">
-                            <!-- Services populated by JS -->
+                    <div class="flex-grow-1">
+                        <div class="badge bg-black bg-opacity-20 text-white p-2 px-3 rounded-pill mb-2 xx-small fw-bold uppercase letter-spacing-1">
+                            <i class="bi bi-shield-check me-2 text-warning"></i>Phòng ở đang thuê
                         </div>
+                        <h1 class="fw-extrabold text-white mb-0 display-5" id="room-code-display">---</h1>
+                        <p class="text-white opacity-75 fs-6 mb-0" id="motel-name-display">Đang tải tên khu trọ...</p>
+                    </div>
+                </div>
+                <div class="hero-bg-shapes">
+                    <div class="shape shape-1" style="width: 300px; height: 300px; background: rgba(255,255,255,0.05); top: -100px; right: -100px; border-radius: 50%;"></div>
+                </div>
+            </div>
+
+            <!-- Detailed Stats Grid -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="glass-card border-0 shadow-premium p-4 h-100 stats-card">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="stat-icon-mini bg-danger-soft text-danger me-3">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <h6 class="fw-bold mb-0">Giá thuê hàng tháng</h6>
+                        </div>
+                        <h3 class="fw-extrabold mb-1 text-danger" id="room-rent-display">---</h3>
+                        <p class="x-small text-muted mb-0 fw-medium">Chưa bao gồm dịch vụ & điện nước</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="glass-card border-0 shadow-premium p-4 h-100 stats-card">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="stat-icon-mini bg-primary-soft text-primary me-3">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <h6 class="fw-bold mb-0">Ngày vào ở</h6>
+                        </div>
+                        <h3 class="fw-extrabold mb-1" id="checkin-date-display">---</h3>
+                        <p class="x-small text-muted mb-0 fw-medium">Bắt đầu tính hợp đồng</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service List -->
+            <div class="glass-card border-0 shadow-premium p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 text-main"><i class="bi bi-plug-fill me-2 text-warning"></i>Dịch vụ đang sử dụng</h5>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3">Gói dịch vụ cố định</span>
+                </div>
+                <div id="service-list" class="row g-3">
+                    <!-- Services populated by JS -->
+                    <div class="text-center py-5 w-100">
+                        <div class="spinner-border spinner-border-sm text-primary opacity-50 mb-2"></div>
+                        <div class="x-small text-muted">Đang tải danh sách dịch vụ...</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-4">
-            <div class="glass-card p-4 border-0 shadow-premium">
-                <h3 class="profile-section-title fs-5"><i class="bi bi-people"></i> Thành viên trong phòng</h3>
-                <div id="occupant-list">
+            <!-- Occupant List -->
+            <div class="glass-card border-0 shadow-premium p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h5 class="fw-bold mb-0 text-main"><i class="bi bi-people-fill me-2 text-primary"></i>Cư dân trong phòng</h5>
+                    <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1 x-small" id="occupant-count">0/0</div>
+                </div>
+                <div id="occupant-list" class="dashboard-list">
                     <!-- Occupants populated by JS -->
+                    <div class="text-center py-4 opacity-50 small">Đang tải...</div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-top border-secondary border-opacity-10">
+                    <div class="alert alert-info bg-info bg-opacity-10 border-0 rounded-4 p-3 mb-0">
+                        <div class="d-flex gap-3 align-items-center">
+                            <i class="bi bi-info-circle-fill fs-5"></i>
+                            <p class="xx-small mb-0 opacity-75 fw-medium">Liên hệ Admin nếu bạn muốn thay đổi hoặc thêm thành viên mới vào phòng.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -61,5 +95,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/tenants/room.js" asp-append-version="true"></script>
+    <script src="~/js/modules/tenant/room.js" asp-append-version="true"></script>
 }

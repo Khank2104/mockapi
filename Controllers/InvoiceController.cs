@@ -60,6 +60,13 @@ namespace UserManagementSystem.Controllers
             return Ok(result);
         }
 
+        [HttpGet("RevenueChart")]
+        public async Task<IActionResult> GetRevenueChart([FromQuery] int? motelId = null)
+        {
+            var result = await _invoiceService.GetRevenueChartDataAsync(GetRequesterId(), motelId);
+            return Ok(result);
+        }
+
         [HttpGet("{id}/ExportExcel")]
         public async Task<IActionResult> ExportExcel(int id)
         {

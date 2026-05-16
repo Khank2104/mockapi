@@ -7,5 +7,6 @@ namespace UserManagementSystem.Services
         string HashPassword(string password);
         bool VerifyPassword(string inputPassword, User userToVerify);
         string GenerateJwtToken(User user);
+        string GenerateRefreshToken();
     }
 }

@@ -4,28 +4,30 @@
     ViewData["Title"] = "Hồ sơ cá nhân";
 }
 
-<link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
+@* CSS moved to premium-layout.css *@
 
 <div class="profile-container animate-fade-in">
     <!-- Profile Header Card -->
     <div class="glass-card p-0 overflow-hidden mb-5 border-0 shadow-premium">
-        <div class="profile-header-banner"></div>
-        <div class="px-4 px-md-5 pb-4">
-            <div class="d-flex flex-column flex-md-row align-items-center align-items-md-end gap-4">
-                <div class="profile-avatar-wrapper">
-                    <img id="main-avatar-img" src="" class="profile-avatar-img">
+        <div class="premium-hero-banner" style="height: 120px; border-radius: 0;"></div>
+        <div class="px-4 px-md-5 pb-4" style="margin-top: -50px;">
+            <div class="d-flex flex-column flex-md-row align-items-center align-items-md-end gap-4 position-relative">
+                <div class="profile-avatar-wrapper shadow-premium">
+                    <img id="main-avatar-img" src="/img/default-avatar.png" class="profile-avatar-img" style="border: 5px solid var(--glass-bg);">
                     <label for="avatar-input" class="avatar-edit-badge">
                         <i class="bi bi-camera-fill"></i>
                     </label>
                     <input type="file" id="avatar-input" hidden accept="image/*" onchange="AccountInfo.uploadAvatar(this.files[0])">
                 </div>
                 <div class="flex-grow-1 text-center text-md-start pb-2">
-                    <h2 class="fw-bold mb-1" id="header-name">---</h2>
-                    <span class="status-pill status-active" id="header-role">---</span>
+                    <h2 class="fw-extrabold mb-1 text-main" id="header-name">---</h2>
+                    <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold x-small uppercase">
+                        <i class="bi bi-shield-check me-1"></i> <span id="header-role">---</span>
+                    </div>
                 </div>
                 <div class="pb-2">
                     <div class="d-flex gap-2">
-                        <div class="p-2 px-3 bg-light rounded-pill small fw-bold text-muted border">
+                        <div class="p-2 px-3 bg-secondary bg-opacity-10 rounded-pill small fw-bold text-muted border border-secondary border-opacity-10">
                             <i class="bi bi-calendar-check me-1"></i> Tham gia: <span id="header-join-date">01/2024</span>
                         </div>
                     </div>
@@ -37,35 +39,28 @@
     <div class="row g-4">
         <!-- Sidebar Navigation -->
         <div class="col-lg-3">
-            <div class="profile-nav-card shadow-premium border-0">
-                <h4 class="fs-6 fw-bold text-muted mb-4 px-3 text-uppercase letter-spacing-1">Danh mục</h4>
-                <nav class="nav flex-column">
-                    <a class="profile-nav-link active" href="#" data-tab="account">
-                        <i class="bi bi-person-bounding-box"></i> Thông tin tài khoản
+            <div class="glass-card p-3 shadow-premium border-0 sticky-top" style="top: 100px;">
+                <h4 class="fs-7 fw-bold text-muted mb-3 px-3 text-uppercase letter-spacing-1">Cài đặt hồ sơ</h4>
+                <nav class="nav flex-column gap-2">
+                    <a class="profile-nav-link active rounded-4 d-flex align-items-center gap-3 p-3 text-decoration-none" href="#" data-tab="account">
+                        <i class="bi bi-person-bounding-box fs-5"></i> <span class="fw-bold">Tài khoản</span>
                     </a>
                     @if (role == "tenant")
                     {
-                        <a class="profile-nav-link" href="#" data-tab="identity">
-                            <i class="bi bi-card-text"></i> Hồ sơ chi tiết
+                        <a class="profile-nav-link rounded-4 d-flex align-items-center gap-3 p-3 text-decoration-none" href="#" data-tab="identity">
+                            <i class="bi bi-card-text fs-5"></i> <span class="fw-bold">Cá nhân</span>
                         </a>
                     }
-                    <a class="profile-nav-link" href="#" data-tab="security">
-                        <i class="bi bi-shield-lock"></i> Bảo mật & Mật khẩu
+                    <a class="profile-nav-link rounded-4 d-flex align-items-center gap-3 p-3 text-decoration-none" href="#" data-tab="security">
+                        <i class="bi bi-shield-lock fs-5"></i> <span class="fw-bold">Bảo mật</span>
                     </a>
                 </nav>
-                
-                <div class="mt-5 px-3">
-                    <div class="p-3 bg-primary bg-opacity-10 rounded-4 text-center">
-                        <p class="small text-primary mb-0 fw-bold">Hỗ trợ kỹ thuật?</p>
-                        <a href="/Home/Index" class="small text-decoration-none">Gửi yêu cầu ngay</a>
-                    </div>
-                </div>
             </div>
         </div>
 
         <!-- Main Content Area -->
         <div class="col-lg-9">
-            <div class="profile-content-card shadow-premium border-0 p-4 p-md-5">
+            <div class="glass-card shadow-premium border-0 p-4 p-md-5 h-100">
                 <div id="tab-account" class="profile-tab-content">
                     @await Html.PartialAsync("_ProfileAccount")
                 </div>
@@ -84,5 +79,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/tenants/profile.js" asp-append-version="true"></script>
+    <script src="~/js/modules/tenant/profile.js" asp-append-version="true"></script>
 }

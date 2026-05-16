@@ -35,7 +35,7 @@
                         const isActive = (c.selectedServiceIds || []).includes(s.serviceId);
                         return `
                         <div class="col-md-6">
-                            <div class="form-check p-2 border rounded-4 ${isMandatory ? 'bg-primary bg-opacity-10' : 'bg-white'}">
+                            <div class="form-check p-2 border rounded-4 ${isMandatory ? 'bg-primary bg-opacity-10' : 'bg-secondary bg-opacity-10'}">
                                 <input class="form-check-input ms-0 me-2" type="checkbox" value="${s.serviceId}" id="esvc-${s.serviceId}" 
                                        ${isMandatory ? 'checked disabled' : (isActive ? 'checked' : '')}>
                                 <label class="form-check-label x-small fw-bold" for="esvc-${s.serviceId}">
@@ -233,13 +233,13 @@ window.confirmTerminateFromEdit = confirmTerminateFromEdit;
                 const dataServices = await resServices.json();
                 const serviceList = document.getElementById('room-services-list');
                     serviceList.innerHTML = dataServices.data.map(s => `
-                        <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center border border-white shadow-sm hover-card">
+                        <div class="p-3 bg-secondary bg-opacity-10 rounded-4 d-flex justify-content-between align-items-center border border-secondary border-opacity-10 shadow-sm hover-card">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
                                     <i class="bi bi-tag-fill"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark">${s.serviceName}</div>
+                                    <div class="fw-bold text-body">${s.serviceName}</div>
                                     <div class="x-small text-muted text-uppercase fw-bold ls-1">${s.unit} • ${s.calculationType === 'metered' ? 'Theo chỉ số' : 'Cố định'}</div>
                                 </div>
                             </div>
@@ -261,7 +261,7 @@ window.confirmTerminateFromEdit = confirmTerminateFromEdit;
                         occupantList.innerHTML = dataOccupants.data.map(o => `
                             <tr>
                                 <td><div class="fw-bold">${o.fullName}</div></td>
-                                <td><span class="badge bg-light text-dark">${o.occupantRole}</span></td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary">${o.occupantRole}</span></td>
                                 <td class="small text-muted">${new Date(o.checkInDate).toLocaleDateString('vi-VN')}</td>
                                 <td class="small">${o.phone || 'N/A'}</td>
                                 <td>

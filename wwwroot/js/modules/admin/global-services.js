@@ -37,12 +37,12 @@
                         const currentPrice = s.defaultPrice ? s.defaultPrice.toLocaleString() : "0";
 
                         return `
-                            <div class="mb-4 p-3 rounded-4 bg-light bg-opacity-50 border border-white">
+                            <div class="mb-4 p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <label class="form-label small fw-bold text-uppercase mb-0">
                                         <i class="bi ${iconClass} me-2 text-primary"></i>${s.serviceName}
                                     </label>
-                                    <span class="badge bg-white text-primary border border-primary border-opacity-10 rounded-pill px-3 py-2">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 rounded-pill px-3 py-2">
                                         Hiện tại: ${currentPrice}đ / ${unitLabel}
                                     </span>
                                 </div>

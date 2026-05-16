@@ -11,7 +11,23 @@ using Serilog;
 using System.Security.Claims;
 using Serilog.Events;
 
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// --- ADD RATE LIMITING SERVICES ---
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("login", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 5;
+        opt.QueueLimit = 0; // Không cho phép xếp hàng, từ chối ngay lập tức
+    });
+    
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -37,8 +53,22 @@ try
         });
 
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
+    {
+        if (builder.Environment.IsProduction())
+        {
+            // Use SQLite for Render Demo
+            options.UseSqlite("Data Source=app.db");
+        }
+        else
+        {
+            // Use SQL Server for Local Development
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+                o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+        }
+        
+        // Suppress EF9 Warning to allow migrations to proceed in demo environments
+        options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    });
 
     builder.Services.AddHttpClient();
     builder.Services.AddSignalR();
@@ -67,6 +97,7 @@ try
     
     // Add Background Services
     builder.Services.AddHostedService<UserManagementSystem.Services.BackgroundTasks.ContractExpirationService>();
+    builder.Services.AddHostedService<UserManagementSystem.Services.BackgroundTasks.InvoiceReminderWorker>();
 
     // Add Swagger/OpenAPI Documentation
     builder.Services.AddSwaggerGen(options =>
@@ -164,12 +195,24 @@ try
                 Log.Warning("JWT Authentication failed: {Message}", context.Exception.Message);
                 return Task.CompletedTask;
             },
-            OnTokenValidated = context =>
+            OnTokenValidated = async context =>
             {
+                var userIdClaim = context.Principal?.FindFirst("id")?.Value;
+                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int userId))
+                {
+                    var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+                    var user = await userService.GetByIdAsync(userId);
+                    if (user == null || user.Status != "Active")
+                    {
+                        context.Fail("Tài khoản của bạn đã bị khóa hoặc không tồn tại.");
+                        Log.Warning("JWT Token rejected for user ID {UserId}: Account not active.", userId);
+                        return;
+                    }
+                }
+
                 var claims = context.Principal?.Claims.Select(c => $"{c.Type}: {c.Value}");
                 Log.Information("JWT Token validated for user: {User}. Claims: {Claims}", 
                     context.Principal?.Identity?.Name, string.Join(", ", claims ?? Array.Empty<string>()));
-                return Task.CompletedTask;
             }
         };
     });
@@ -214,7 +257,7 @@ try
 
     // app.UseHttpsRedirection();
     app.UseRouting();
-
+    app.UseRateLimiter();
     app.UseAuthentication(); 
     app.UseAuthorization();
 
@@ -246,7 +289,38 @@ try
     app.MapHub<NotificationHub>("/notificationHub");
 
     Log.Information("=== QuanTro Application Started Successfully ===");
-    app.Run();
+    // --- DATABASE MIGRATION ON STARTUP ---
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        
+        Log.Information("Ensuring database is created...");
+        if (app.Environment.IsProduction())
+        {
+            // For Render Demo (SQLite): Bypass SQL Server migrations and generate schema directly
+            context.Database.EnsureCreated();
+            Log.Information("SQLite Database created successfully via EnsureCreated.");
+
+            // Seed default roles and superuser account
+            await UserManagementSystem.Services.DatabaseSeeder.SeedAsync(context, app.Configuration);
+        }
+        else if (context.Database.IsRelational())
+        {
+            // For Local Development (SQL Server): Use standard migrations
+            context.Database.Migrate();
+            Log.Information("SQL Server Migrations applied successfully.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while migrating the database.");
+    }
+}
+
+app.Run();
 }
 catch (Exception ex)
 {

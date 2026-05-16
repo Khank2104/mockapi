@@ -248,6 +248,41 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Data = contract };
         }
 
+        public async Task<ApiResponse> GetContractForPrintAsync(int contractId, int adminId)
+        {
+            var contract = await _db.Contracts
+                .Include(c => c.Room).ThenInclude(r => r.Motel).ThenInclude(m => m.Owner)
+                .Include(c => c.PrimaryTenant)
+                .FirstOrDefaultAsync(c => c.ContractId == contractId);
+
+            if (contract == null || !await _accessControl.IsAdminOfMotelAsync(adminId, contract.Room.MotelId))
+                return new ApiResponse { Success = false, Message = "Không tìm thấy hợp đồng hoặc bạn không có quyền." };
+
+            var owner = contract.Room.Motel.Owner;
+            var tenant = contract.PrimaryTenant;
+
+            var printData = new
+            {
+                contractId = contract.ContractId,
+                startDate = contract.StartDate,
+                endDate = contract.EndDate,
+                monthlyRent = contract.MonthlyRent,
+                depositAmount = contract.DepositAmount,
+                roomCode = contract.Room.RoomCode,
+                motelName = contract.Room.Motel.MotelName,
+                motelAddress = contract.Room.Motel.Address,
+                ownerName = owner?.Name ?? "Chủ trọ",
+                ownerPhone = owner?.Phone ?? "",
+                tenantName = tenant?.FullName ?? "",
+                tenantPhone = tenant?.Phone ?? "",
+                tenantIdentityCard = tenant?.CitizenId ?? "",
+                tenantAddress = tenant?.PermanentAddress ?? "",
+                terms = contract.Terms ?? ""
+            };
+
+            return new ApiResponse { Success = true, Data = printData };
+        }
+
         public async Task<ApiResponse> UpdateContractAsync(int contractId, ContractRequest request, int adminId)
         {
             var contract = await _db.Contracts

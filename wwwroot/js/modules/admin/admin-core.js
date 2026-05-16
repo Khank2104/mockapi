@@ -1,6 +1,38 @@
         window._globalSelectedMotelId = null;
         window._allMotelsCache = [];
 
+        // --- GLOBAL FETCH INTERCEPTOR FOR AUTO-REFRESH TOKEN ---
+        (function() {
+            const { fetch: originalFetch } = window;
+            window.fetch = async (...args) => {
+                let response = await originalFetch(...args);
+
+                // If unauthorized and it's not a login/refresh request itself
+                if (response.status === 401 && 
+                    !args[0].includes('/api/UserProxy/Login') && 
+                    !args[0].includes('/api/UserProxy/RefreshToken')) {
+                    
+                    console.warn("Token expired. Attempting to refresh...");
+                    
+                    try {
+                        const refreshRes = await originalFetch('/api/UserProxy/RefreshToken', { method: 'POST' });
+                        if (refreshRes.ok) {
+                            console.log("Token refreshed successfully. Retrying original request.");
+                            return originalFetch(...args);
+                        }
+                    } catch (e) {
+                        console.error("Refresh token failed", e);
+                    }
+                    
+                    // If refresh failed or was not possible, redirect to login
+                    if (window.location.pathname.toLowerCase() !== '/account/login') {
+                        window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search);
+                    }
+                }
+                return response;
+            };
+        })();
+
         async function switchModule(moduleId, navElement = null) {
             // Check if we are on the admin dashboard page
             if (window.location.pathname.toLowerCase() !== '/admin') {
@@ -121,8 +153,8 @@
 
                     html += `
                     <div class="col-md-6 col-lg-4 animate-fade-in">
-                        <div class="glass-card h-100 p-4 d-flex flex-column align-items-center text-center motel-selection-card hover-lift" 
-                             onclick="selectGlobalMotel('${moduleId}', ${m.motelId})" style="cursor:pointer; border: 2px solid transparent;">
+                        <div class="glass-card motel-selection-card card-status-active h-100 p-4 d-flex flex-column align-items-center text-center hover-lift" 
+                             onclick="selectGlobalMotel('${moduleId}', ${m.motelId})" style="cursor:pointer;">
                             <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width:64px; height:64px; font-size:1.8rem">
                                 <i class="bi bi-building"></i>
                             </div>
@@ -147,8 +179,10 @@
                 const finalContainer = document.getElementById(targetId);
                 if (finalContainer) finalContainer.innerHTML = html;
             } catch (e) {
+                console.error("Error loading motels for selection:", e);
                 container.innerHTML = '<div class="col-12 alert alert-soft-danger text-center py-5"><i class="bi bi-exclamation-triangle fs-2 d-block mb-3"></i>Không thể tải danh sách khu trọ. Vui lòng thử lại.</div>';
             }
+
         }
 
         function selectGlobalMotel(moduleId, motelId) {
@@ -183,18 +217,18 @@ window.switchModule = switchModule;
             }
             
             const id = 'toast-' + Date.now();
-            const icon = type === 'success' ? 'bi-check-circle-fill' : (type === 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill');
-            const colorClass = type === 'success' ? 'text-success' : (type === 'danger' ? 'text-danger' : 'text-primary');
+            const icon = type === 'success' ? 'bi-check-circle-fill' : (type === 'danger' ? 'bi-exclamation-triangle-fill' : (type === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill'));
+            const colorClass = type === 'success' ? 'text-success' : (type === 'danger' ? 'text-danger' : (type === 'warning' ? 'text-warning' : 'text-primary'));
             
             const html = `
                 <div id="${id}" class="toast glass-card border-0 shadow-premium" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="toast-header border-0 bg-transparent">
-                        <i class="bi ${icon} ${colorClass} me-2"></i>
-                        <strong class="me-auto">${title}</strong>
+                        <i class="bi ${icon} ${colorClass} me-2 fs-5"></i>
+                        <strong class="me-auto text-main">${title}</strong>
                         <small class="text-muted">Vừa xong</small>
                         <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>
-                    <div class="toast-body small">
+                    <div class="toast-body text-secondary">
                         ${message}
                     </div>
                 </div>`;

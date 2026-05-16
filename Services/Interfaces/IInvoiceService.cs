@@ -11,6 +11,7 @@ namespace UserManagementSystem.Services
         Task<ApiResponse> GetTenantRoomInfoAsync(int tenantUserId);
         Task<ApiResponse> GetBillingSummaryAsync(int month, int year, int adminId, int? motelId = null, int page = 1, int pageSize = 10);
         Task<ApiResponse> GetDashboardFinancialSummaryAsync(int month, int year, int adminId, int? motelId = null);
+        Task<ApiResponse> GetRevenueChartDataAsync(int adminId, int? motelId = null);
         Task<ApiResponse> DeleteInvoiceAsync(int invoiceId, int adminId);
     }
 }
