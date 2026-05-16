@@ -303,6 +303,9 @@ using (var scope = app.Services.CreateScope())
             // For Render Demo (SQLite): Bypass SQL Server migrations and generate schema directly
             context.Database.EnsureCreated();
             Log.Information("SQLite Database created successfully via EnsureCreated.");
+
+            // Seed default roles and superuser account
+            await UserManagementSystem.Services.DatabaseSeeder.SeedAsync(context, app.Configuration);
         }
         else if (context.Database.IsRelational())
         {
