@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using UserManagementSystem.Models;
 using UserManagementSystem.Services;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace UserManagementSystem.Controllers
 {
@@ -83,6 +84,7 @@ namespace UserManagementSystem.Controllers
             return Ok(new { success = true, data = ToResponse(user) });
         }
 
+        [EnableRateLimiting("login")]
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
