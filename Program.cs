@@ -56,7 +56,7 @@ try
     {
         if (builder.Environment.IsProduction())
         {
-            // Use SQLite for Render Demo (Free & Self-contained)
+            // Use SQLite for Render Demo
             options.UseSqlite("Data Source=app.db");
         }
         else
@@ -65,6 +65,9 @@ try
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
                 o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
         }
+        
+        // Suppress EF9 Warning to allow migrations to proceed in demo environments
+        options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
     });
 
     builder.Services.AddHttpClient();
