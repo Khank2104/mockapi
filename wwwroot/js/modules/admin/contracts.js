@@ -47,7 +47,7 @@ let currentContractPage = 1;
 
                     container.innerHTML = items.map(c => `
                         <div class="col-md-6 col-lg-4 col-xl-3 animate-fade-in">
-                            <div class="glass-card contract-card p-4 h-100 d-flex flex-column">
+                            <div class="glass-card contract-card card-status-${c.contractStatus === 'Active' ? 'active' : (c.contractStatus === 'Waiting' ? 'pending' : 'expired')} p-4 h-100 d-flex flex-column">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
                                         <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill mb-2 px-3">Phòng ${c.roomCode || 'N/A'}</div>

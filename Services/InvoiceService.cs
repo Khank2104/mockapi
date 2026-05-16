@@ -335,6 +335,7 @@ namespace UserManagementSystem.Services
 
             var query = _db.Rooms
                 .Include(r => r.Motel)
+                .Include(r => r.Occupants)
                 .Where(r => (isSuper || r.Motel.OwnerUserId == adminId));
 
             if (motelId.HasValue && motelId.Value > 0)
@@ -388,6 +389,7 @@ namespace UserManagementSystem.Services
                     roomId = r.RoomId,
                     roomCode = r.RoomCode,
                     motelName = r.Motel.MotelName,
+                    isOccupied = r.Occupants.Any(o => o.Status == "Staying"),
                     electricity = elecReading == null ? null : (object)new
                     {
                         readingId = elecReading.ReadingId,

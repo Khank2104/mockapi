@@ -140,9 +140,18 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 - **Nâng cấp thời gian sống (Lifespan)**: Giảm hạn sử dụng Access Token từ 6 tiếng xuống 15 phút để giảm thiểu rủi ro bị đánh cắp.
 - **Real-time Status Validation (Token Delay Fix)**: Cập nhật `OnTokenValidated` trong Program.cs để truy vấn trạng thái User ngay lập tức. Nếu Admin khóa tài khoản, thẻ JWT của khách thuê sẽ bị từ chối (Fail) tức thì thay vì phải chờ hết hạn.
 
-### [2026-05-15] - Session 35: Biểu đồ Thống kê Doanh thu (Revenue Chart)
-- **Backend API**: Tạo mới API `/api/Invoice/RevenueChart` trong `InvoiceService` truy xuất dữ liệu 6 tháng gần nhất, tự động tính toán tổng hóa đơn phát hành (Dự kiến thu) và số tiền đã đóng (Thực thu).
-- **Frontend Dashboard**: Tích hợp `Chart.js` dạng Bar Chart, thiết kế cột kéo song song (Expected vs Collected). Đặt canvas biểu đồ trực tiếp vào trang Tổng quan Admin để phân tích xu hướng thu chi một cách sinh động, giao diện Glassmorphism trong suốt, thân thiện.
+### [2026-05-16] - Session 36: Thiết kế Hệ thống Theme & Bảo mật Tự động
+- **Hệ thống Theme Trung tâm (Theme-System)**: Tạo mới `theme-system.css` làm "trái tim" quản lý biến thiết kế (Colors, Gradients, Shadows). Dọn dẹp hàng trăm dòng mã thừa trong `glassmorphism.css` và `premium_dashboard.css`.
+- **Sửa lỗi Sidebar**: Cấu hình cơ chế cuộn độc lập cho Sidebar, giúp nút Đăng xuất luôn hiển thị trên mọi độ phân giải.
+- **Bảo mật Tự động (Silent Refresh)**: Triển khai Global Fetch Interceptor tại Frontend để tự động gọi API `/RefreshToken` khi Access Token hết hạn, giúp duy trì phiên làm việc không bị ngắt quãng.
+- **Tinh chỉnh Nghiệp vụ**: Loại bỏ nút "Khởi tạo nhanh" dư thừa tại module Hóa đơn để tránh nhầm lẫn với cấu hình hệ thống.
+
+## 📝 Kế hoạch tương lai: Hệ sinh thái Ghi chỉ số Thông minh (Smart Metering Ecosystem)
+*Tầm nhìn đã chốt, sẽ triển khai sau khi ổn định hệ thống hiện tại:*
+1.  **Giai đoạn 1:** Nâng cấp Database hỗ trợ lưu ảnh minh chứng (Proof of Reading).
+2.  **Giai đoạn 2:** Tích hợp AI OCR (Tesseract.js) để quét chỉ số từ ảnh chụp.
+3.  **Giai đoạn 3:** Mở rộng cho Tenant tự quét và gửi chỉ số (Minh bạch tuyệt đối).
+4.  **Giai đoạn 4:** Kết nối đồng hồ thông minh IoT (Tuya/Zigbee API).
 
 ---
 
@@ -170,9 +179,11 @@ Hệ thống sử dụng thiết kế SQL Server CHUẨN HÓA cao để đảm b
 - [x] Cơ chế Refresh Token & Thu hồi JWT
 - [x] Biểu đồ phân tích doanh thu nâng cao
 
-**Cần làm tiếp:**
-- [ ] Tích hợp cổng thanh toán trực tuyến (VNPay, Momo) - Đã có VietQR, tạm gác lại.
-- [ ] Ứng dụng Mobile (Flutter/React Native)
+**Cần làm tiếp (Ưu tiên Fix lỗi):**
+- [ ] Fix lỗi hiển thị Tiêu đề "Phòng Trống" trong Dark Mode (bị mờ/trùng màu).
+- [ ] Rà soát toàn bộ các Modal để đảm bảo tính nhất quán của Design System mới.
+- [ ] Triển khai Hệ sinh thái Ghi chỉ số Thông minh (Smart Metering) - *Sau khi fix lỗi xong*.
+- [ ] Ứng dụng Mobile (Flutter/React Native).
 
 ---
 

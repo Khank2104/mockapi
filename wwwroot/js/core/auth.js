@@ -9,6 +9,14 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const errorDiv = document.getElementById('loginError');
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    // Reset state
+    errorDiv.style.display = 'none';
+    errorDiv.classList.remove('animate-shake');
+    btn.disabled = true;
+    const originalBtnHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang kiểm tra...';
 
     try {
         const response = await fetch(`${API_PROXY_URL}/Login`, {
@@ -17,33 +25,41 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             body: JSON.stringify({ username, password })
         });
 
+        if (response.status === 429) {
+            errorDiv.innerText = "Bạn đã thử quá nhiều lần. Vui lòng đợi 1 phút rồi thử lại.";
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.classList.add('animate-shake'), 10);
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+            return;
+        }
+
         const result = await response.json();
 
         if (result.success) {
             if (result.message === "OTP_REQUIRED") {
-                // BẬT OTP: Chuyển sang phần nhập OTP
                 document.getElementById('credentialsSection').style.display = 'none';
                 document.getElementById('otpSection').style.display = 'block';
-                errorDiv.style.display = 'none';
             } else {
-                // TẮT OTP: Đăng nhập thẳng
-                localStorage.setItem('tokenExpiry', Date.now() + 6 * 60 * 60 * 1000); // 6 tiếng
+                localStorage.setItem('tokenExpiry', Date.now() + 6 * 60 * 60 * 1000);
                 localStorage.setItem('currentUser', JSON.stringify(result.data.user));
                 const user = result.data.user;
-                if (user.role === 'admin' || user.role === 'superuser') {
-                    window.location.href = '/Admin';
-                } else {
-                    window.location.href = '/';
-                }
+                window.location.href = (user.role === 'admin' || user.role === 'superuser') ? '/Admin' : '/';
             }
         } else {
-            // Sai mật khẩu hoặc lỗi khác
+            // Hiển thị lỗi và kích hoạt lại hiệu ứng rung
             errorDiv.innerText = result.message || "Sai tên đăng nhập hoặc mật khẩu!";
             errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.classList.add('animate-shake'), 10);
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
         }
     } catch (error) {
         errorDiv.innerText = "Lỗi kết nối tới Server.";
         errorDiv.style.display = 'block';
+        setTimeout(() => errorDiv.classList.add('animate-shake'), 10);
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHtml;
     }
 });
 

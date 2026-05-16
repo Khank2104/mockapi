@@ -4,21 +4,6 @@
 }
 
 <div id="module-container">
-    <style>
-        /* Đảm bảo chữ trong các form nhập liệu luôn hiển thị rõ ràng trên nền sáng */
-        .glass-card .form-control,
-        .glass-card .form-select,
-        .glass-card .form-label {
-            color: inherit;
-            font-weight: 500;
-        }
-        .glass-card .form-control::placeholder {
-            color: #94a3b8 !important;
-            opacity: 1;
-        }
-        .status-waiting { background: #fef3c7; color: #92400e; } /* Orange/Amber for waiting/grace period */
-    </style>
-
     <!-- Modules -->
     <partial name="Partials/Modules/_OverviewModule" />
     <partial name="Partials/Modules/_MotelsModule" />
@@ -40,88 +25,13 @@
 <partial name="Partials/Modals/_RequestModals" />
 
 @section Scripts {
-    <script src="~/js/admin/global-services.js" asp-append-version="true"></script>
-    <script src="~/js/admin/contracts.js" asp-append-version="true"></script>
-    <script src="~/js/admin/tenants.js" asp-append-version="true"></script>
-    <script src="~/js/admin/billing.js" asp-append-version="true"></script>
-    <script src="~/js/admin/requests.js" asp-append-version="true"></script>
-    <script src="~/js/admin/motels-floormap.js" asp-append-version="true"></script>
-    <script src="~/js/admin/room-details.js" asp-append-version="true"></script>
-    <script src="~/js/admin/dashboard-overview.js" asp-append-version="true"></script>
-    <script src="~/js/admin/admin-mgmt.js" asp-append-version="true"></script>
-
-    <style>
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out;
-        }
-        @@keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        .status-indicator.status-occupied { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
-        .status-indicator.status-vacant { background: #e2e8f0; }
-        .status-indicator.status-maintenance { background: #ef4444; }
-
-        .room-card:hover {
-            border-color: #6366f1 !important;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
-        }
-        .transition-all { transition: all 0.3s ease; }
-        .last-mb-0:last-child { margin-bottom: 0 !important; }
-
-        /* Contract Step Indicator */
-        .step-badge {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.85rem;
-            background: #e2e8f0; color: #94a3b8;
-            flex-shrink: 0; transition: all 0.3s ease;
-        }
-        .step-badge.active {
-            background: #6366f1; color: #fff;
-            box-shadow: 0 4px 12px rgba(99,102,241,0.4);
-        }
-        .border-dashed { border-style: dashed !important; }
-
-        /* Floor Map - Room Cards */
-        .room-card {
-            position: relative;
-            border-radius: 16px;
-            padding: 1rem 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            border: 2px solid transparent;
-            user-select: none;
-        }
-        .room-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-        .room-card-vacant { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.2); }
-        .room-card-vacant:hover { background: rgba(99,102,241,0.15); border-color: #6366f1; }
-        .room-card-occupied { background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.2); }
-        .room-card-occupied:hover { background: rgba(34,197,94,0.15); border-color: #22c55e; }
-        .room-card-maintenance { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.2); }
-        .room-card-maintenance:hover { background: rgba(245,158,11,0.15); border-color: #f59e0b; }
-        .room-card-icon { font-size: 1.8rem; margin-bottom: 0.4rem; opacity: 0.7; }
-        .room-card-code { font-weight: 800; font-size: 1rem; margin-bottom: 0.2rem; }
-        .room-card-status { font-size: 0.7rem; font-weight: 600; }
-        .room-card-badge {
-            position: absolute; top: 6px; right: 8px;
-            background: #22c55e; color: #fff;
-            border-radius: 50%; width: 18px; height: 18px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.6rem;
-        }
-        .hover-lift { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .hover-lift:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important; }
-        .hover-card { transition: all 0.2s ease; }
-        .hover-card:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    </style>
+    <script src="~/js/modules/admin/global-services.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/contracts.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/tenants.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/billing.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/requests.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/motels-floormap.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/room-details.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/dashboard-overview.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/admin-mgmt.js" asp-append-version="true"></script>
 }

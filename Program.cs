@@ -11,7 +11,23 @@ using Serilog;
 using System.Security.Claims;
 using Serilog.Events;
 
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// --- ADD RATE LIMITING SERVICES ---
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("login", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 5;
+        opt.QueueLimit = 0; // Không cho phép xếp hàng, từ chối ngay lập tức
+    });
+    
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -227,7 +243,7 @@ try
 
     // app.UseHttpsRedirection();
     app.UseRouting();
-
+    app.UseRateLimiter();
     app.UseAuthentication(); 
     app.UseAuthorization();
 

@@ -10,8 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/core/theme-system.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/glassmorphism.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layouts/premium-layout.css" asp-append-version="true" />
     
     <script>
         // Apply theme immediately to prevent flash
@@ -32,7 +33,7 @@
                 <span>QuanTro<span class="fw-light">Admin</span></span>
             </div>
             
-            <nav style="flex: 1;">
+            <nav>
                 <ul style="list-style: none;">
                     <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link active" onclick="switchModule('overview', this)">
@@ -169,10 +170,10 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/chartjs/chart.min.js"></script>
     <script src="~/lib/signalr/signalr.min.js"></script>
-    <script src="~/js/admin/admin-core.js" asp-append-version="true"></script>
-    <script src="~/js/admin/admin-ui.js" asp-append-version="true"></script>
-    <script src="~/js/admin/admin-notifications.js" asp-append-version="true"></script>
-    <script src="~/js/dashboard-charts.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/admin-core.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/admin-ui.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/admin-notifications.js" asp-append-version="true"></script>
+    <script src="~/js/modules/admin/dashboard-charts.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

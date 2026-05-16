@@ -3,109 +3,118 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Tenant Portal</title>
+    <title>@ViewData["Title"] - QuanTro Resident</title>
     
+    <!-- Core Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/glassmorphism.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/premium_dashboard.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/tenants/tenant-portal.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/tenants/theme.css" asp-append-version="true" />
+    
+    <!-- Centralized Theme System (The Heart) -->
+    <link rel="stylesheet" href="~/css/core/theme-system.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layouts/premium-layout.css" asp-append-version="true" />
 </head>
-<body class="tenant-body">
+<body>
     <script>
         (function() {
-            const theme = localStorage.getItem('tenant-theme') || 'light';
+            const theme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
+
     <div class="dashboard-wrapper">
-        <!-- Sidebar -->
-        <aside class="sidebar">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar shadow-premium">
             <div class="sidebar-logo">
-                <div class="logo-icon bg-primary bg-gradient">
-                    <i class="bi bi-house-heart-fill"></i>
+                <div class="stat-icon bg-white bg-opacity-10 text-white mb-0" style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-house-heart-fill fs-4"></i>
                 </div>
-                <span>Tenant Portal</span>
+                <div class="ms-3">
+                    <span class="fw-extrabold d-block lh-1" style="letter-spacing: -0.5px; font-size: 1.1rem; color: white;">QUAN TRỌ</span>
+                    <span class="xx-small fw-bold uppercase opacity-50" style="color: rgba(255,255,255,0.7);">Resident Portal</span>
+                </div>
             </div>
-            
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
+
+            <nav>
+                <div class="nav-section-label">Menu chính</div>
+                <ul class="list-unstyled px-2">
                     <li class="nav-item">
-                        <a href="/" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
-                            <i class="bi bi-grid-1x2-fill"></i>
-                            <span>Bảng điều khiển</span>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" href="/Home/Index">
+                            <i class="bi bi-grid-1x2-fill"></i> <span>Tổng quan</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/Home/MyRoom" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "MyRoom" ? "active" : "")">
-                            <i class="bi bi-door-closed-fill"></i>
-                            <span>Phòng của tôi</span>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyRoom" ? "active" : "")" href="/Home/MyRoom">
+                            <i class="bi bi-door-open-fill"></i> <span>Phòng của tôi</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/Home/MyInvoices" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "MyInvoices" ? "active" : "")">
-                            <i class="bi bi-receipt-cutoff"></i>
-                            <span>Hóa đơn</span>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyInvoices" ? "active" : "")" href="/Home/MyInvoices">
+                            <i class="bi bi-receipt-cutoff"></i> <span>Hóa đơn</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/Home/MySupport" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "MySupport" ? "active" : "")">
-                            <i class="bi bi-chat-dots-fill"></i>
-                            <span>Hỗ trợ & Yêu cầu</span>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MySupport" ? "active" : "")" href="/Home/MySupport">
+                            <i class="bi bi-chat-left-dots-fill"></i> <span>Yêu cầu hỗ trợ</span>
                         </a>
                     </li>
-                    <li class="nav-divider">TÀI KHOẢN</li>
+                </ul>
+
+                <div class="nav-section-label mt-4">Tài khoản</div>
+                <ul class="list-unstyled px-2">
                     <li class="nav-item">
-                        <a href="/Home/Profile" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
-                            <i class="bi bi-person-badge-fill"></i>
-                            <span>Hồ sơ cá nhân</span>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")" href="/Home/Profile">
+                            <i class="bi bi-person-badge-fill"></i> <span>Hồ sơ cá nhân</span>
                         </a>
                     </li>
                 </ul>
             </nav>
 
-            <div class="sidebar-footer">
+            <div class="sidebar-footer mt-auto">
                 <a href="javascript:void(0)" onclick="logout()" class="nav-link text-danger">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Đăng xuất</span>
+                    <i class="bi bi-box-arrow-right"></i> <span>Đăng xuất</span>
                 </a>
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content Area -->
         <div class="main-content">
             <header class="top-header">
-                <div class="welcome-text">
-                    <h1 id="tenant-welcome" class="fw-bold">Chào mừng trở lại!</h1>
-                    <p class="text-muted small mb-0">Hệ thống quản lý phòng trọ thông minh</p>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="mobile-menu-btn d-lg-none" onclick="toggleSidebar()">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <div class="welcome-text">
+                        <h1 id="tenant-welcome">Chào mừng trở lại!</h1>
+                        <p class="d-none d-sm-block">Hệ thống quản lý cư dân thông minh</p>
+                    </div>
                 </div>
 
                 <div class="header-actions">
-                    <div class="header-icon-btn" id="theme-btn" onclick="toggleTheme()" title="Chuyển chế độ sáng/tối">
+                    <button class="header-icon-btn" id="theme-btn" onclick="toggleTheme()" title="Chế độ sáng/tối">
                         <i class="bi bi-moon-stars"></i>
-                    </div>
-                    <div class="header-icon-btn" id="notification-bell" onclick="toggleNotificationModal()" title="Thông báo">
+                    </button>
+                    
+                    <button class="header-icon-btn position-relative" onclick="toggleNotificationModal()">
                         <i class="bi bi-bell"></i>
-                        <span id="notification-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
-                            0
-                        </span>
-                    </div>
+                        <span id="notification-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+                    </button>
 
-                    <div class="user-profile-badge" onclick="window.location.href='/Home/Profile'">
-                        <img id="navAvatar" src="" class="avatar-sm" alt="Avatar">
-                        <div class="user-info">
-                            <span id="navUserName" class="name">Tenant</span>
+                    <div class="user-profile-badge ms-2" onclick="window.location.href='/Home/Profile'">
+                        <div id="navAvatarContainer" class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold">
+                            <span id="navInitial">U</span>
+                        </div>
+                        <div class="user-info d-none d-md-flex">
+                            <span class="name" id="navUserName">Cư dân</span>
                             <span class="role">Khách thuê</span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <div class="content-body p-4 p-md-5">
+            <div class="dashboard-content animate-fade-in">
                 @RenderBody()
             </div>
         </div>
@@ -151,8 +160,8 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/signalr/signalr.min.js"></script>
     
-    <script src="~/js/tenants/tenant-ui.js" asp-append-version="true"></script>
-    <script src="~/js/tenants/tenant-notifications.js" asp-append-version="true"></script>
+    <script src="~/js/modules/tenant/tenant-ui.js" asp-append-version="true"></script>
+    <script src="~/js/modules/tenant/tenant-notifications.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -73,13 +73,13 @@
                                  <button class="btn btn-sm btn-outline-danger rounded-circle shadow-sm hover-lift" style="width:32px; height:32px; padding:0" onclick="deleteInvoice(${r.invoice.invoiceId})" title="Xóa hóa đơn"><i class="bi bi-trash"></i></button>
                                </div>`
                             : `<div class="d-flex flex-column gap-2">
-                                 <button class="btn btn-sm btn-outline-warning rounded-pill shadow-sm hover-lift" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}')"><i class="bi bi-pencil-square me-1"></i> Nhập số điện nước</button>
-                                 <button class="btn btn-sm btn-premium rounded-pill shadow-sm hover-lift" onclick="generateInvoice(${r.roomId})"><i class="bi bi-calculator me-1"></i> Lập hóa đơn</button>
+                                 <button class="btn btn-sm btn-outline-warning rounded-pill shadow-sm hover-lift" onclick="showRecordMeterModal(${r.roomId}, '${r.roomCode}', ${r.isOccupied})"><i class="bi bi-pencil-square me-1"></i> Nhập số điện nước</button>
+                                 <button class="btn btn-sm btn-premium rounded-pill shadow-sm hover-lift" onclick="generateInvoice(${r.roomId}, ${r.isOccupied})"><i class="bi bi-calculator me-1"></i> Lập hóa đơn</button>
                                </div>`;
 
                         return `
                             <div class="col-md-6 col-lg-4 col-xl-3">
-                                <div class="glass-card billing-card p-4 h-100 d-flex flex-column hover-lift" style="border-top: 4px solid var(--primary); border-radius: 1.25rem;">
+                                <div class="glass-card billing-card card-status-${r.invoice ? r.invoice.invoiceStatus : 'Unpaid'} p-4 h-100 d-flex flex-column hover-lift">
                                     <div class="text-center mb-4 position-relative">
                                         <div class="position-absolute top-0 end-0 opacity-25">
                                             <i class="bi bi-receipt fs-3"></i>
@@ -87,6 +87,7 @@
                                         <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-pill px-4 py-2 fw-bolder fs-5 shadow-sm border border-primary border-opacity-25">
                                             Phòng ${r.roomCode}
                                         </div>
+                                        ${!r.isOccupied ? `<div class="mt-2"><span class="badge bg-secondary bg-opacity-10 text-muted border border-secondary border-opacity-25"><i class="bi bi-person-x me-1"></i> Trống</span></div>` : ''}
                                     </div>
                                     
                                     <div class="d-flex gap-3 mb-4">
@@ -145,7 +146,12 @@
 
 window.loadBillingData = loadBillingData;
 window.changeBillingPage = changeBillingPage;
-        async function showRecordMeterModal(roomId, roomCode) {
+        async function showRecordMeterModal(roomId, roomCode, isOccupied = true) {
+            if (!isOccupied) {
+                showPremiumToast("Phòng trống", `Phòng ${roomCode} hiện không có người ở. Bạn không thể nhập chỉ số điện nước cho phòng trống.`, "warning");
+                return;
+            }
+
             document.getElementById('record-roomId').value = roomId;
             document.getElementById('record-room-code').innerText = roomCode;
             document.getElementById('record-elec-curr').value = '';
@@ -367,7 +373,12 @@ window.calculateWaterUsage = calculateWaterUsage;
 
 
 window.submitMeterReading = submitMeterReading;
-        async function generateInvoice(roomId) {
+        async function generateInvoice(roomId, isOccupied = true) {
+            if (!isOccupied) {
+                showPremiumToast("Phòng trống", "Phòng hiện đang trống, không thể lập hóa đơn.", "warning");
+                return;
+            }
+
             const month = document.getElementById('billing-month').value;
             const year = document.getElementById('billing-year').value;
             

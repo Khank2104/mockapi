@@ -145,6 +145,19 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 - **Dark Mode Optimization**: Conducted a full UI audit and fixed "hidden text" accessibility issues across Floor Map, Overview, and Meter Reading modules.
 - **Error Handling Standardization**: Unified the global notification system with premium toasts and standardized catch-block logging.
 
+### [2026-05-16] - Session 36: Theme System Design & Silent Refresh
+- **Centralized Theme System**: Introduced `theme-system.css` for global management of design tokens (Colors, Shadows, Gradients). Cleaned up legacy CSS in `glassmorphism.css` and `premium_dashboard.css`.
+- **Sidebar UX Fix**: Implemented independent scrolling for the sidebar navigation to ensure accessibility of the logout button.
+- **Security Hardening (Silent Refresh)**: Implemented a Global Fetch Interceptor to handle automatic `/RefreshToken` calls, preventing session interruptions.
+- **Workflow Cleanup**: Removed redundant "Quick Initialize" button from the Billing module.
+
+## 🚀 Future Roadmap: Smart Metering Ecosystem
+*Vision locked, implementation scheduled after current system stabilization:*
+1. **Phase 1:** DB & Storage upgrade for proof-of-reading images.
+2. **Phase 2:** AI/OCR Integration (Tesseract.js) for scanning meter digits.
+3. **Phase 3:** Tenant Self-Service portal for transparent submissions.
+4. **Phase 4:** Full IoT Integration for smart electric/water meters.
+
 ---
 
 ## 3. Current System Status
@@ -173,9 +186,11 @@ The system utilizes a highly NORMALIZED SQL Server design to ensure performance 
 - [x] JWT Refresh Token & Revocation Mechanism
 - [x] Advanced Revenue Analytics & Charts
 
-**Pending / Future Enhancements:**
-- [ ] Online Payment Gateway Integration (VNPay, Momo) - Deprioritized due to robust VietQR implementation.
-- [ ] Mobile Application (Flutter/React Native)
+**Pending / Future Enhancements (Bug Fixing Priority):**
+- [ ] Fix "Empty Room" title visibility in Dark Mode (color clash).
+- [ ] Comprehensive Modal Audit for Design System consistency.
+- [ ] Implement Smart Metering Ecosystem (post-stabilization).
+- [ ] Mobile Application (Flutter/React Native).
 
 ---
 
