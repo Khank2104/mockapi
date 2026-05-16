@@ -296,11 +296,19 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        if (context.Database.IsRelational())
+        
+        Log.Information("Ensuring database is created...");
+        if (app.Environment.IsProduction())
         {
-            Log.Information("Applying migrations...");
+            // For Render Demo (SQLite): Bypass SQL Server migrations and generate schema directly
+            context.Database.EnsureCreated();
+            Log.Information("SQLite Database created successfully via EnsureCreated.");
+        }
+        else if (context.Database.IsRelational())
+        {
+            // For Local Development (SQL Server): Use standard migrations
             context.Database.Migrate();
-            Log.Information("Migrations applied successfully.");
+            Log.Information("SQL Server Migrations applied successfully.");
         }
     }
     catch (Exception ex)
