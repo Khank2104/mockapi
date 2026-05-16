@@ -281,6 +281,9 @@ try
 
     app.MapStaticAssets();
 
+    // IMPORTANT: MapControllers() must be called to register API endpoints
+    app.MapControllers();
+
     app.MapControllerRoute(
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}")

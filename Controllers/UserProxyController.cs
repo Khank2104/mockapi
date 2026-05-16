@@ -87,6 +87,7 @@ namespace UserManagementSystem.Controllers
             return Ok(new { success = true, data = ToResponse(user) });
         }
 
+        [AllowAnonymous]
         [EnableRateLimiting("login")]
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
