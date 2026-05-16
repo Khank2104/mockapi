@@ -89,7 +89,16 @@ window.markNotificationAsRead = async function(id, element) {
         if (result.success) {
             element.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
             element.classList.add('bg-secondary bg-opacity-10', 'opacity-75');
-            loadNotificationsCount();
+            // UX: Decrement badge immediately without async re-fetch
+            const badge = document.getElementById('notification-count');
+            if (badge && !badge.classList.contains('d-none')) {
+                const current = parseInt(badge.innerText) || 0;
+                if (current <= 1) {
+                    badge.classList.add('d-none');
+                } else {
+                    badge.innerText = current - 1;
+                }
+            }
         }
     } catch (e) {
         console.error("Error marking notification as read:", e);
@@ -106,7 +115,9 @@ window.markAllNotificationsAsRead = async function() {
                 el.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
                 el.classList.add('bg-secondary bg-opacity-10', 'opacity-75');
             });
-            loadNotificationsCount();
+            // UX: Hide badge immediately without async re-fetch
+            const badge = document.getElementById('notification-count');
+            if (badge) badge.classList.add('d-none');
         }
     } catch (e) {
         console.error("Error marking all notifications as read:", e);
