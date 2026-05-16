@@ -53,8 +53,19 @@ try
         });
 
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
+    {
+        if (builder.Environment.IsProduction())
+        {
+            // Use SQLite for Render Demo (Free & Self-contained)
+            options.UseSqlite("Data Source=app.db");
+        }
+        else
+        {
+            // Use SQL Server for Local Development
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+                o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+        }
+    });
 
     builder.Services.AddHttpClient();
     builder.Services.AddSignalR();
@@ -275,7 +286,27 @@ try
     app.MapHub<NotificationHub>("/notificationHub");
 
     Log.Information("=== QuanTro Application Started Successfully ===");
-    app.Run();
+    // --- DATABASE MIGRATION ON STARTUP ---
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        if (context.Database.IsRelational())
+        {
+            Log.Information("Applying migrations...");
+            context.Database.Migrate();
+            Log.Information("Migrations applied successfully.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while migrating the database.");
+    }
+}
+
+app.Run();
 }
 catch (Exception ex)
 {
