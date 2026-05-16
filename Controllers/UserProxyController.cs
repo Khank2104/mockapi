@@ -30,23 +30,26 @@ namespace UserManagementSystem.Controllers
 
         private void SetTokensAndCookies(string accessToken, string refreshToken)
         {
+            // Secure=true is required on Render (HTTPS). Secure=false for local HTTP dev.
+            bool isSecure = _env.IsProduction();
+
             var accessCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false, // Phải để false khi chạy http://localhost
-                Expires = DateTime.UtcNow.AddMinutes(15),
-                SameSite = SameSiteMode.Lax,
-                Path = "/"
+                Secure   = isSecure,
+                Expires  = DateTime.UtcNow.AddMinutes(15),
+                SameSite = isSecure ? SameSiteMode.None : SameSiteMode.Lax,
+                Path     = "/"
             };
             Response.Cookies.Append("X-Access-Token", accessToken, accessCookieOptions);
 
             var refreshCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false,
-                Expires = DateTime.UtcNow.AddDays(7),
-                SameSite = SameSiteMode.Strict, // Tăng cường CSRF bảo mật cho refresh token
-                Path = "/api/UserProxy/RefreshToken"
+                Secure   = isSecure,
+                Expires  = DateTime.UtcNow.AddDays(7),
+                SameSite = isSecure ? SameSiteMode.None : SameSiteMode.Strict,
+                Path     = "/api/UserProxy/RefreshToken"
             };
             Response.Cookies.Append("X-Refresh-Token", refreshToken, refreshCookieOptions);
         }
