@@ -11,9 +11,9 @@
             .withAutomaticReconnect()
             .build();
 
-        connection.on("NewNotification", (userId) => {
+        connection.on("NewNotification", (title, message, type) => {
             if (typeof showPremiumToast === 'function') {
-                showPremiumToast("Thông báo", "Bạn có thông báo mới trong hệ thống.", "info");
+                showPremiumToast(title || "Thông báo", message || "Bạn có thông báo mới trong hệ thống.", type || "info");
             }
             loadNotificationsCount();
         });
@@ -65,13 +65,13 @@ window.toggleNotificationModal = async function() {
                 list.innerHTML = '<div class="text-center py-4 opacity-50">Không có thông báo nào.</div>';
             } else {
                 list.innerHTML = result.data.map(n => `
-                    <div class="p-3 mb-2 rounded-3 ${n.isRead ? 'bg-secondary bg-opacity-10 opacity-75' : 'bg-primary bg-opacity-10 border-start border-primary border-4'}" 
-                         onclick="markNotificationAsRead(${n.id}, this)" style="cursor: pointer;">
+                    <div class="p-3 mb-2 rounded-3 ${n.isRead ? 'info-display-box opacity-75' : 'info-display-box border-start border-primary border-4 shadow-sm'}" 
+                         onclick="markNotificationAsRead(${n.id}, this)" style="cursor: pointer; background: var(--bg-tertiary);">
                         <div class="d-flex justify-content-between align-items-start mb-1">
-                            <span class="fw-bold small">${n.title}</span>
+                            <span class="fw-bold small text-primary">${n.title}</span>
                             <span class="x-small text-muted">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</span>
                         </div>
-                        <div class="small text-muted">${n.message}</div>
+                        <div class="small" style="color: var(--text-main);">${n.message}</div>
                     </div>
                 `).join('');
             }
@@ -86,8 +86,8 @@ window.markNotificationAsRead = async function(id, element) {
         const res = await fetch(`/api/NotificationProxy/MarkAsRead/${id}`, { method: 'POST' });
         const result = await res.json();
         if (result.success) {
-            element.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
-            element.classList.add('bg-secondary bg-opacity-10', 'opacity-75');
+            element.classList.remove('border-start', 'border-primary', 'border-4', 'shadow-sm');
+            element.classList.add('opacity-75');
             loadNotificationsCount();
         }
     } catch (e) {
@@ -102,9 +102,12 @@ window.markAllNotificationsAsRead = async function() {
         if (result.success) {
             const items = document.querySelectorAll('#notification-list > div');
             items.forEach(el => {
-                el.classList.remove('bg-primary', 'bg-opacity-10', 'border-start', 'border-primary', 'border-4');
-                el.classList.add('bg-secondary bg-opacity-10', 'opacity-75');
+                el.classList.remove('border-start', 'border-primary', 'border-4', 'shadow-sm');
+                el.classList.add('opacity-75');
             });
+            if (typeof showPremiumToast === 'function') {
+                showPremiumToast("Thành công", "Đã đánh dấu tất cả thông báo là đã đọc.", "success");
+            }
             loadNotificationsCount();
         }
     } catch (e) {

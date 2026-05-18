@@ -1,11 +1,24 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Cài đặt hệ thống";
+
+    var userRole = User.FindFirst("role")?.Value?.ToLower();
+    var backUrl = (userRole == "superuser" || userRole == "admin") ? "/Admin" : "/Home/Index";
 }
 
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
+
+            <!-- Back Button -->
+            <div class="mb-4 animate-fade-in">
+                <a href="@backUrl" class="btn btn-link text-decoration-none p-0 d-inline-flex align-items-center text-muted hover-primary transition-all" style="gap: 8px;">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle border border-secondary border-opacity-10 bg-secondary bg-opacity-10" style="width: 38px; height: 38px; transition: all 0.3s ease;">
+                        <i class="bi bi-arrow-left fs-5"></i>
+                    </div>
+                    <span class="fw-semibold small">Quay lại Dashboard</span>
+                </a>
+            </div>
 
             <!-- Header -->
             <div class="mb-5 animate-fade-in">
@@ -91,7 +104,7 @@
         transition: all 0.3s ease;
     }
     .hover-effect:hover {
-        background-color: #f8fafc !important;
+        background-color: var(--bg-secondary) !important;
         border-color: var(--primary) !important;
         transform: translateY(-2px);
         box-shadow: var(--shadow-md);
@@ -103,5 +116,5 @@
 </style>
 
 @section Scripts {
-    <script src="~/js/settings.js"></script>
+    <script src="~/js/modules/admin/settings.js" asp-append-version="true"></script>
 }

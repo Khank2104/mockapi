@@ -146,7 +146,11 @@ const BillingMgmt = (() => {
                 `;
                 
                 detailContent.innerHTML = html;
-                const modal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
+                const modalEl = document.getElementById('invoiceDetailModal');
+                if (modalEl && modalEl.parentNode !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
+                const modal = new bootstrap.Modal(modalEl);
                 
                 // Add click handler to Pay Now button in modal footer
                 const payBtn = document.querySelector('#invoiceDetailModal .btn-premium');
@@ -156,7 +160,7 @@ const BillingMgmt = (() => {
                     };
                     // Hide if already paid
                     // Hide if already paid or pending
-                    payBtn.style.display = (i.invoiceStatus === 'Paid' || i.invoiceStatus === 'Pending') ? 'none' : 'block';
+                    payBtn.style.display = (i.status === 'Paid' || i.status === 'Pending') ? 'none' : 'block';
                 }
                 
                 modal.show();

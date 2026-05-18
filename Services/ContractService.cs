@@ -8,11 +8,13 @@ namespace UserManagementSystem.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly IAccessControlService _accessControl;
+        private readonly INotificationService _notificationService;
 
-        public ContractService(ApplicationDbContext db, IAccessControlService accessControl)
+        public ContractService(ApplicationDbContext db, IAccessControlService accessControl, INotificationService notificationService)
         {
             _db = db;
             _accessControl = accessControl;
+            _notificationService = notificationService;
         }
 
         public async Task<ApiResponse> CreateContractAsync(ContractRequest request, int adminId)
@@ -115,6 +117,18 @@ namespace UserManagementSystem.Services
             room.Status = "Occupied";
             await _db.SaveChangesAsync();
 
+            // Gửi thông báo cho khách thuê nếu đã có tài khoản
+            var tenant = await _db.Tenants.FindAsync(request.PrimaryTenantId);
+            if (tenant != null && tenant.UserId.HasValue)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    tenant.UserId.Value,
+                    "Hợp đồng mới",
+                    $"Bạn vừa được thêm vào hợp đồng thuê phòng {room.RoomCode}. Thời hạn: từ {request.StartDate:dd/MM/yyyy} đến {request.EndDate:dd/MM/yyyy}.",
+                    "success"
+                );
+            }
+
             return new ApiResponse { Success = true, Message = "Tạo hợp đồng thành công.", Data = contract };
         }
 
@@ -148,6 +162,16 @@ namespace UserManagementSystem.Services
                 tenant.TenantStatus = "MovedOut";
                 if (tenant.UserId.HasValue)
                 {
+                    // Gửi thông báo trước khi xóa user (User sẽ không nhận được vì đã bị xóa, 
+                    // nhưng nếu chỉ thanh lý mà không xóa user, ta nên thông báo. Ở đây dự án xóa user nên ta có thể bỏ qua gửi thông báo, 
+                    // hoặc nếu logic sau này đổi không xóa user, thông báo này sẽ có tác dụng).
+                    await _notificationService.CreateNotificationAsync(
+                        tenant.UserId.Value,
+                        "Thanh lý hợp đồng",
+                        $"Hợp đồng phòng {contract.Room.RoomCode} của bạn đã được thanh lý.",
+                        "warning"
+                    );
+
                     var user = await _db.Users.FindAsync(tenant.UserId.Value);
                     if (user != null) _db.Users.Remove(user);
                     tenant.UserId = null;

@@ -406,7 +406,7 @@
             if (files && files[0]) {
                 const file = files[0];
                 if (!file.type.startsWith('image/')) {
-                    alert('Vui lòng chọn tệp hình ảnh.');
+                    Swal.fire({ icon: 'warning', title: 'Lỗi định dạng', text: 'Vui lòng chọn tệp hình ảnh.', confirmButtonColor: '#6366f1' });
                     return;
                 }
                 const reader = new FileReader();
@@ -448,8 +448,16 @@
                 });
                 
                 if (response.status === 401) {
-                    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để gửi minh chứng.');
-                    window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Hết phiên đăng nhập',
+                        text: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để gửi minh chứng.',
+                        confirmButtonText: 'Đăng nhập',
+                        confirmButtonColor: '#6366f1',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                    });
                     return;
                 }
 

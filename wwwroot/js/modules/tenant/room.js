@@ -54,7 +54,8 @@ const RoomMgmt = (() => {
                 occupantList.innerHTML = '<div class="text-center py-4 text-muted small">Chưa có thông tin cư dân</div>';
             } else {
                 occupantList.innerHTML = data.occupants.map(o => `
-                    <div class="d-flex align-items-center gap-3 p-3 bg-body bg-opacity-5 rounded-4 mb-3 border border-light animate-fade-in">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-4 mb-3 border animate-fade-in"
+                         style="background: var(--bg-secondary) !important; border-color: var(--border-light) !important;">
                         <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(o.fullName)}&background=6366f1&color=fff" class="rounded-circle shadow-sm" style="width:42px; height:42px; border: 2px solid var(--bg-primary);">
                         <div class="flex-grow-1">
                             <div class="fw-bold text-main small">${o.fullName}</div>
@@ -72,22 +73,15 @@ const RoomMgmt = (() => {
         const serviceList = document.getElementById('service-list');
         if (serviceList) {
             if (!data.services || data.services.length === 0) {
-                serviceList.innerHTML = '<div class="col-12 text-center py-4 text-muted small">Không có dịch vụ đi kèm</div>';
+                serviceList.innerHTML = '<div class="text-white opacity-50 xx-small">Không có dịch vụ đi kèm</div>';
             } else {
                 serviceList.innerHTML = data.services.map(s => `
-                    <div class="col-md-6 animate-fade-in">
-                        <div class="d-flex justify-content-between align-items-center p-3 bg-body bg-opacity-5 rounded-4 border border-light h-100 transition-smooth hover-lift">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="stat-icon-mini bg-primary-soft text-primary" style="width: 32px; height: 32px; font-size: 0.8rem;">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                </div>
-                                <div class="fw-bold text-main x-small text-uppercase letter-spacing-1">${s.serviceName}</div>
-                            </div>
-                            <div class="text-end">
-                                <div class="fw-extrabold text-main small">${(s.unitPrice || 0).toLocaleString('vi-VN')}đ</div>
-                                <div class="xx-small text-muted">${s.calculationType === 'metered' ? 'Số' : 'Tháng'}</div>
-                            </div>
-                        </div>
+                    <div class="p-2 px-3 rounded-pill border border-white border-opacity-15 d-flex align-items-center gap-2"
+                         style="background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); transition: all 0.2s;"
+                         title="${s.serviceName}">
+                        <i class="bi bi-check-circle-fill text-warning xx-small"></i>
+                        <span class="fw-bold text-white xx-small text-uppercase letter-spacing-1" style="font-size: 0.65rem;">${s.serviceName}:</span>
+                        <span class="fw-extrabold text-white xx-small" style="font-size: 0.65rem;">${(s.unitPrice || 0).toLocaleString('vi-VN')}đ/${s.calculationType === 'metered' ? 'Số' : 'Tháng'}</span>
                     </div>
                 `).join('');
             }

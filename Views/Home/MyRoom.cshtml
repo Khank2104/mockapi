@@ -4,88 +4,110 @@
 }
 
 <div class="profile-container animate-fade-in" id="room-info-content">
+
+    <!-- Page Title -->
+    <div class="d-flex align-items-center gap-3 mb-5">
+        <div class="stat-icon-mini bg-primary-soft text-primary" style="width:48px;height:48px;border-radius:16px;font-size:1.4rem;">
+            <i class="bi bi-house-door-fill"></i>
+        </div>
+        <div>
+            <h2 class="fw-extrabold mb-0" style="color:var(--text-main);">Phòng của tôi</h2>
+            <p class="x-small text-muted mb-0 fw-medium">Thông tin chi tiết về phòng ở và các dịch vụ đang sử dụng</p>
+        </div>
+    </div>
+
     <div class="row g-4">
         <div class="col-lg-8">
-            <!-- Room Identity Card -->
-            <div class="glass-card premium-hero-banner border-0 p-4 p-md-5 mb-4 shadow-premium position-relative overflow-hidden">
-                <div class="position-relative d-flex align-items-center gap-4 flex-wrap" style="z-index: 2;">
-                    <div class="hero-icon-box bg-white bg-opacity-20 text-white rounded-4 d-flex align-items-center justify-content-center shadow-lg border border-white border-opacity-20" style="width: 72px; height: 72px;">
-                        <i class="bi bi-house-door-fill fs-1"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="badge bg-black bg-opacity-20 text-white p-2 px-3 rounded-pill mb-2 xx-small fw-bold uppercase letter-spacing-1">
-                            <i class="bi bi-shield-check me-2 text-warning"></i>Phòng ở đang thuê
+            <!-- Room Identity Card (Rich Gradient Hero) -->
+            <div class="glass-card premium-hero-banner border-0 p-4 p-md-5 mb-4 shadow-premium position-relative overflow-hidden" style="border-radius:24px;min-height:unset;">
+                <div class="position-relative d-flex flex-column gap-4" style="z-index: 2; width: 100%;">
+                    
+                    <!-- Top Row: Room info and Rent/Checkin Stats -->
+                    <div class="d-flex align-items-center justify-content-between gap-4 flex-wrap w-100">
+                        <!-- Room basic info -->
+                        <div class="d-flex align-items-center gap-4 flex-wrap">
+                            <div class="d-flex align-items-center justify-content-center shadow-lg border border-white border-opacity-20"
+                                 style="width:76px;height:76px;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);border-radius:22px;">
+                                <i class="bi bi-house-door-fill text-white" style="font-size:2.2rem;"></i>
+                            </div>
+                            <div>
+                                <div class="badge mb-2 fw-bold xx-small uppercase letter-spacing-1"
+                                     style="background:rgba(0,0,0,0.18);color:white;border-radius:20px;padding:0.3rem 0.75rem;">
+                                    <i class="bi bi-shield-check me-1 text-warning"></i>Phòng ở đang thuê
+                                </div>
+                                <h1 class="fw-extrabold text-white mb-0 display-5" id="room-code-display">---</h1>
+                                <p class="mb-0 fw-medium" style="color:rgba(255,255,255,0.85);font-size:0.95rem;" id="motel-name-display">Đang tải...</p>
+                            </div>
                         </div>
-                        <h1 class="fw-extrabold text-white mb-0 display-5" id="room-code-display">---</h1>
-                        <p class="text-white opacity-75 fs-6 mb-0" id="motel-name-display">Đang tải tên khu trọ...</p>
+
+                        <!-- Rent & Check-in Stats -->
+                        <div class="d-flex flex-wrap gap-3 align-items-center">
+                            <!-- Stat Capsule 1: Rent -->
+                            <div class="p-2 px-3 rounded-4 border border-white border-opacity-15 d-flex align-items-center gap-3"
+                                 style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);min-width: 170px;">
+                                <div class="stat-icon-mini m-0" style="background:rgba(255,255,255,0.2);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-cash-stack text-white"></i>
+                                </div>
+                                <div>
+                                    <span class="d-block xx-small fw-bold text-white opacity-75 uppercase letter-spacing-1" style="font-size:0.65rem;">Giá Thuê</span>
+                                    <span class="d-block fw-extrabold text-white" id="room-rent-display" style="font-size:0.9rem;">---</span>
+                                </div>
+                            </div>
+
+                            <!-- Stat Capsule 2: Check-in Date -->
+                            <div class="p-2 px-3 rounded-4 border border-white border-opacity-15 d-flex align-items-center gap-3"
+                                 style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);min-width: 170px;">
+                                <div class="stat-icon-mini m-0" style="background:rgba(255,255,255,0.2);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-calendar-check text-white"></i>
+                                </div>
+                                <div>
+                                    <span class="d-block xx-small fw-bold text-white opacity-75 uppercase letter-spacing-1" style="font-size:0.65rem;">Ngày Vào Ở</span>
+                                    <span class="d-block fw-extrabold text-white" id="checkin-date-display" style="font-size:0.9rem;">---</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Bottom Row: Services directly inside the banner as beautiful glass tags -->
+                    <div class="border-top border-white border-opacity-15 pt-3 w-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-plug-fill text-warning xx-small"></i>
+                            <span class="xx-small text-white opacity-75 fw-bold uppercase letter-spacing-1">Dịch vụ đi kèm</span>
+                        </div>
+                        <div id="service-list" class="d-flex flex-wrap gap-2">
+                            <!-- Services populated dynamically by JS as beautiful glass tags -->
+                            <div class="text-white opacity-50 xx-small">Đang tải danh sách dịch vụ...</div>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="hero-bg-shapes">
-                    <div class="shape shape-1" style="width: 300px; height: 300px; background: rgba(255,255,255,0.05); top: -100px; right: -100px; border-radius: 50%;"></div>
-                </div>
-            </div>
-
-            <!-- Detailed Stats Grid -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                    <div class="glass-card border-0 shadow-premium p-4 h-100 stats-card">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="stat-icon-mini bg-danger-soft text-danger me-3">
-                                <i class="bi bi-cash-stack"></i>
-                            </div>
-                            <h6 class="fw-bold mb-0">Giá thuê hàng tháng</h6>
-                        </div>
-                        <h3 class="fw-extrabold mb-1 text-danger" id="room-rent-display">---</h3>
-                        <p class="x-small text-muted mb-0 fw-medium">Chưa bao gồm dịch vụ & điện nước</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="glass-card border-0 shadow-premium p-4 h-100 stats-card">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="stat-icon-mini bg-primary-soft text-primary me-3">
-                                <i class="bi bi-calendar-check"></i>
-                            </div>
-                            <h6 class="fw-bold mb-0">Ngày vào ở</h6>
-                        </div>
-                        <h3 class="fw-extrabold mb-1" id="checkin-date-display">---</h3>
-                        <p class="x-small text-muted mb-0 fw-medium">Bắt đầu tính hợp đồng</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Service List -->
-            <div class="glass-card border-0 shadow-premium p-4 p-md-5">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold mb-0 text-main"><i class="bi bi-plug-fill me-2 text-warning"></i>Dịch vụ đang sử dụng</h5>
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3">Gói dịch vụ cố định</span>
-                </div>
-                <div id="service-list" class="row g-3">
-                    <!-- Services populated by JS -->
-                    <div class="text-center py-5 w-100">
-                        <div class="spinner-border spinner-border-sm text-primary opacity-50 mb-2"></div>
-                        <div class="x-small text-muted">Đang tải danh sách dịch vụ...</div>
-                    </div>
+                    <div class="shape" style="width:300px;height:300px;background:rgba(255,255,255,0.05);top:-100px;right:-100px;border-radius:50%;position:absolute;"></div>
+                    <div class="shape" style="width:180px;height:180px;background:rgba(255,255,255,0.04);bottom:-60px;left:30%;border-radius:50%;position:absolute;"></div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-4">
             <!-- Occupant List -->
-            <div class="glass-card border-0 shadow-premium p-4">
+            <div class="glass-card border-0 shadow-premium p-4" style="border-radius:24px;">
                 <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h5 class="fw-bold mb-0 text-main"><i class="bi bi-people-fill me-2 text-primary"></i>Cư dân trong phòng</h5>
-                    <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1 x-small" id="occupant-count">0/0</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-people-fill text-primary fs-5"></i>
+                        <h5 class="fw-extrabold mb-0" style="color:var(--text-main);">Cư dân trong phòng</h5>
+                    </div>
+                    <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1 x-small fw-bold" id="occupant-count">0/0</div>
                 </div>
-                <div id="occupant-list" class="dashboard-list">
+                <div id="occupant-list">
                     <!-- Occupants populated by JS -->
-                    <div class="text-center py-4 opacity-50 small">Đang tải...</div>
+                    <div class="text-center py-4 x-small" style="color:var(--text-muted);opacity:0.6;">Đang tải...</div>
                 </div>
-                
-                <div class="mt-4 pt-4 border-top border-secondary border-opacity-10">
-                    <div class="alert alert-info bg-info bg-opacity-10 border-0 rounded-4 p-3 mb-0">
-                        <div class="d-flex gap-3 align-items-center">
-                            <i class="bi bi-info-circle-fill fs-5"></i>
-                            <p class="xx-small mb-0 opacity-75 fw-medium">Liên hệ Admin nếu bạn muốn thay đổi hoặc thêm thành viên mới vào phòng.</p>
+
+                <div class="mt-4 pt-4" style="border-top:1px solid var(--border-light);">
+                    <div class="p-3 rounded-4" style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.15);">
+                        <div class="d-flex gap-3 align-items-start">
+                            <i class="bi bi-info-circle-fill text-info fs-5 mt-1"></i>
+                            <p class="xx-small mb-0 fw-medium" style="color:var(--text-muted);">Liên hệ Admin nếu bạn muốn thay đổi hoặc thêm thành viên mới vào phòng.</p>
                         </div>
                     </div>
                 </div>

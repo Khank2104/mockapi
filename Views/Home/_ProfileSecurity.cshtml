@@ -1,14 +1,14 @@
 <div class="animate-fade-in">
     <h3 class="profile-section-title"><i class="bi bi-shield-lock"></i> Bảo mật tài khoản</h3>
     
-    <div class="glass-card bg-secondary bg-opacity-10 bg-opacity-50 border-0 p-4 mb-4">
+    <div class="info-display-box p-4 mb-4 border-0">
         <div class="d-flex align-items-center gap-3">
-            <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle">
-                <i class="bi bi-key-fill fs-4"></i>
+            <div class="stat-icon-mini bg-warning-soft text-warning" style="width:48px;height:48px;border-radius:16px;font-size:1.4rem;">
+                <i class="bi bi-key-fill"></i>
             </div>
             <div>
-                <h4 class="fs-6 fw-bold mb-1">Đổi mật khẩu định kỳ</h4>
-                <p class="text-muted small mb-0">Bạn nên thay đổi mật khẩu ít nhất 3 tháng một lần để bảo vệ tài khoản.</p>
+                <h4 class="fs-6 fw-bold mb-1" style="color:var(--text-main);">Đổi mật khẩu định kỳ</h4>
+                <p class="x-small mb-0" style="color:var(--text-muted);">Bạn nên thay đổi mật khẩu ít nhất 3 tháng một lần để bảo vệ tài khoản.</p>
             </div>
         </div>
     </div>
@@ -37,7 +37,7 @@
     </form>
     
     <div class="mt-4 pt-3 border-top">
-        <button class="btn btn-dark px-5 py-3 rounded-pill shadow-lg" onclick="SecurityMgmt.changePassword()">
+        <button class="btn btn-premium px-5 py-3 rounded-pill shadow-lg" onclick="SecurityMgmt.changePassword()">
             <i class="bi bi-arrow-repeat me-2"></i> Cập nhật mật khẩu
         </button>
     </div>
