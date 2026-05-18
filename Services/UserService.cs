@@ -26,7 +26,8 @@ namespace UserManagementSystem.Services
             Role = u.Role?.RoleName ?? "tenant",
             Avatar = u.Avatar,
             Phone = u.Phone,
-            Status = u.Status
+            Status = u.Status,
+            OtpEnabled = u.OtpEnabled
         };
 
         public async Task<User?> GetByUsernameAsync(string username)
@@ -138,9 +139,20 @@ namespace UserManagementSystem.Services
             return new ApiResponse { Success = true, Message = "Xóa người dùng thành công." };
         }
 
-        public Task<ApiResponse> ToggleOtpAsync(int userId, bool otpEnabled)
+        public async Task<ApiResponse> ToggleOtpAsync(int userId, bool otpEnabled)
         {
-            return Task.FromResult(new ApiResponse { Success = false, Message = "Tính năng OTP không khả dụng trong phiên bản này." });
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null) return new ApiResponse { Success = false, Message = "Người dùng không tồn tại." };
+
+            user.OtpEnabled = otpEnabled;
+            user.UpdatedAt = DateTime.Now;
+            await _db.SaveChangesAsync();
+
+            await _notificationService.CreateNotificationAsync(userId, "Bảo mật tài khoản", 
+                $"Xác thực 2 lớp (OTP qua Email) đã được {(otpEnabled ? "BẬT" : "TẮT")}.", 
+                otpEnabled ? "success" : "warning");
+
+            return new ApiResponse { Success = true, Message = "Cập nhật thành công." };
         }
 
         public async Task<ApiResponse> ChangePasswordAsync(int userId, ChangePasswordRequest request)

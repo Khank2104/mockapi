@@ -14,6 +14,7 @@
     
     <!-- Centralized Theme System (The Heart) -->
     <link rel="stylesheet" href="~/css/core/theme-system.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/glassmorphism.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/layouts/premium-layout.css" asp-append-version="true" />
 </head>
 <body>
@@ -28,7 +29,7 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar shadow-premium">
             <div class="sidebar-logo">
-                <div class="stat-icon bg-white bg-opacity-10 text-white mb-0" style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <div class="stat-icon text-white mb-0" style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.1) !important;">
                     <i class="bi bi-house-heart-fill fs-4"></i>
                 </div>
                 <div class="ms-3">
@@ -67,6 +68,11 @@
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")" href="/Home/Profile">
                             <i class="bi bi-person-badge-fill"></i> <span>Hồ sơ cá nhân</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "active" : "")" href="/Settings">
+                            <i class="bi bi-gear-fill"></i> <span>Cài đặt hệ thống</span>
                         </a>
                     </li>
                 </ul>
@@ -142,7 +148,7 @@
 
     <!-- Toast Container -->
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-        <div id="liveToast" class="toast align-items-center border-0 rounded-4 shadow-lg glass-card" role="alert" aria-live="assertive" aria-atomic="true" style="background: rgba(255, 255, 255, 0.9);">
+        <div id="liveToast" class="toast align-items-center border-0 rounded-4 shadow-lg glass-card" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body d-flex align-items-center">
                     <i class="bi me-3 fs-4" id="toastIcon"></i>
@@ -151,7 +157,7 @@
                         <div id="toastMessage" class="small opacity-75"></div>
                     </div>
                 </div>
-                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     </div>

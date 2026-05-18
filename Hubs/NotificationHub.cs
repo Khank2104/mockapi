@@ -10,6 +10,10 @@ namespace UserManagementSystem.Hubs
             var user = Context.User;
             var userId = user?.FindFirst("id")?.Value;
             var role = user?.FindFirst("role")?.Value;
+            var isAuthenticated = user?.Identity?.IsAuthenticated == true;
+
+            Serilog.Log.Information("SignalR Connection: IsAuthenticated={IsAuthenticated}, UserId={UserId}, Role={Role}", 
+                isAuthenticated, userId, role);
 
             if (!string.IsNullOrEmpty(userId))
             {

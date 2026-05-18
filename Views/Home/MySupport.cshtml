@@ -4,17 +4,35 @@
 }
 
 <div class="profile-container animate-fade-in">
+
+    <!-- Page Title -->
+    <div class="d-flex align-items-center gap-3 mb-5">
+        <div class="stat-icon-mini bg-warning-soft text-warning" style="width:48px;height:48px;border-radius:16px;font-size:1.4rem;">
+            <i class="bi bi-tools"></i>
+        </div>
+        <div>
+            <h2 class="fw-extrabold mb-0" style="color:var(--text-main);">Hỗ trợ &amp; Yêu cầu</h2>
+            <p class="x-small text-muted mb-0 fw-medium">Gửi yêu cầu sửa chữa hoặc phản ánh tình trạng phòng</p>
+        </div>
+    </div>
+
     <div class="row g-4">
+        <!-- Create Request Panel -->
         <div class="col-lg-4">
-            <div class="glass-card p-4 border-0 shadow-premium sticky-top" style="top: 100px; z-index: 10;">
-                <div class="badge bg-primary bg-opacity-10 text-primary p-2 px-3 rounded-pill mb-3 border border-primary border-opacity-10">
-                    <i class="bi bi-send-fill me-2"></i>Tạo yêu cầu mới
+            <div class="glass-card p-4 border-0 shadow-premium sticky-top" style="top:100px;z-index:10;border-radius:24px;">
+                <div class="mb-4">
+                    <div class="badge bg-primary bg-opacity-10 text-primary p-2 px-3 rounded-pill mb-3 x-small fw-bold"
+                         style="border:1px solid rgba(99,102,241,0.15);">
+                        <i class="bi bi-send-fill me-2"></i>Tạo yêu cầu mới
+                    </div>
+                    <h4 class="fw-extrabold mb-1" style="color:var(--text-main);">Bạn cần hỗ trợ?</h4>
+                    <p class="x-small mb-0" style="color:var(--text-muted);">Điền thông tin và chúng tôi sẽ phản hồi trong 24 giờ.</p>
                 </div>
-                <h4 class="fw-bold mb-4 text-main">Bạn cần hỗ trợ?</h4>
+
                 <form id="addRequestForm">
                     <div class="profile-input-group">
                         <label class="profile-label">Loại yêu cầu</label>
-                        <select id="req-type" class="form-select profile-input border-0 shadow-none">
+                        <select id="req-type" class="form-select profile-input">
                             <option value="Repair">Sửa chữa thiết bị</option>
                             <option value="Complaint">Khiếu nại / Góp ý</option>
                             <option value="Security">An ninh / Trật tự</option>
@@ -23,33 +41,38 @@
                     </div>
                     <div class="profile-input-group">
                         <label class="profile-label">Tiêu đề</label>
-                        <input type="text" id="req-title" class="form-control profile-input border-0 shadow-none" placeholder="VD: Hư vòi nước">
+                        <input type="text" id="req-title" class="form-control profile-input" placeholder="VD: Hư vòi nước">
                     </div>
                     <div class="profile-input-group">
                         <label class="profile-label">Mô tả chi tiết</label>
-                        <textarea id="req-desc" class="form-control profile-input border-0 shadow-none" rows="4" placeholder="Mô tả cụ thể vấn đề..."></textarea>
+                        <textarea id="req-desc" class="form-control profile-input" rows="4" placeholder="Mô tả cụ thể vấn đề..."></textarea>
                     </div>
-                    <button type="button" class="btn btn-premium w-100 py-3 rounded-4 shadow-premium mt-3 fw-bold" onclick="SupportMgmt.submitRequest()">
-                        Gửi yêu cầu ngay
+                    <button type="button" class="btn btn-premium w-100 py-3 rounded-4 shadow-premium mt-2 fw-bold"
+                            onclick="SupportMgmt.submitRequest()">
+                        <i class="bi bi-send me-2"></i>Gửi yêu cầu ngay
                     </button>
                 </form>
             </div>
         </div>
 
+        <!-- Request History -->
         <div class="col-lg-8">
-            <div class="glass-card p-4 p-md-5 border-0 shadow-premium h-100">
+            <div class="glass-card p-4 p-md-5 border-0 shadow-premium" style="border-radius:24px;">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <h5 class="fw-bold mb-0 text-main"><i class="bi bi-chat-left-text-fill me-2 text-warning"></i>Lịch sử yêu cầu</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-chat-left-text-fill text-warning fs-5"></i>
+                        <h5 class="fw-extrabold mb-0" style="color:var(--text-main);">Lịch sử yêu cầu</h5>
+                    </div>
                     <div class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-2 x-small fw-bold">
                         PHẢN HỒI: TRONG 24H
                     </div>
                 </div>
-                
+
                 <div id="request-list-container" class="dashboard-list">
                     <!-- Requests populated by JS -->
                     <div class="text-center py-5">
                         <div class="spinner-border text-warning opacity-25 mb-3" role="status"></div>
-                        <div class="x-small text-muted fw-medium">Đang tải lịch sử hỗ trợ...</div>
+                        <div class="x-small fw-medium" style="color:var(--text-muted);">Đang tải lịch sử hỗ trợ...</div>
                     </div>
                 </div>
             </div>

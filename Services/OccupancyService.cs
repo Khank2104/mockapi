@@ -8,11 +8,13 @@ namespace UserManagementSystem.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly IAccessControlService _accessControl;
+        private readonly INotificationService _notificationService;
 
-        public OccupancyService(ApplicationDbContext db, IAccessControlService accessControl)
+        public OccupancyService(ApplicationDbContext db, IAccessControlService accessControl, INotificationService notificationService)
         {
             _db = db;
             _accessControl = accessControl;
+            _notificationService = notificationService;
         }
 
         public async Task<ApiResponse> AddOccupantAsync(RoomOccupantRequest request, int adminId)
@@ -49,6 +51,18 @@ namespace UserManagementSystem.Services
 
             _db.RoomOccupants.Add(occupant);
             await _db.SaveChangesAsync();
+
+            var tenant = await _db.Tenants.FindAsync(request.TenantId);
+            if (tenant != null && tenant.UserId.HasValue)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    tenant.UserId.Value,
+                    "Cập nhật phòng ở",
+                    $"Bạn đã được thêm vào phòng {room.RoomCode}.",
+                    "info"
+                );
+            }
+
             return new ApiResponse { Success = true, Message = "Thêm người ở vào phòng thành công." };
         }
 
@@ -67,6 +81,18 @@ namespace UserManagementSystem.Services
             occupant.UpdatedAt = DateTime.Now;
 
             await _db.SaveChangesAsync();
+
+            var tenant = await _db.Tenants.FindAsync(occupant.TenantId);
+            if (tenant != null && tenant.UserId.HasValue)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    tenant.UserId.Value,
+                    "Cập nhật phòng ở",
+                    $"Bạn đã được báo rời khỏi phòng {occupant.Room.RoomCode}.",
+                    "warning"
+                );
+            }
+
             return new ApiResponse { Success = true, Message = "Đã xác nhận khách rời phòng." };
         }
     }

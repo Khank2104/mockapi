@@ -11,7 +11,8 @@
             <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="changeGlobalMotel('tenants')">
                 <i class="bi bi-arrow-left-right me-1"></i> Đổi khu trọ
             </button>
-            <div class="search-box bg-white bg-opacity-50 rounded-pill px-3 py-2 border">
+            <div class="search-box rounded-pill px-3 py-2 border"
+                 style="background: var(--bg-secondary) !important; border-color: var(--border-light) !important;">
                 <i class="bi bi-search text-muted me-2"></i>
                 <input type="text" id="tenant-search-input" class="border-0 bg-transparent" placeholder="Tìm tên, SĐT, CCCD..." onkeyup="if(event.key==='Enter') loadTenantsData(1, _globalSelectedMotelId)">
             </div>

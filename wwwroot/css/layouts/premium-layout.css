@@ -761,7 +761,6 @@ body {
 .contract-card:hover, .billing-card:hover, .motel-selection-card:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-xl);
-    background: #ffffff !important;
 }
 
 /* Status-based Variants for Cards */
@@ -812,15 +811,66 @@ body {
     margin-bottom: 1rem;
 }
 
-.billing-status-Paid { color: #166534; background: #dcfce7; }
-.billing-status-Pending { color: #92400e; background: #fef3c7; }
-.billing-status-Unpaid { color: #991b1b; background: #fee2e2; }
 /* =======================================================
    RESIDENT PORTAL & SHARED PREMIUM COMPONENTS
    ======================================================= */
 
 .shadow-premium {
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Gradient Icon Circles (used in tenant quick-access cards) */
+.bg-primary-gradient { background: var(--primary-gradient) !important; }
+.bg-success-gradient { background: var(--gradient-success) !important; }
+.bg-warning-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; }
+.bg-info-gradient    { background: var(--secondary-gradient) !important; }
+.bg-danger-gradient  { background: var(--gradient-danger) !important; }
+
+.shadow-primary { box-shadow: 0 8px 20px -5px rgba(99, 102, 241, 0.4) !important; }
+.shadow-success { box-shadow: 0 8px 20px -5px rgba(16, 185, 129, 0.4) !important; }
+.shadow-warning { box-shadow: 0 8px 20px -5px rgba(245, 158, 11, 0.4) !important; }
+.shadow-info    { box-shadow: 0 8px 20px -5px rgba(14, 165, 233, 0.4) !important; }
+
+/* Dashboard list items */
+.dashboard-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    margin-bottom: 0.5rem;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    transition: var(--transition-smooth);
+}
+
+.dashboard-list-item:hover {
+    background: rgba(99, 102, 241, 0.06);
+    border-color: rgba(99, 102, 241, 0.2);
+    transform: translateX(4px);
+}
+
+[data-theme='dark'] .dashboard-list-item {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .dashboard-list-item:hover {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Hover card (inline-rendered items) */
+.hover-card {
+    border-radius: 12px;
+    transition: var(--transition-smooth);
+}
+.hover-card:hover {
+    background: rgba(99, 102, 241, 0.05) !important;
+    transform: translateX(3px);
+}
+[data-theme='dark'] .hover-card:hover {
+    background: rgba(99, 102, 241, 0.12) !important;
 }
 
 /* Premium Hero Banner */
@@ -1028,4 +1078,358 @@ body {
 
 [data-theme='dark'] .profile-nav-link:hover {
     background: rgba(255, 255, 255, 0.05);
+}
+
+/* =====================================================
+   PROFILE INPUT STYLES (Theme-aware)
+   ===================================================== */
+.profile-input-group {
+    margin-bottom: 1.25rem;
+}
+
+.profile-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.profile-input {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-main) !important;
+    border-radius: 12px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    transition: var(--transition-smooth);
+}
+
+.profile-input:focus {
+    background: var(--bg-primary) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+    outline: none !important;
+}
+
+.profile-input::placeholder {
+    color: var(--text-dim) !important;
+    opacity: 0.6;
+}
+
+[data-theme='dark'] .profile-input {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .profile-input:focus {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border-color: var(--primary) !important;
+}
+
+.profile-section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.profile-section-title i {
+    color: var(--primary);
+}
+
+/* Info display boxes (read-only fields) */
+.info-display-box {
+    padding: 0.75rem 1rem;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+[data-theme='dark'] .info-display-box {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+}
+
+/* Fix Bootstrap bg-secondary bg-opacity-10 in dark mode for display boxes */
+[data-theme='dark'] .bg-secondary.bg-opacity-10 {
+    background-color: rgba(100, 116, 139, 0.2) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* border-top in dark mode */
+[data-theme='dark'] .border-top {
+    border-top-color: rgba(255,255,255,0.08) !important;
+}
+
+[data-theme='dark'] .border-bottom {
+    border-bottom-color: rgba(255,255,255,0.06) !important;
+}
+
+/* =====================================================
+   QUICK ACCESS CARDS (Tenant dashboard)
+   ===================================================== */
+.quick-access-card {
+    background: var(--card-bg) !important;
+    border-radius: 24px;
+    transition: var(--transition-smooth);
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-main) !important;
+}
+
+.quick-access-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15) !important;
+    border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+[data-theme='dark'] .quick-access-card {
+    background: rgba(30, 41, 59, 0.7) !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+[data-theme='dark'] .quick-access-card:hover {
+    background: rgba(30, 41, 59, 0.9) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+.quick-access-card h6 {
+    color: var(--text-main) !important;
+}
+
+/* hover-up utility */
+.hover-up {
+    transition: var(--transition-smooth);
+}
+.hover-up:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md) !important;
+}
+
+/* floating animation for hero illustration */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-14px); }
+}
+
+.floating-animation {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* animate-fade-in */
+@keyframes animFadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: animFadeIn 0.5s ease-out both;
+}
+
+/* btn-link-premium */
+.btn-link-premium {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    transition: var(--transition-smooth);
+}
+
+.btn-link-premium:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--primary-dark);
+}
+
+[data-theme='dark'] .btn-link-premium:hover {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+/* =====================================================
+   BILLING STATUS PILLS (Dark-mode aware)
+   ===================================================== */
+.billing-status-Paid   { color: #166534; background: #dcfce7; border-radius: 20px; padding: 0.2rem 0.65rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.billing-status-Pending { color: #92400e; background: #fef3c7; border-radius: 20px; padding: 0.2rem 0.65rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.billing-status-Unpaid  { color: #991b1b; background: #fee2e2; border-radius: 20px; padding: 0.2rem 0.65rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.billing-status-Overdue { color: #7c2d12; background: #ffedd5; border-radius: 20px; padding: 0.2rem 0.65rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+
+[data-theme='dark'] .billing-status-Paid   { color: #4ade80; background: rgba(34, 197, 94, 0.15); }
+[data-theme='dark'] .billing-status-Pending { color: #fbbf24; background: rgba(245, 158, 11, 0.15); }
+[data-theme='dark'] .billing-status-Unpaid  { color: #f87171; background: rgba(239, 68, 68, 0.15); }
+[data-theme='dark'] .billing-status-Overdue { color: #fb923c; background: rgba(249, 115, 22, 0.15); }
+
+/* x-small */
+.x-small { font-size: 0.78rem; }
+
+/* fw-extrabold */
+.fw-extrabold { font-weight: 800 !important; }
+
+/* =====================================================
+   MODAL DARK MODE
+   ===================================================== */
+[data-theme='dark'] .modal-content {
+    background: #1e293b !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .modal-footer {
+    border-top-color: rgba(255,255,255,0.06) !important;
+}
+
+[data-theme='dark'] .modal-body {
+    color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .btn-light {
+    background: rgba(255,255,255,0.08) !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+/* Alert dark mode */
+[data-theme='dark'] .alert-info.bg-info.bg-opacity-10 {
+    background: rgba(14, 165, 233, 0.12) !important;
+    color: #7dd3fc !important;
+    border-color: rgba(14, 165, 233, 0.2) !important;
+}
+
+[data-theme='dark'] .alert-secondary {
+    background: rgba(100, 116, 139, 0.15) !important;
+    color: var(--text-secondary) !important;
+    border: none !important;
+}
+
+/* Spinner in dark mode */
+[data-theme='dark'] .spinner-border.text-primary { opacity: 0.6; }
+[data-theme='dark'] .spinner-border.text-warning { opacity: 0.6; }
+
+/* Badge in dark mode - fix Bootstrap opacity classes */
+[data-theme='dark'] .badge.bg-primary.bg-opacity-10 {
+    background: rgba(99, 102, 241, 0.2) !important;
+    color: #a5b4fc !important;
+}
+
+[data-theme='dark'] .badge.bg-secondary.bg-opacity-10 {
+    background: rgba(100, 116, 139, 0.2) !important;
+    color: var(--text-muted) !important;
+}
+
+/* Service list in MyRoom */
+.service-item-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: var(--transition-smooth);
+}
+
+.service-item-card:hover {
+    border-color: rgba(99, 102, 241, 0.25);
+    background: rgba(99, 102, 241, 0.04);
+    transform: translateY(-2px);
+}
+
+[data-theme='dark'] .service-item-card {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(255,255,255,0.06);
+}
+
+[data-theme='dark'] .service-item-card:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.25);
+}
+
+/* Occupant list item */
+.occupant-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    background: var(--bg-tertiary);
+    border-radius: 14px;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-light);
+    transition: var(--transition-smooth);
+}
+
+[data-theme='dark'] .occupant-item {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(255,255,255,0.05);
+}
+
+/* Support request status indicators */
+.req-status-Pending   { color: #d97706; background: rgba(245,158,11,0.12); }
+.req-status-InProgress { color: #2563eb; background: rgba(99,102,241,0.12); }
+.req-status-Resolved  { color: #059669; background: rgba(16,185,129,0.12); }
+.req-status-Closed    { color: var(--text-dim); background: rgba(100,116,139,0.12); }
+
+[data-theme='dark'] .req-status-Pending   { color: #fbbf24; }
+[data-theme='dark'] .req-status-InProgress { color: #818cf8; }
+[data-theme='dark'] .req-status-Resolved  { color: #34d399; }
+
+/* dot-indicator colors */
+.dot-indicator.positive { background: var(--success) !important; }
+.dot-indicator.negative { background: var(--danger) !important; }
+.dot-indicator.neutral  { background: #94a3b8 !important; }
+
+/* =========================================================
+   DARK MODE OVERRIDES FOR MODALS & TABLES
+   ========================================================= */
+[data-theme='dark'] .modal-content {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-light) !important;
+    box-shadow: var(--shadow-xl) !important;
+}
+
+[data-theme='dark'] .modal-header,
+[data-theme='dark'] .modal-footer {
+    border-color: var(--border-light) !important;
+}
+
+[data-theme='dark'] .modal-title,
+[data-theme='dark'] .modal-body h4 {
+    color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .table {
+    --bs-table-color: var(--text-main);
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--border-light);
+    --bs-table-striped-color: var(--text-main);
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+    --bs-table-active-color: var(--text-main);
+    --bs-table-active-bg: rgba(255, 255, 255, 0.05);
+    --bs-table-hover-color: var(--text-main);
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.03);
+    color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .table th,
+[data-theme='dark'] .table td {
+    border-color: var(--border-light) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme='dark'] .table .text-muted {
+    color: var(--text-muted) !important;
 }

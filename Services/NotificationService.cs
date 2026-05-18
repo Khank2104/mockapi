@@ -33,7 +33,7 @@ namespace UserManagementSystem.Services
             await _db.SaveChangesAsync();
 
             // Chỉ gửi cho user đích thông qua Group (Bảo mật luồng dữ liệu)
-            await _hubContext.Clients.Group($"User_{userId}").SendAsync("NewNotification", userId);
+            await _hubContext.Clients.Group($"User_{userId}").SendAsync("NewNotification", title, message, type);
         }
 
         public async Task CreateNotificationForRolesAsync(string[] roles, string title, string message, string type = "info")
@@ -62,7 +62,7 @@ namespace UserManagementSystem.Services
                 // Chỉ gửi cho các Role liên quan thông qua Groups
                 foreach (var role in roles)
                 {
-                    await _hubContext.Clients.Group($"Role_{role}").SendAsync("NewRoleNotification", roles);
+                    await _hubContext.Clients.Group($"Role_{role}").SendAsync("NewRoleNotification", title, message, type);
                 }
             }
         }

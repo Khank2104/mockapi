@@ -63,7 +63,8 @@ namespace UserManagementSystem.Controllers
             Role = u.Role?.RoleName?.ToLower() ?? "tenant",
             Avatar = u.Avatar,
             Phone = u.Phone,
-            Status = u.Status
+            Status = u.Status,
+            OtpEnabled = u.OtpEnabled
         };
 
         private int GetRequesterId()
@@ -102,6 +103,18 @@ namespace UserManagementSystem.Controllers
 
             if (user != null && _authService.VerifyPassword(request.Password, user))
             {
+                if (user.OtpEnabled)
+                {
+                    string otp = _otpService.GenerateAndSaveOtp($"LOGIN_OTP_{user.Username}", TimeSpan.FromMinutes(5));
+                    await _emailService.SendEmailAsync(user.Email, "Mã xác thực đăng nhập 2-Factor (2FA)",
+                        $"<h3>Xin chào {user.Name},</h3>" +
+                        $"<p>Bạn đã kích hoạt tính năng bảo mật xác thực 2 lớp (2FA). Mã OTP để đăng nhập vào hệ thống của bạn là: " +
+                        $"<b style='font-size:28px;color:#6366f1'>{otp}</b></p>" +
+                        $"<p>Mã này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>");
+
+                    return Ok(new ApiResponse { Success = true, Message = "OTP_REQUIRED" });
+                }
+
                 string accessToken = _authService.GenerateJwtToken(user);
                 string refreshToken = _authService.GenerateRefreshToken();
                 await _userService.UpdateRefreshTokenAsync(user, refreshToken, DateTime.UtcNow.AddDays(7));
@@ -110,6 +123,30 @@ namespace UserManagementSystem.Controllers
             }
 
             return Unauthorized(new ApiResponse { Success = false, Message = "Tài khoản hoặc mật khẩu không chính xác." });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("VerifyOTP")]
+        public async Task<IActionResult> VerifyOTP([FromBody] VerifyOtpRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Otp))
+                return BadRequest(new ApiResponse { Success = false, Message = "Thông tin xác thực không đầy đủ." });
+
+            var user = await _userService.GetByUsernameAsync(request.Username);
+            if (user == null || user.Status != "Active")
+                return BadRequest(new ApiResponse { Success = false, Message = "Tài khoản không hợp lệ hoặc đã bị khóa." });
+
+            bool isOtpValid = _otpService.VerifyAndRemoveOtp($"LOGIN_OTP_{request.Username}", request.Otp);
+            if (!isOtpValid)
+                return BadRequest(new ApiResponse { Success = false, Message = "Mã OTP không chính xác hoặc đã hết hạn." });
+
+            // Cấp tokens và cho phép đăng nhập
+            string accessToken = _authService.GenerateJwtToken(user);
+            string refreshToken = _authService.GenerateRefreshToken();
+            await _userService.UpdateRefreshTokenAsync(user, refreshToken, DateTime.UtcNow.AddDays(7));
+            SetTokensAndCookies(accessToken, refreshToken);
+
+            return Ok(new ApiResponse { Success = true, Data = new { User = ToResponse(user) } });
         }
 
         [HttpPost("Logout")]
@@ -238,6 +275,30 @@ namespace UserManagementSystem.Controllers
 
             await _userService.UpdatePasswordOnlyAsync(user, _authService.HashPassword(request.NewPassword));
             return Ok(new { success = true, message = "Đổi mật khẩu thành công!" });
+        }
+
+        [Authorize]
+        [HttpGet("GetSettings")]
+        public async Task<IActionResult> GetSettings()
+        {
+            var reqId = GetRequesterId();
+            if (reqId == 0) return Unauthorized();
+
+            var user = await _userService.GetByIdAsync(reqId);
+            if (user == null) return NotFound();
+
+            return Ok(new { success = true, data = new { otpEnabled = user.OtpEnabled } });
+        }
+
+        [Authorize]
+        [HttpPost("ToggleOTP")]
+        public async Task<IActionResult> ToggleOTP([FromBody] ToggleOtpRequest request)
+        {
+            var reqId = GetRequesterId();
+            if (reqId == 0) return Unauthorized();
+
+            var result = await _userService.ToggleOtpAsync(reqId, request.OtpEnabled);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
     }
 }

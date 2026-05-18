@@ -34,6 +34,7 @@ namespace UserManagementSystem.Models
         [MaxLength(500)]
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
+        public bool OtpEnabled { get; set; } = false;
 
 
         [ForeignKey("CreatedBy")]
@@ -62,6 +63,7 @@ namespace UserManagementSystem.Models
         public string? Avatar { get; set; }
         public string? Phone { get; set; }
         public string Status { get; set; } = "Active";
+        public bool OtpEnabled { get; set; } = false;
     }
 
     public class LoginRequest
@@ -105,6 +107,17 @@ namespace UserManagementSystem.Models
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
         public object? Data { get; set; }
+    }
+
+    public class ToggleOtpRequest
+    {
+        public bool OtpEnabled { get; set; }
+    }
+
+    public class VerifyOtpRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Otp { get; set; } = string.Empty;
     }
 
     // --- Legacy Requests (Removed or moved to Phase2DTOs) ---

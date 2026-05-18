@@ -6,53 +6,74 @@
 <div class="profile-container animate-fade-in">
     <div class="row justify-content-center">
         <div class="col-lg-11">
+
+            <!-- Page Title -->
+            <div class="d-flex align-items-center gap-3 mb-5">
+                <div class="stat-icon-mini bg-primary-soft text-primary" style="width:48px;height:48px;border-radius:16px;font-size:1.4rem;">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </div>
+                <div>
+                    <h2 class="fw-extrabold mb-0" style="color:var(--text-main);">Hóa đơn của tôi</h2>
+                    <p class="x-small text-muted mb-0 fw-medium">Theo dõi tình trạng thanh toán và lịch sử hóa đơn</p>
+                </div>
+            </div>
+
             <!-- Financial Summary Row -->
             <div class="row g-4 mb-5">
+                <!-- Balance Card -->
                 <div class="col-md-4">
-                    <div class="glass-card border-0 shadow-premium p-4 h-100 stats-card">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="stat-icon-mini bg-success-soft text-success me-3">
+                    <div class="glass-card border-0 shadow-premium p-4 h-100" style="border-radius:20px;">
+                        <div class="d-flex align-items-center mb-3 gap-3">
+                            <div class="stat-icon-mini bg-success-soft text-success" style="border-radius:14px;width:44px;height:44px;font-size:1.2rem;">
                                 <i class="bi bi-wallet2"></i>
                             </div>
-                            <h6 class="fw-bold mb-0">Số dư hiện tại</h6>
+                            <span class="fw-bold" style="color:var(--text-main);">Số dư hiện tại</span>
                         </div>
-                        <h2 class="fw-extrabold mb-1" id="current-balance">0 đ</h2>
+                        <h2 class="fw-extrabold mb-2" id="current-balance" style="color:var(--text-main);">0 đ</h2>
                         <div class="d-flex align-items-center gap-2">
-                            <div id="balance-indicator" class="dot-indicator"></div>
-                            <span class="x-small text-muted fw-medium" id="balance-status">Đang tải...</span>
+                            <div id="balance-indicator" class="dot-indicator neutral"></div>
+                            <span class="x-small fw-medium" style="color:var(--text-muted);" id="balance-status">Đang tải...</span>
                         </div>
                     </div>
                 </div>
+
+                <!-- Paid This Month -->
                 <div class="col-md-4">
-                    <div class="glass-card border-0 shadow-premium p-4 h-100 stats-card">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="stat-icon-mini bg-primary-soft text-primary me-3">
+                    <div class="glass-card border-0 shadow-premium p-4 h-100" style="border-radius:20px;">
+                        <div class="d-flex align-items-center mb-3 gap-3">
+                            <div class="stat-icon-mini bg-primary-soft text-primary" style="border-radius:14px;width:44px;height:44px;font-size:1.2rem;">
                                 <i class="bi bi-cash-coin"></i>
                             </div>
-                            <h6 class="fw-bold mb-0">Đã đóng tháng này</h6>
+                            <span class="fw-bold" style="color:var(--text-main);">Đã đóng tháng này</span>
                         </div>
-                        <h2 class="fw-extrabold mb-1 text-primary" id="paid-this-month">0 đ</h2>
-                        <p class="x-small text-muted mb-0 fw-medium">Thanh toán đã được xác nhận</p>
+                        <h2 class="fw-extrabold mb-2 text-primary" id="paid-this-month">0 đ</h2>
+                        <p class="x-small mb-0 fw-medium" style="color:var(--text-muted);">Thanh toán đã được xác nhận</p>
                     </div>
                 </div>
+
+                <!-- Total Pending - Gradient Card -->
                 <div class="col-md-4">
-                    <div class="glass-card border-0 shadow-premium p-4 h-100 stats-card premium-hero-banner text-white">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="stat-icon-mini bg-white bg-opacity-20 text-white me-3">
-                                <i class="bi bi-clock-history"></i>
+                    <div class="glass-card border-0 shadow-premium p-4 h-100 premium-hero-banner text-white"
+                         style="border-radius:20px;min-height:unset;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;">
+                        <div class="d-flex align-items-center mb-3 gap-3">
+                            <div class="stat-icon-mini me-0" style="background:rgba(255,255,255,0.2);border-radius:14px;width:44px;height:44px;font-size:1.2rem;">
+                                <i class="bi bi-clock-history text-white"></i>
                             </div>
-                            <h6 class="fw-bold mb-0">Tổng chưa thanh toán</h6>
+                            <span class="fw-bold">Tổng chưa thanh toán</span>
                         </div>
-                        <h2 class="fw-extrabold mb-1" id="total-pending">0 đ</h2>
-                        <p class="x-small opacity-75 mb-0 fw-medium">Vui lòng hoàn tất sớm nhất có thể</p>
+                        <h2 class="fw-extrabold mb-2" id="total-pending">0 đ</h2>
+                        <p class="x-small mb-0 fw-medium opacity-75">Vui lòng hoàn tất sớm nhất có thể</p>
                     </div>
                 </div>
             </div>
 
             <!-- Invoice History List -->
-            <div class="glass-card border-0 shadow-premium p-4 p-md-5">
+            <div class="glass-card border-0 shadow-premium p-4 p-md-5" style="border-radius:24px;">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <h4 class="fw-bold mb-0 text-main"><i class="bi bi-receipt-cutoff me-2 text-primary"></i>Lịch sử hóa đơn</h4>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-receipt-cutoff text-primary fs-5"></i>
+                        <h4 class="fw-extrabold mb-0" style="color:var(--text-main);">Lịch sử hóa đơn</h4>
+                    </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-2 x-small fw-bold">
                             TỔNG CỘNG: <span id="invoice-count" class="text-primary">0</span> BẢN GHI
@@ -64,23 +85,26 @@
                     <!-- Invoices populated by JS -->
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary opacity-50 mb-3" role="status"></div>
-                        <div class="x-small text-muted fw-medium">Hệ thống đang trích xuất dữ liệu hóa đơn...</div>
+                        <div class="x-small fw-medium" style="color:var(--text-muted);">Hệ thống đang trích xuất dữ liệu hóa đơn...</div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
 <!-- Invoice Detail Modal -->
 <div class="modal fade" id="invoiceDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 rounded-5 shadow-lg">
             <div class="modal-body p-5" id="invoice-detail-content">
                 <!-- Content populated by JS -->
             </div>
             <div class="modal-footer border-0 p-4">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-sm px-4 rounded-pill fw-bold"
+                    style="background:var(--bg-tertiary);color:var(--text-main);border:1px solid var(--border-light);"
+                    data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-premium rounded-pill px-4">Thanh toán ngay</button>
             </div>
         </div>
